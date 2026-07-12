@@ -24,7 +24,9 @@ Welcome! This guide takes you from a blank computer to running the project and m
 - [ ] Download from https://code.visualstudio.com and install with defaults. This is your editor — where you'll read code, edit files, and run everything.
 
 ### 4. Git
-- [ ] Download from https://git-scm.com and install. Accept the defaults on every screen **except two**: on "Choosing the default editor used by Git" select "Use Visual Studio Code as Git's default editor", and on "Adjusting the name of the initial branch" select "Override the default branch name" and keep it as "main". Git is how we share code.
+- [ ] Download from https://git-scm.com and install. Git is how we share code. Accept the defaults on every screen EXCEPT these two:
+  - **"Choosing the default editor used by Git"** → pick **"Use Visual Studio Code as Git's default editor"** from the dropdown (the installer itself warns you off Vim).
+  - **"Adjusting the name of the initial branch"** → pick **"Override the default branch name"** and keep it as **`main`** (matches GitHub's standard).
 - [ ] Verify: in a NEW PowerShell window, `git --version` prints a number.
 
 ### 5. GitHub account
@@ -52,7 +54,7 @@ This repo is set up so any major AI coding tool understands the project: the pro
   cd C:\dev
   git clone https://github.com/JL42R/rutgers-tour.git
   ```
-  (The URL looks like `https://github.com/<owner>/rutgers-tour.git` — copy it from the green "Code" button on the GitHub page.)
+  (If that URL fails, you haven't accepted the repo invite yet — see step 5.)
 
 ### 8. Open and run it
 - [ ] VS Code → **File → Open Folder** → `C:\dev\rutgers-tour`. Click "Yes, I trust the authors."
@@ -71,7 +73,7 @@ This repo is set up so any major AI coding tool understands the project: the pro
 ## Part 3 — Learn the project (~1–2 hours, can split across days)
 
 ### 9. Read, in this order
-Quick map of the docs: `README.md` is the front door for humans (GitHub shows it first on the repo page), `DESIGN.md` holds the technical decisions and the reasoning behind them, `docs/ONBOARDING.md` (this file) is the one-time setup guide, and `AGENTS.md` is the same orientation written for AI coding tools — they read it automatically, so humans rarely need to open it.
+Why several docs? Each has one job: `README.md` = front door for humans (GitHub shows it on the repo page), `DESIGN.md` = technical decisions and the reasoning behind them, `docs/ONBOARDING.md` = this one-time setup guide, `AGENTS.md` = the same orientation written for AI coding tools, which read it automatically (humans rarely open it).
 - [ ] `README.md` — 5 minutes, the map of the repo.
 - [ ] `DESIGN.md` — the project bible. Every technical decision is already made and explained here. **Do not relitigate locked decisions** — if you think one is wrong, raise it at the weekly sync.
 - [ ] `docs/JULY_PLAN.md` — roles and schedule (you have one!).
@@ -121,4 +123,4 @@ Quick map of the docs: `README.md` is the front door for humans (GitHub shows it
 
 ---
 
-**That's setup done.** From here, `README.md` is your day-to-day reference and `DESIGN.md` is where the technical decisions live.
+**Setup complete!** From here on, `README.md` is your day-to-day reference, `DESIGN.md` is where technical decisions live, and GitHub Issues is where work gets claimed. Welcome aboard — see you at the weekly sync.
