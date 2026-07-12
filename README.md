@@ -30,12 +30,12 @@ src/dialogue.js     conversation UI
 public/zones.json   THE map: zones, walls, NPC placement — most edits happen here
 public/dialogue/    one JSON per NPC's conversation — writers edit these, no code
 public/splats/      trained .spz / .compressed.ply zone files go here
-.claude/skills/     pipeline procedures, auto-loaded by Claude Code
+.claude/skills/     pipeline procedures — auto-loaded by Claude Code, readable by any AI assistant
 ```
 
 ## Adding a real captured zone
 
-Follow `.claude/skills/training-pipeline/SKILL.md` (or just ask Claude Code: *"walk me through processing my new capture"*). Short version: capture → `ns-process-data` → `ns-train splatfacto` → export → clean in SuperSplat → drop the file in `public/splats/` → update `zones.json`.
+Follow `.claude/skills/training-pipeline/SKILL.md` (or just ask your AI assistant: *"walk me through processing my new capture"* — Claude Code auto-loads this skill; with other tools, point it at the file directly). Short version: capture → `ns-process-data` → `ns-train splatfacto` → export → clean in SuperSplat → drop the file in `public/splats/` → update `zones.json`.
 
 ## Working with AI coding assistants
 
