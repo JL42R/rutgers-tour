@@ -1,0 +1,25 @@
+{
+  "name": "Riley the Guide",
+  "nodes": {
+    "start": {
+      "text": "Hey, welcome to the tour prototype! I'm a placeholder NPC — everything you see here gets replaced by a photorealistic scan of the CORE building. Want to know how this all works?",
+      "choices": [
+        { "label": "How does this demo work?", "next": "how" },
+        { "label": "What replaces this gray room?", "next": "splat" },
+        { "label": "I'm just testing. Bye!", "next": "bye" }
+      ]
+    },
+    "how": {
+      "text": "You walked over to me and pressed E — that's the whole interaction model. I'm defined in zones.json with a position and a radius, and my lines live in a JSON file anyone on the team can edit without touching code.",
+      "next": "start"
+    },
+    "splat": {
+      "text": "This gray box room is a stand-in built from the collision walls. Once the team trains a Gaussian splat of the real CORE first floor, that file drops into public/splats/, one line changes in zones.json, and you'll be walking through a photoreal scan instead.",
+      "next": "start"
+    },
+    "bye": {
+      "text": "See you around! Try walking into the walls — you'll slide along them instead of passing through. That's the collision system doing its job.",
+      "end": true
+    }
+  }
+}

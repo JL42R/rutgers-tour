@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+# Large raw data stays out of git — only finished splats in public/splats go in
+captures/
+data/
+outputs/
+exports/
