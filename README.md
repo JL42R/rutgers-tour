@@ -4,6 +4,10 @@ A web-based, photorealistic 3D tour of the CORE building first floor, built with
 
 **Read `DESIGN.md` first** — it is the project bible (all technical decisions + roadmap). `docs/JULY_PLAN.md` has the schedule and team roles. `AGENTS.md` is instructions for AI assistants and is read automatically by Claude Code and other AGENTS.md-aware tools.
 
+## Which doc do I need?
+
+New teammate? Start with [`docs/ONBOARDING.md`](docs/ONBOARDING.md) — one-time setup, about half a day. Already set up? This README is your day-to-day reference.
+
 ## Run it (2 minutes)
 
 Requirements: [Node.js LTS](https://nodejs.org) installed.

@@ -118,3 +118,7 @@ Quick map of the docs: `README.md` is the front door for humans (GitHub shows it
 - **NPC**: a tour guide character. Its script is a JSON file in `public/dialogue/` — editing it requires zero code.
 - **Placeholder room**: the gray grid room you see before a zone has a real scan.
 - **Vite / npm run dev**: the tool that serves the app locally and auto-refreshes your browser on save.
+
+---
+
+**That's setup done.** From here, `README.md` is your day-to-day reference and `DESIGN.md` is where the technical decisions live.
