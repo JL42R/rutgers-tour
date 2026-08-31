@@ -2,7 +2,7 @@
 
 A web-based, photorealistic 3D tour of the CORE building first floor, built with 3D Gaussian Splatting. Senior Design, Group 9.
 
-**Read `DESIGN.md` first** — it is the project bible (all technical decisions + roadmap). `docs/JULY_PLAN.md` has the schedule and team roles. `AGENTS.md` is instructions for AI assistants and is read automatically by Claude Code and other AGENTS.md-aware tools.
+**Read `DESIGN.md` first** — it is the project bible (all technical decisions + roadmap). `docs/PLAN.md` has the schedule and team roles. `AGENTS.md` is instructions for AI assistants and is read automatically by Claude Code and other AGENTS.md-aware tools.
 
 ## Which doc do I need?
 

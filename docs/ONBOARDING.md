@@ -76,7 +76,7 @@ This repo is set up so any major AI coding tool understands the project: the pro
 Why several docs? Each has one job: `README.md` = front door for humans (GitHub shows it on the repo page), `DESIGN.md` = technical decisions and the reasoning behind them, `docs/ONBOARDING.md` = this one-time setup guide, `AGENTS.md` = the same orientation written for AI coding tools, which read it automatically (humans rarely open it).
 - [ ] `README.md` — 5 minutes, the map of the repo.
 - [ ] `DESIGN.md` — the project bible. Every technical decision is already made and explained here. **Do not relitigate locked decisions** — if you think one is wrong, raise it at the weekly sync.
-- [ ] `docs/JULY_PLAN.md` — roles and schedule (you have one!).
+- [ ] `docs/PLAN.md` — roles and schedule (you have one!).
 
 ### 10. Meet your AI assistant
 - [ ] Open your assistant's panel in VS Code with the project folder open.
@@ -101,12 +101,14 @@ Why several docs? Each has one job: `README.md` = front door for humans (GitHub 
 4. Stuck for more than ~30 minutes? Ask the group chat. Struggling silently helps nobody.
 5. Weekly 30-min sync: demo what works, update the plan.
 
-## Who does what (from docs/JULY_PLAN.md)
-- **Johnny — integration lead + capture/training pipeline.** His laptop has the only NVIDIA GPU, so ALL splat training happens there. Nobody else needs WSL2/Nerfstudio/CUDA — skip anything about those.
-- **Teammate A — frontend/navigation:** movement feel, mobile controls, loading UI, zone transitions.
-- **Teammate B — NPC & dialogue systems:** interaction triggers, dialogue UI, accessibility.
-- **Teammate C — content & testing:** writing dialogue JSON from department info, NPC portraits, placing NPCs/collision in zones.json, coordinating user tests.
-(Final role assignments at the first August meeting.)
+## Who does what (from docs/PLAN.md)
+Tasks are unassigned by design — see `docs/PLAN.md` §1. Pick up whatever's open in the current
+week's list, say so in the team chat before you start, and speak up within 48 hours if you stall.
+
+The one hard constraint is hardware: **Johnny's laptop is the only machine with a GPU capable of
+training**, so every training task lands there by necessity. Nobody else needs WSL2/Nerfstudio/CUDA
+— skip anything about those. Everything else — capture, dialogue writing, collision authoring,
+testing, deployment — is open to whoever has time.
 
 ## Troubleshooting quick hits
 - `npm` "cannot be loaded / running scripts is disabled" → you skipped step 2 (execution policy).
