@@ -6,7 +6,7 @@ A web-based, photorealistic 3D tour of the CORE building first floor, built with
 
 ## Which doc do I need?
 
-New teammate? Start with [`docs/ONBOARDING.md`](docs/ONBOARDING.md) — one-time setup, about half a day. Already set up? This README is your day-to-day reference.
+New teammate? Start with [`docs/ONBOARDING.md`](docs/ONBOARDING.md) — one-time setup, about half a day. Already set up? This README is your day-to-day reference. Integration lead setting up the training environment? Use [`docs/SETUP_TRAINING.md`](docs/SETUP_TRAINING.md) instead — WSL2/CUDA/Nerfstudio setup is Johnny-only; everyone else stays on `docs/ONBOARDING.md`.
 
 ## Run it (2 minutes)
 

@@ -7,3 +7,6 @@ captures/
 data/
 outputs/
 exports/
+tmp/
+*.ply
+*.mp4
