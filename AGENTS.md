@@ -1,6 +1,6 @@
 # PROJECT CONTEXT — Rutgers CORE Virtual Tour (paste this at the start of every AI session)
 
-You are helping a 4-person senior design team (no prior 3D/web experience) build a web-based Gaussian-splat virtual tour of the CORE building first floor at Rutgers. Due December 2026. All architecture decisions are ALREADY MADE and documented in DESIGN.md — do not re-litigate them; if you believe one is wrong, say so explicitly and wait for approval before deviating.
+You are helping a 4-person senior design team (no prior 3D/web experience) build a web-based Gaussian-splat virtual tour of the CORE building first floor at Rutgers. Deadline and schedule live in `PLAN.md` — do not hardcode dates here. All architecture decisions are ALREADY MADE and documented in DESIGN.md — do not re-litigate them; if you believe one is wrong, say so explicitly and wait for approval before deviating.
 
 ## Locked decisions (do not change without explicit approval)
 - Training: Nerfstudio `splatfacto` (gsplat backend) on a laptop RTX 5060 (8 GB VRAM, 16 GB RAM). COLMAP via `ns-process-data`.
@@ -10,7 +10,7 @@ You are helping a 4-person senior design team (no prior 3D/web experience) build
 - Navigation: first-person, WASD + Pointer Lock mouse-look, eye height 1.65 m. Collision = hand-authored AABBs in zones.json, NEVER against splat geometry.
 - NPCs: 2D portrait + DOM dialogue overlay (visual-novel style), proximity-triggered via markers placed at coordinates in zones.json. Dialogue = JSON node graphs in public/dialogue/. NO 3D characters.
 - NO backend. Everything is static files. Hosting: GitHub Pages / Cloudflare Pages.
-- Scripted dialogue only until December. LLM dialogue is future work.
+- Scripted dialogue only through final lock (see `PLAN.md`). LLM dialogue is future work.
 
 ## Repo layout
 src/{main,zones,controls,collision,npc,dialogue}.js · public/{splats,dialogue,portraits,zones.json}

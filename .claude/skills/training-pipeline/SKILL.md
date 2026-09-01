@@ -61,5 +61,5 @@ Open https://superspl.at/editor, load the exported .ply. In order:
 
 ## Conventions
 - Zone ids: short lowercase (`lobby`, `hallway-a`, `ise-lab`).
-- Keep every trained output until the December demo ships; disk is cheaper than retraining.
+- Keep every trained output until final lock (see `PLAN.md`); disk is cheaper than retraining.
 - Log each zone in `docs/ZONELOG.md`: capture date, frames matched, iterations, file size, known issues.

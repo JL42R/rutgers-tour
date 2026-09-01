@@ -32,7 +32,7 @@ A web-based, photorealistic, freely-navigable 3D tour of the CORE building's fir
 
 **2D NPC overlay as primary (not fallback):** Photoreal environment + low-poly 3D character = uncanny mismatch (we noted this ourselves in the report). A polished 2D portrait + dialogue box reads as an intentional art direction, is 10x less work, and is fully accessible (screen-reader-friendly DOM, easy audio overlay later). The NPC still has a 3D *presence*: a marker/sprite in the scene at fixed coordinates with a proximity trigger.
 
-**No Python backend:** Scripted dialogue is data, not computation. Storing it as JSON in the frontend means the whole product is static files → free hosting, zero maintenance, infinite scalability, trivially demoable. An LLM-powered "ask the guide anything" mode is a future-work extension that WOULD need a backend (or the Anthropic API) — do not build it before December unless everything else is done.
+**No Python backend:** Scripted dialogue is data, not computation. Storing it as JSON in the frontend means the whole product is static files → free hosting, zero maintenance, infinite scalability, trivially demoable. An LLM-powered "ask the guide anything" mode is a future-work extension that WOULD need a backend (or the Anthropic API) — do not build it before final lock (see `PLAN.md`) unless everything else is done.
 
 ## 3. Architecture
 
@@ -98,25 +98,30 @@ Dialogue UI is plain DOM over the canvas (not rendered in WebGL): portrait left,
 - Mitigations for the RAM ceiling: cap frames per zone (~300 max), downscale training images to ≤1600 px on the long side, close everything else during COLMAP, keep zones small.
 - If a zone repeatedly OOMs: split it into two zones. If setup on Windows fights us: use WSL2 Ubuntu (recommended for Nerfstudio anyway) or fall back to Postshot.
 
-## 6. Roadmap
+## 6. Schedule
 
-### Summer (goal: framework + modeled environment + navigation + NPC understanding)
-- **Week 1 (by Jul 19)**: Environment setup on the 5060 laptop (WSL2, CUDA, Nerfstudio). Smoke test: capture ONE small room or hallway segment, run the full pipeline end-to-end through to a splat rendering in Spark in a browser. *Nothing else matters until this works once.*
-- **Weeks 2–3 (by Aug 2)**: Repo scaffold live (Vite + Spark + WASD controls + collision boxes). Walkable single-zone demo.
-- **Weeks 3–5 (by Aug 16)**: Capture and train all first-floor zones. Iterate on bad captures. SuperSplat cleanup. Zone loading system working.
-- **Weeks 5–6 (by Aug 23)**: NPC proximity triggers + dialogue UI working with placeholder content.
-- **Week 7 (by Aug 31)**: Deployed to GitHub/Cloudflare Pages. **Summer milestone: walkable multi-zone tour online with at least one working NPC.**
+Schedule, milestones, and decision gates live in `PLAN.md`. This document does not
+duplicate dates — if you need to know when something is due, that is the wrong file.
 
-### Fall
-- **Sept**: Real dialogue content (faculty/staff info, room scripts — needs departmental input, start requesting NOW). Mobile controls. Polish navigation feel.
-- **Oct**: User testing round 1 (Professor Aziz + others). Fix top navigability/quality issues. Accessibility pass (keyboard nav, captions/audio option).
-- **Nov**: Recapture weakest zones. User testing round 2. Performance tuning (LoD settings, load times). Freeze features mid-Nov.
-- **Dec**: Bug fixes, report, demo rehearsal.
+## 6a. Fallback options
 
-### Kill criteria / pivots
-- If COLMAP fails repeatedly on a zone by **Aug 9** → switch that zone's capture to RealityCapture alignment, or use Polycam/Luma cloud processing for that zone (acceptable for a prototype; note it in the report).
-- If Nerfstudio install is not working by **Jul 26** → switch to Postshot Indie (€17/mo) and keep moving; revisit later.
-- If multi-zone loading proves flaky by **Nov 1** → ship the best single zone as the December demo. A polished single-zone tour beats a broken four-zone one.
+Technical fallbacks, listed without dates. `PLAN.md` gates decide when to trigger them.
+
+**Nerfstudio install fails or stalls**
+Switch to Postshot Indie (native Windows, no WSL) or Luma AI cloud processing.
+Acceptable for a prototype; note the substitution in the report.
+
+**COLMAP repeatedly fails to align a zone**
+Try RealityCapture alignment for that zone, or process it through Polycam/Luma.
+A zone processed in the cloud is still a valid zone.
+
+**A zone repeatedly runs out of VRAM**
+Split it into two smaller zones. Failing that, reduce input resolution or cap the
+gaussian count. More small zones beats one zone that will not train.
+
+**Multi-zone loading proves unreliable**
+Replace seamless transitions with a menu that jumps between zones. If that also
+fails, ship the single best zone. A polished one-zone tour beats a broken four-zone one.
 
 ## 7. Constraints traceability (for the report)
 - *Performance/loading*: compressed .spz, < 50 MB/zone, Spark LoD, zone lazy-loading.
