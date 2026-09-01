@@ -1,0 +1,20 @@
+{
+  "name": "Mohsen Jafari",
+  "nodes": {
+    "start": {
+      "text": "Hello, I'm Dr. Mohsen Jafari, chair of the ISE department and your professor for Senior Design",
+      "choices": [
+        { "label": "What do you think about the project?", "next": "topic1" },
+        { "label": "Bye Dr. Jafari!", "next": "bye" }
+      ]
+    },
+    "topic1": {
+      "text": "You're getting an A!",
+      "next": "start"
+    },
+    "bye": {
+      "text": "Goodbye.",
+      "end": true
+    }
+  }
+}

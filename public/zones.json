@@ -23,6 +23,14 @@
           "radius": 2.2,
           "portrait": null,
           "dialogueFile": "./dialogue/demo-guide.json"
+        },
+        {
+          "id": "mohsen_jafari",
+          "name": "Mohsen Jafari",
+          "position": [-2.5, 1.6, 3],
+          "radius": 2.2,
+          "portrait": null,
+          "dialogueFile": "./dialogue/mohsen_jafari.json"
         }
       ]
     }
