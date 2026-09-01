@@ -53,7 +53,7 @@ the date and hope.
 
 | Gate | Date | Pass condition | If it fails |
 |---|---|---|---|
-| **G1 — Training works** | Fri Sep 11 | A splat trained locally renders in the browser app | Switch to Postshot (native Windows, no WSL) or Luma AI. Log the reason in `DESIGN.md`. |
+| **G1 — Training works** | Fri Sep 11 | A splat trained from Johnny's own test capture renders and is walkable in our app — not just when `ns-train` completes. (The export-to-Spark-loader seam is where integration surprises would otherwise surface in October with no slack. Same criterion as `docs/SETUP_TRAINING.md` §9c.) | Evaluate in order: (1) Brush — Rust/wgpu trainer, avoids CUDA entirely (the direct answer to a CUDA-on-Blackwell failure), accepts COLMAP/Nerfstudio datasets so alignment work carries over, headless CLI, exports `.ply`; it's a self-described proof of concept with unoptimized performance and unvalidated on our hardware, so budget ~1hr to evaluate before committing. (2) Postshot (native Windows, no WSL). (3) Luma AI. Log the reason in `DESIGN.md`. |
 | **G2 — Primary capture complete** | Fri Sep 25 | Every zone in scope has a usable dataset backed up to cloud storage | Re-shoot window stays open through Oct 16, but scope drops to whatever is captured by then. |
 | **G3 — One zone shipped end to end** | Fri Oct 9 | Zone 1 trained, cleaned, exported `.spz`, walkable with collision and real NPCs | Cut to 2 zones total and reassess scope. |
 | **G4 — Feature freeze** | Fri Nov 6 | All zones integrated, all NPCs placed, app live on static hosting | Descope per the ladder in §7. |
