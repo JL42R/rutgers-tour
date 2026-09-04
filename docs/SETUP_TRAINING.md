@@ -10,9 +10,9 @@ G1 target: **September 11, 2026**. See `PLAN.md` for what happens if we miss it.
 
 ---
 
-### Verified environment (observed September 3, 2026)
+### Verified environment (observed September 3–4, 2026)
 
-Steps 1 through 6 below passed on the actual machine; steps 7 through 9 not yet attempted.
+Steps 1 through 8 confirmed complete September 4, 2026. Step 9 in progress.
 
 | Component | Observed |
 |---|---|
@@ -21,6 +21,10 @@ Steps 1 through 6 below passed on the actual machine; steps 7 through 9 not yet 
 | `colmap -h` | COLMAP 3.9.1 -- (Commit Unknown on Unknown without CUDA) |
 | `ffmpeg -version` | 6.1.1 |
 | Python (venv) | 3.11.15 |
+
+gsplat 1.4.0 installed as a Nerfstudio dependency rather than built separately per step 8, so
+its compiled architecture coverage is not yet confirmed — sm_120 kernel availability remains
+untested until a training run actually reaches GPU work.
 
 ---
 
@@ -48,12 +52,19 @@ Run it. Do not proceed past a failed check.**
 
 ### Honest uncertainty
 
-One thing in this document I could not fully verify and you should treat as "check at the time":
+Nothing left here — the last open item (splatfacto's VRAM-tuning flag names) was resolved
+September 4, 2026 by reading the config splatfacto prints at startup, not guessed or copied
+from old forum posts:
 
-1. **Specific splatfacto VRAM-tuning flag names** in step 9. Flag names have churned across
-   Nerfstudio releases. The *levers* are correct (image downscale, image cache location,
-   gaussian count cap); get the exact flags from `ns-train splatfacto --help` on the version
-   you actually installed.
+- **Image cache location:** `cache_images`, CLI form `--pipeline.datamanager.cache-images cpu`
+  (default is `gpu`).
+- **Downscale:** `num_downscales` (default 2), and the dataparser's `downscale_factor`.
+- **Gaussian count levers:** `stop_split_at` (default 15000), `cull_alpha_thresh`,
+  `densify_grad_thresh`.
+
+These were read off `ns-train`'s own config dump on the Nerfstudio version actually installed —
+that dump, not old posts or `--help` text alone, is the reliable way to find current flag names
+if they drift again on a future install.
 
 Everything else is either a standard command or verified against reports from Blackwell users.
 
@@ -327,13 +338,27 @@ ns-train --help | head -n 5
 
 Two runs. The first proves the toolchain; the second proves it survives our data.
 
-### 9a. Known-good public dataset
+### 9a. Known-good public dataset (diagnostic, not a prerequisite)
+
+This step exists to isolate toolchain failures from capture failures — if known-good data
+trains cleanly, the problem is your capture, not the install. It produces nothing used
+downstream and can be skipped if unavailable.
 
 ```bash
 cd ~ && mkdir -p work && cd work
 ns-download-data nerfstudio --capture-name=poster
 ns-train splatfacto --data data/nerfstudio/poster --max-num-iterations 2000
 ```
+
+**The `poster` download is broken as of September 4, 2026.**
+`ns-download-data nerfstudio --capture-name=poster` fails with a `gdown` `FileURLRetrievalError`
+— the Google Drive file is gone, not rate-limited (confirmed by opening the link directly in a
+browser). A direct `wget` from `data.nerf.studio` also 404s. This is a long-standing upstream
+Nerfstudio issue with multiple open reports, not something to debug locally. Other
+`--capture-name` values point at different Drive IDs and may still work — worth a quick try —
+but don't burn G1 time chasing this. If no known-good dataset is reachable, skip 9a and go
+straight to 9b; its value is as a fallback to reach for later, when a real capture fails
+confusingly and you need to know whether the toolchain or the footage is at fault.
 
 While it runs, open a second Ubuntu terminal and watch:
 
@@ -364,6 +389,17 @@ rehearsal for CORE, so follow it properly rather than casually.
 ns-process-data video --data ~/work/hallway.mp4 --output-dir ~/work/hallway-proc
 ns-train splatfacto --data ~/work/hallway-proc
 ```
+
+**COLMAP time budget:** observed ~24 minutes wall time for 309 frames on the apt-installed
+CPU-only COLMAP (24m6s real, 146m43s user — roughly 6-way parallelism across cores). A CUDA
+COLMAP build would accelerate feature extraction and matching but not the mapping /
+bundle-adjustment stage, so expect roughly 2–4x, not an order of magnitude — this estimate is
+unmeasured. Weigh that against the planned zone count before deciding whether building COLMAP
+from source with CUDA (see step 5) is worth the time.
+
+`ns-process-data` also supports `--matching-method`. Sequential matching is better suited to
+video than the default (exhaustive), since frames adjacent in time are the ones that actually
+overlap.
 
 **8 GB VRAM is the binding constraint here.** If training dies with an out-of-memory error, the
 three levers, in order of preference:
@@ -405,6 +441,8 @@ around it in the browser with WASD.
 | CUDA OOM during training | 8 GB ceiling | Downscale images, CPU image cache, cap gaussians |
 | Everything trains but `ns-viewer` fails to load a checkpoint | Known PyTorch checkpoint-loading friction on newer torch | Low priority — we need the `.ply` export, not the viewer. Do not spend G1 time on this. |
 | Very slow file I/O | Working out of `/mnt/c/...` | Keep datasets in the WSL filesystem (`~/work`); only copy finished exports to `/mnt/c` |
+| COLMAP finds poses for almost no frames (<1%) | HDR video extracted to 8-bit frames without tonemapping destroys local contrast, so the feature detector has nothing to match | Verify with `ffprobe` for HDR/DOVI metadata, reshoot with HDR off — see `.claude/skills/capture-protocol/SKILL.md` |
+| COLMAP registers a contiguous block of frames only | Motion blur breaking the match chain partway through the walk | This is a capture failure, not a training or parameter problem — recapture, don't retrain |
 
 ---
 
