@@ -10,6 +10,20 @@ G1 target: **September 11, 2026**. See `PLAN.md` for what happens if we miss it.
 
 ---
 
+### Verified environment (observed September 3, 2026)
+
+Steps 1 through 6 below passed on the actual machine; steps 7 through 9 not yet attempted.
+
+| Component | Observed |
+|---|---|
+| `nvidia-smi` | NVIDIA-SMI 610.43.02, CUDA UMD 13.3, RTX 5060 Laptop, 8151 MiB VRAM visible from inside WSL2 |
+| `nvcc --version` | release 12.8, V12.8.93 |
+| `colmap -h` | COLMAP 3.9.1 -- (Commit Unknown on Unknown without CUDA) |
+| `ffmpeg -version` | 6.1.1 |
+| Python (venv) | 3.11.15 |
+
+---
+
 ## 0. Read this before typing anything
 
 **The official Nerfstudio installation page will not work on this machine.** Do not follow it.
@@ -34,12 +48,9 @@ Run it. Do not proceed past a failed check.**
 
 ### Honest uncertainty
 
-Two things in this document I could not fully verify and you should treat as "check at the time":
+One thing in this document I could not fully verify and you should treat as "check at the time":
 
-1. **The exact NVIDIA CUDA repo URL and keyring filename** in step 4. The pattern is stable but
-   the version numbers change. Confirm against NVIDIA's WSL-Ubuntu download page rather than
-   trusting the string here.
-2. **Specific splatfacto VRAM-tuning flag names** in step 9. Flag names have churned across
+1. **Specific splatfacto VRAM-tuning flag names** in step 9. Flag names have churned across
    Nerfstudio releases. The *levers* are correct (image downscale, image cache location,
    gaussian count cap); get the exact flags from `ns-train splatfacto --help` on the version
    you actually installed.
@@ -127,6 +138,22 @@ Use NVIDIA's WSL-specific repo. Verify the current filenames on NVIDIA's page fi
 wget https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-keyring_1.1-1_all.deb
 sudo dpkg -i cuda-keyring_1.1-1_all.deb
 sudo apt-get update
+```
+
+Before committing to the multi-GB `cuda-toolkit-12-8` download, confirm the versioned 12.8
+package is still being served. NVIDIA's network repo now serves CUDA 13.x as current, so this
+is not a formality:
+
+```bash
+apt-cache policy cuda-toolkit-12-8
+```
+
+Observed September 3, 2026: `Candidate: 12.8.2-1`, with `12.8.1-1` and `12.8.0-1` also
+available, at apt priority 600. If `Candidate` instead reads `(none)`, the 12.8 package has
+been pruned from the repo — evaluate the local-installer route or a move to CUDA 13 before
+proceeding, rather than continuing on this document as written.
+
+```bash
 sudo apt-get -y install cuda-toolkit-12-8
 ```
 
@@ -164,9 +191,11 @@ colmap -h | head -n 3
 ffmpeg -version | head -n 1
 ```
 
-Note: the apt COLMAP build may lack CUDA feature matching. It is fine for validating the
-pipeline. If alignment quality is a problem on real CORE data, that is a G2 concern, not a
-G1 blocker — and building COLMAP from source with CUDA is the escalation, not a rewrite.
+Note: the apt COLMAP build lacks CUDA feature matching — confirmed September 3, 2026, where
+`colmap -h` reported `COLMAP 3.9.1 -- (Commit Unknown on Unknown without CUDA)`. It is fine for
+validating the pipeline. If alignment quality is a problem on real CORE data, that is a G2
+concern, not a G1 blocker — and building COLMAP from source with CUDA is the escalation, not a
+rewrite.
 
 ---
 
@@ -175,14 +204,36 @@ G1 blocker — and building COLMAP from source with CUDA is the escalation, not 
 Use a clean venv on Python 3.11. Nerfstudio's docs suggest Python 3.8; the cu128 PyTorch
 wheels we need are not published for 3.8, so 3.8 is not an option here.
 
+Ubuntu 24.04 (noble) does not carry `python3.11` in its default repositories — confirmed
+September 3, 2026, where the plain `apt-get install` below failed with
+`E: Unable to locate package python3.11`. Python 3.11 has to come from the deadsnakes PPA:
+
 ```bash
+sudo apt-get install -y software-properties-common
+sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt-get update
 sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
+```
+
+deadsnakes is a third-party Launchpad PPA, not official Canonical software. Installing from it
+adds Python 3.11 **alongside** Ubuntu's system 3.12 rather than replacing it, so `python3` /
+`python3.12` remain untouched.
+
+```bash
 python3.11 -m venv ~/nerf
 echo 'alias nerf="source ~/nerf/bin/activate"' >> ~/.bashrc
 source ~/.bashrc
 nerf
 python -m pip install --upgrade pip setuptools wheel
 ```
+
+**Verify:**
+
+```bash
+~/nerf/bin/python --version
+```
+
+Must report **3.11.x**. Observed September 3, 2026: `Python 3.11.15`.
 
 From here on, **every command assumes the venv is active.** If your prompt does not show
 `(nerf)`, run `nerf` first. Forgetting this is the most common way to spend an hour confused.
