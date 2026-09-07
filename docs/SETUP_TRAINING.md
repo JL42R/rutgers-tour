@@ -10,9 +10,9 @@ G1 target: **September 11, 2026**. See `PLAN.md` for what happens if we miss it.
 
 ---
 
-### Verified environment (observed September 3–4, 2026)
+### Verified environment (observed September 3–7, 2026)
 
-Steps 1 through 8 confirmed complete September 4, 2026. Step 9 in progress.
+Steps 1 through 9a confirmed complete and verified September 7, 2026.
 
 | Component | Observed |
 |---|---|
@@ -22,9 +22,20 @@ Steps 1 through 8 confirmed complete September 4, 2026. Step 9 in progress.
 | `ffmpeg -version` | 6.1.1 |
 | Python (venv) | 3.11.15 |
 
-gsplat 1.4.0 installed as a Nerfstudio dependency rather than built separately per step 8, so
-its compiled architecture coverage is not yet confirmed — sm_120 kernel availability remains
-untested until a training run actually reaches GPU work.
+gsplat 1.4.0 JIT-compiles its CUDA kernels on first GPU use rather than shipping prebuilt
+binaries, so the first training run incurs a one-time `nvcc` compile. That compile was killed
+with `Terminated` at `MAX_JOBS=4`. Root cause: WSL2 allocates roughly half of host RAM by
+default, giving Linux about 8 GB of the machine's 16 GB — not the 8 GB VRAM ceiling, a separate
+constraint. Fixed by setting `MAX_JOBS=2` and raising the WSL2 allocation to 12 GB with 4 GB
+swap via a `.wslconfig` file in the Windows user profile (see section 4b). Both settings are now
+persisted — `MAX_JOBS` in `~/.bashrc`, memory in `.wslconfig`.
+
+**sm_120 kernel execution CONFIRMED:** 2000 iterations of splatfacto ran at ~15 ms/iteration and
+34–39 M rays/sec. A CPU fallback would be orders of magnitude slower, so this rules out the
+silent-fallback failure mode described in section 0.
+
+Nerfstudio auto-selected an image downscale factor of 4 on 4K input without being asked. Export
+produced a 30 MB `splat.ply` from 57 registered frames.
 
 ---
 
@@ -185,6 +196,38 @@ nvcc --version
 
 Must report release **12.8** (or higher). If it reports 12.0, the apt package won and you need
 to remove `nvidia-cuda-toolkit` before continuing.
+
+---
+
+## 4b. WSL2 memory allocation
+
+WSL2 defaults to allocating roughly **half of the host's RAM** to Linux — on this 16 GB
+machine, that's about 8 GB. This is separate from, and unrelated to, the 8 GB VRAM ceiling
+discussed elsewhere in this document: it's system RAM, and it's the binding constraint on
+`nvcc` compilation (step 8's gsplat build, and gsplat's first-use JIT compile in step 9), not
+on training itself.
+
+Create (or edit) `.wslconfig` in your Windows user profile. **Creating this file via Notepad
+can silently produce the wrong filename** (`.wslconfig.txt`) because Windows hides known
+extensions by default — use PowerShell instead:
+
+```powershell
+Set-Content -Path "$env:USERPROFILE\.wslconfig" -Value @("[wsl2]","memory=12GB","swap=4GB")
+```
+
+Apply it by shutting down WSL2 completely (it restarts automatically on next use):
+
+```powershell
+wsl --shutdown
+```
+
+**Verify**, inside Ubuntu:
+
+```bash
+free -h
+```
+
+`Mem:` total should now read close to 12 GB.
 
 ---
 
@@ -426,6 +469,38 @@ around it in the browser with WASD.
 **G1 passes when you have walked through your own hallway in our own app.** Not when
 `ns-train` finishes.
 
+If `ns-export` or `ns-viewer` fails with `_pickle.UnpicklingError: Weights only load failed`,
+see 9d below before trying anything else.
+
+### 9d. Patch the checkpoint loader (required before export)
+
+PyTorch 2.6 flipped `torch.load`'s default `weights_only` from `False` to `True`. `torch.load`
+deserializes Python pickles, which can execute arbitrary code, so this tightened default is a
+real security improvement — for checkpoints from untrusted sources. Overriding it back to
+`False` is safe **specifically here** because the checkpoint was produced by our own training
+run on this machine, not downloaded from anywhere.
+
+Nerfstudio's `eval_utils.py` calls `torch.load` without setting `weights_only`, and its
+checkpoints contain a `numpy.core.multiarray.scalar` object that isn't on PyTorch's default
+allowlist, so both `ns-export` and `ns-viewer` fail on it. Patch it, with the venv active:
+
+```bash
+cp ~/nerf/lib/python3.11/site-packages/nerfstudio/utils/eval_utils.py ~/nerf/lib/python3.11/site-packages/nerfstudio/utils/eval_utils.py.bak
+
+sed -i 's/loaded_state = torch.load(load_path, map_location="cpu")/loaded_state = torch.load(load_path, map_location="cpu", weights_only=False)/' ~/nerf/lib/python3.11/site-packages/nerfstudio/utils/eval_utils.py
+
+grep -n "loaded_state = torch.load" ~/nerf/lib/python3.11/site-packages/nerfstudio/utils/eval_utils.py
+```
+
+**Verify:** the grep must show `weights_only=False` on the matched line.
+
+**Reproducibility warning:** this patch modifies a file inside the venv at
+`~/nerf/lib/python3.11/site-packages/`, which is **not** in version control. It will be lost if
+the venv is recreated, if Nerfstudio is reinstalled or upgraded, or on a fresh machine. Anyone
+rebuilding this environment must reapply it by hand. This is a known fragility in the current
+setup — if the environment is ever rebuilt, scripting this patch or vendoring a patch file into
+the repo is worth doing.
+
 ---
 
 ## 10. Failure modes, ranked by likelihood
@@ -439,7 +514,7 @@ around it in the browser with WASD.
 | Training runs but VRAM near zero, CPU pinned | Silent CPU fallback | Treat as failure; return to step 7 verification |
 | gsplat build killed with no clear error | Parallel nvcc exhausted 16 GB RAM | Lower `MAX_JOBS` to 2 and retry |
 | CUDA OOM during training | 8 GB ceiling | Downscale images, CPU image cache, cap gaussians |
-| Everything trains but `ns-viewer` fails to load a checkpoint | Known PyTorch checkpoint-loading friction on newer torch | Low priority — we need the `.ply` export, not the viewer. Do not spend G1 time on this. |
+| `ns-export` or `ns-viewer` fails with `_pickle.UnpicklingError: Weights only load failed` | PyTorch 2.6 changed the default of `torch.load`'s `weights_only` argument from `False` to `True`. Nerfstudio's `eval_utils.py` calls `torch.load` without specifying it, and its checkpoints contain `numpy.core.multiarray.scalar`, which is not on PyTorch's default allowlist. | **BLOCKS EXPORT** — patch immediately, see section 9d. Not low priority. |
 | Very slow file I/O | Working out of `/mnt/c/...` | Keep datasets in the WSL filesystem (`~/work`); only copy finished exports to `/mnt/c` |
 | COLMAP finds poses for almost no frames (<1%) | HDR video extracted to 8-bit frames without tonemapping destroys local contrast, so the feature detector has nothing to match | Verify with `ffprobe` for HDR/DOVI metadata, reshoot with HDR off — see `.claude/skills/capture-protocol/SKILL.md` |
 | COLMAP registers a contiguous block of frames only | Motion blur breaking the match chain partway through the walk | This is a capture failure, not a training or parameter problem — recapture, don't retrain |
