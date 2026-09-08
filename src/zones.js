@@ -44,11 +44,21 @@ export class ZoneManager {
     if (zone.splat && !zone.placeholder) {
       // Real captured scene: Spark loads the splat file and renders it
       // like any other Three.js object.
+      //
+      // `new SplatMesh({ url })` returns immediately and keeps loading the
+      // file in the background — a 404 or corrupt file won't throw here,
+      // it surfaces later on `mesh.initialized`, a promise that resolves
+      // once the file is loaded and REJECTS if loading fails. We have to
+      // await it inside this try so a load failure actually reaches our
+      // catch, instead of failing silently after this function has
+      // already returned.
       try {
         const mesh = new SplatMesh({ url: zone.splat });
+        await mesh.initialized;
         if (zone.origin) mesh.position.set(...zone.origin);
         if (zone.rotation) mesh.quaternion.set(...zone.rotation);
         group.add(mesh);
+        console.info(`Loaded splat for zone "${zone.id}" from ${zone.splat}`);
       } catch (err) {
         console.warn(`Splat failed for zone "${zone.id}", using placeholder.`, err);
         this.buildPlaceholder(group, zone);
