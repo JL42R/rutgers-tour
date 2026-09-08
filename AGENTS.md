@@ -29,3 +29,5 @@ src/{main,zones,controls,collision,npc,dialogue}.js · public/{splats,dialogue,p
 - [ ] NPC/dialogue system
 - [ ] Deployed
 Last updated: 2026-07-11 — project kickoff, nothing built yet.
+
+Documentation session: 2026-09-07 — updated the capture protocol with a proposed iPhone 14 Pro Max photo test, separate video guidance, qualified diagnoses, official references, and supplied September 7 review findings. No capture validation, training, or deployment was performed in this session; status checkboxes were not changed.
