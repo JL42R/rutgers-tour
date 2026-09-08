@@ -4,9 +4,9 @@
     {
       "id": "demo-room",
       "label": "Demo Room (placeholder until first real capture)",
-      "placeholder": true,
+      "placeholder": false,
       "placeholderSize": [14, 10],
-      "splat": null,
+      "splat":  "./splats/test-room.spz",
       "origin": [0, 0, 0],
       "spawn": [0, 0, 3.5],
       "collision": [
