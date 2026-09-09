@@ -151,6 +151,13 @@ For photos, use `captures/<zone-id>/<YYYY-MM-DD>-take<N>/` and retain original f
 
 The session motivated metadata checks and registration triage. Its original recommendation of 4K/60 in dim light was not a measured comparison of frame rates; the current recommendation above requires sufficient lighting. Scale references and overlapping viewpoints are project capture requirements, not results proven by these two takes.
 
+**2026-09-09, printing room — first capture under the fully corrected protocol** (first positive datapoint in these notes):
+- 7:16, 4K/60, HEVC, `yuv420p`/`bt709`, 48 Mbps, no HDR — passed the `ffprobe` pre-flight before shooting.
+- Exposure locked, half-pace walk, tape-measure reference, loop closed, lab lighting (even, bright).
+- `ns-process-data` run with `--num-frames-target 450 --matching-method sequential`, extracting 452 of 26,194 frames.
+- COLMAP registered 451 of 452 frames — **99.78%**, comfortably above the "healthy" threshold.
+- Registration across all three captures to date: 0.63% (HDR on) → 18.45% (HDR off, 4K/30, dim evening light) → 99.78% (this capture). Every correction below came from one of these three measured results, not from guessing.
+
 **2026-09-07, Hamza's uploaded `IMG_4462 (1).mp4`** (review findings supplied for this documentation update):
 - Duration approximately 195.64 seconds; 3840 × 2160; approximately 30 fps.
 - Uploaded copy: H.264, 8-bit `yuv420p`, BT.709. This describes the uploaded file, not proof of the original camera HDR setting.
