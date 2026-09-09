@@ -43,6 +43,10 @@ Reasons: (a) each training run stays within 8 GB VRAM and 16 GB system RAM; (b) 
 
 Zones share a common coordinate convention: after cleanup in SuperSplat, each zone is exported with the floor at y=0, 1 unit = 1 meter (scale using a known measurement like a doorway height), and a documented origin point. Write each zone's origin/orientation into `zones.json`.
 
+**The coordinate seam.** COLMAP recovers geometry only up to an unknown scale factor — a small room filmed close up and a large room filmed from far away produce identical images, so the math cannot tell them apart. Splatfacto trains with `auto_scale_poses=True`, which normalizes that arbitrary scale further. Our collision boxes, by contrast, are authored in real-world meters against the 1 unit = 1 meter / floor-at-y=0 convention above. Reconciling COLMAP's arbitrary output scale with our real-world convention is a per-zone step, not something the pipeline gives us for free — see the coordinate-seam issue for the current approach (baking a rotation/scale correction in SuperSplat before export) and its open question (whether that bake actually survives export, or needs to become `zones.json` schema fields instead).
+
+First zone measured: printing room, tape-measured at 40.8 × 14.3 × 10.8 ft = 12.44 × 4.36 × 3.29 m.
+
 ### 3.2 Runtime structure (frontend)
 ```
 index.html
@@ -83,6 +87,12 @@ Each NPC = entry in `zones.json`: `{ id, zone, position [x,y,z], radius, portrai
 
 Dialogue UI is plain DOM over the canvas (not rendered in WebGL): portrait left, text box bottom, choices as buttons. This is keyboard-navigable and screen-reader-compatible for free, and audio narration is a later drop-in (`<audio>` per node or Web Speech API).
 
+### 3.5 Known issue: .spz delivery format rejected by Spark
+
+SuperSplat's `.spz` export (tested against v3.0.0-alpha) is not currently usable for delivery. It produces a well-compressed file — roughly 13x smaller than the uncompressed `.ply` — but Spark's decompressor fails to load it with `Worker error: Invalid gzip header`, even though SuperSplat reads the same file back without complaint. The file is not corrupt; Spark simply does not recognize this `.spz` variant, plausibly a format-version mismatch tied to the alpha build.
+
+Current workaround is to ship uncompressed `.ply` instead. Consequence: zones land far above the <50 MB target (a single small room exported at ~240 MB), which matters because this is a static-hosting delivery problem, not just a storage one — every visitor downloads a full zone file before they can walk it. Candidate fixes, cheapest first: dropping SuperSplat's SH Bands export setting (view-dependent color, default 3) to band 0; trying a stable SuperSplat release instead of the alpha; checking which `.spz` version Spark actually supports; gzip'ing `.ply` at the hosting layer.
+
 ## 4. Pipeline (capture → web)
 
 1. **Capture** a zone: 4K video, slow walk, high overlap, loop closure, even lighting. (Full protocol in `skills/capture-protocol`.)
@@ -97,6 +107,7 @@ Dialogue UI is plain DOM over the canvas (not rendered in WebGL): portrait left,
 - Training machine: laptop RTX 5060, **8 GB VRAM** (documented minimum for this pipeline), 16 GB system RAM.
 - Mitigations for the RAM ceiling: cap frames per zone (~300 max), downscale training images to ≤1600 px on the long side, close everything else during COLMAP, keep zones small.
 - If a zone repeatedly OOMs: split it into two zones. If setup on Windows fights us: use WSL2 Ubuntu (recommended for Nerfstudio anyway) or fall back to Postshot.
+- gsplat JIT-compiles its CUDA kernels on first GPU use — the first training run after a fresh venv pays a one-time compile cost before training itself starts. This compile is memory-hungry enough to get OOM-killed under WSL2's default RAM allocation; see `docs/SETUP_TRAINING.md` for the `MAX_JOBS` and `.wslconfig` settings that fixed it on our machine.
 
 ## 6. Schedule
 
