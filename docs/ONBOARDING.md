@@ -56,6 +56,18 @@ This repo is set up so any major AI coding tool understands the project: the pro
   ```
   (If that URL fails, you haven't accepted the repo invite yet — see step 5.)
 
+### 7a. Download the current splat (not in the repo)
+Splat files are **not** in git, on purpose. GitHub blocks any push containing a file
+over 100 MB, and our current printing-room export is 240 MB, so `*.ply` and `*.mp4`
+stay in `.gitignore` permanently — this is deliberate, not an oversight. Do not remove
+those `.gitignore` rules or try to commit a splat file yourself.
+
+- [ ] Open the shared Drive folder: https://drive.google.com/drive/u/0/folders/1CH1AtdKyM76MwLCx59VzMFqnssYlIFHT
+- [ ] Download the current zone's splat file and place it in `public/splats/`
+- [ ] Open `public/zones.json` and check the zone's `"splat"` field names the exact
+  filename you just downloaded (e.g. `"./splats/printing-room-updated.ply"`) — if the
+  filename doesn't match, the app can't find the file
+
 ### 8. Open and run it
 - [ ] VS Code → **File → Open Folder** → `C:\dev\rutgers-tour`. Click "Yes, I trust the authors."
 - [ ] Open the built-in terminal: **View → Terminal**.
@@ -113,6 +125,8 @@ testing, deployment — is open to whoever has time.
 ## Troubleshooting quick hits
 - `npm` "cannot be loaded / running scripts is disabled" → you skipped step 2 (execution policy).
 - `npm install` fails or acts weird → check the terminal prompt ends in `rutgers-tour` (you must be IN the project folder), and confirm the folder is not inside OneDrive.
+- Gray placeholder room instead of the real splat → expected until you've downloaded the splat file (see step 7a).
+- Console shows `Splat failed for zone ... using placeholder` → the file is missing from `public/splats/`, or the filename in `public/zones.json` doesn't match what you downloaded.
 - Blank page in the browser → press F12, open the Console tab, copy the red error, paste it to your AI assistant and ask it to fix it.
 - Anything else → ask your AI assistant first, then the group chat. Always paste the exact error text, never a description of it.
 
