@@ -8,6 +8,8 @@
       "placeholderSize": [14, 10],
       "splat":  "./splats/printing-room-updated.ply",
       "origin": [0, 0, 0],
+      "rotation": [0, 0, 0],
+      "scale": 1,
       "spawn": [0, 0, 3.5],
       "collision": [
         { "min": [-7, 0, -5.2],  "max": [7, 2.6, -5]   },

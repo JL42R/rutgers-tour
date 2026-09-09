@@ -55,10 +55,30 @@ export class ZoneManager {
       try {
         const mesh = new SplatMesh({ url: zone.splat });
         await mesh.initialized;
+
+        // Splat files land in an arbitrary coordinate space: COLMAP recovers
+        // geometry only up to an unknown scale, and splatfacto trains with
+        // auto_scale_poses=True, which rescales it again. `rotation` and
+        // `scale` below correct that back to our convention of 1 unit = 1
+        // metre with the floor at y=0 — edit these values in zones.json and
+        // reload instead of re-baking and re-exporting the splat file.
+        //
+        // Apply order: scale, then rotation, then position (origin).
+        const scale = zone.scale ?? 1;
+        const [rx, ry, rz] = zone.rotation ?? [0, 0, 0];
+        mesh.scale.setScalar(scale);
+        mesh.rotation.set(
+          THREE.MathUtils.degToRad(rx),
+          THREE.MathUtils.degToRad(ry),
+          THREE.MathUtils.degToRad(rz)
+        );
         if (zone.origin) mesh.position.set(...zone.origin);
-        if (zone.rotation) mesh.quaternion.set(...zone.rotation);
+
         group.add(mesh);
-        console.info(`Loaded splat for zone "${zone.id}" from ${zone.splat}`);
+        console.info(
+          `Loaded splat for zone "${zone.id}" from ${zone.splat}`,
+          `(scale=${scale}, rotation=[${rx}, ${ry}, ${rz}]deg, origin=${JSON.stringify(zone.origin ?? [0, 0, 0])})`
+        );
       } catch (err) {
         console.warn(`Splat failed for zone "${zone.id}", using placeholder.`, err);
         this.buildPlaceholder(group, zone);
