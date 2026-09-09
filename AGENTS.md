@@ -2,6 +2,12 @@
 
 You are helping a 4-person senior design team (no prior 3D/web experience) build a web-based Gaussian-splat virtual tour of the CORE building first floor at Rutgers. Deadline and schedule live in `PLAN.md` — do not hardcode dates here. All architecture decisions are ALREADY MADE and documented in DESIGN.md — do not re-litigate them; if you believe one is wrong, say so explicitly and wait for approval before deviating.
 
+## Where to look
+- `PLAN.md` — schedule and gates
+- `DESIGN.md` — architecture and technical decisions
+- `CHANGELOG.md` — what changed and when
+- GitHub Issues — current task state
+
 ## Locked decisions (do not change without explicit approval)
 - Training: Nerfstudio `splatfacto` (gsplat backend) on a laptop RTX 5060 (8 GB VRAM, 16 GB RAM). COLMAP via `ns-process-data`.
 - Scene is split into 2–4 ZONES, trained and shipped separately. 1 unit = 1 meter, floor at y=0.
