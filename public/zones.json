@@ -6,7 +6,7 @@
       "label": "Demo Room (placeholder until first real capture)",
       "placeholder": false,
       "placeholderSize": [14, 10],
-      "splat":  "./splats/test-room.spz",
+      "splat":  "./splats/test-room.ply",
       "origin": [0, 0, 0],
       "spawn": [0, 0, 3.5],
       "collision": [
