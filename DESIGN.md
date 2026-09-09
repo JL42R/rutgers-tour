@@ -43,7 +43,20 @@ Reasons: (a) each training run stays within 8 GB VRAM and 16 GB system RAM; (b) 
 
 Zones share a common coordinate convention: after cleanup in SuperSplat, each zone is exported with the floor at y=0, 1 unit = 1 meter (scale using a known measurement like a doorway height), and a documented origin point. Write each zone's origin/orientation into `zones.json`.
 
-**The coordinate seam.** COLMAP recovers geometry only up to an unknown scale factor — a small room filmed close up and a large room filmed from far away produce identical images, so the math cannot tell them apart. Splatfacto trains with `auto_scale_poses=True`, which normalizes that arbitrary scale further. Our collision boxes, by contrast, are authored in real-world meters against the 1 unit = 1 meter / floor-at-y=0 convention above. Reconciling COLMAP's arbitrary output scale with our real-world convention is a per-zone step, not something the pipeline gives us for free — see the coordinate-seam issue for the current approach (baking a rotation/scale correction in SuperSplat before export) and its open question (whether that bake actually survives export, or needs to become `zones.json` schema fields instead).
+**The coordinate seam.** COLMAP recovers geometry only up to an unknown scale factor — a small room filmed close up and a large room filmed from far away produce identical images, so the math cannot tell them apart. Splatfacto trains with `auto_scale_poses=True`, which normalizes that arbitrary scale further. Our collision boxes, by contrast, are authored in real-world meters against the 1 unit = 1 meter / floor-at-y=0 convention above. Reconciling COLMAP's arbitrary output scale with our real-world convention is a per-zone step, not something the pipeline gives us for free.
+
+**Decision: `rotation`/`scale` are `zones.json` fields, not a SuperSplat bake.** Baking a correction into the splat file itself means every attempt requires re-exporting a 240 MB file, which makes iteration impractical and blocks teammates from working on the same zone in parallel. Instead, `src/zones.js` applies `rotation` (Euler degrees, `[x, y, z]`) and `scale` (a single uniform number — splat correction is always uniform, since non-uniform scaling would distort the geometry) to the loaded splat mesh at runtime, in that order, followed by `origin` for position. This turns orientation correction into a JSON edit anyone can make and reload in seconds.
+
+**Zone schema fields** (`public/zones.json`, one entry per zone):
+- `splat` — path to the zone's exported splat file
+- `placeholder` / `placeholderSize` — when `placeholder` is true, render a stand-in gray room sized `placeholderSize` instead of loading `splat`
+- `origin` `[x, y, z]` — position offset in scene units (meters)
+- `rotation` `[x, y, z]` degrees — Euler angles correcting COLMAP's arbitrary orientation; default `[0, 0, 0]`
+- `scale` — uniform scale factor correcting COLMAP's arbitrary scale; default `1`
+- `spawn` `[x, y, z]` — player spawn position
+- `collision` — array of hand-authored AABB `{min, max}` boxes; never derived from splat geometry
+
+**Printing room status:** the splat renders but is not correctly oriented yet. A `rotation` of `X=90` renders it upside down, so `X=-90` is the likely correction; `scale` and the floor-offset (`origin`) have not yet been derived.
 
 First zone measured: printing room, tape-measured at 40.8 × 14.3 × 10.8 ft = 12.44 × 4.36 × 3.29 m.
 
