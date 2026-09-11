@@ -32,7 +32,7 @@ A web-based, photorealistic, freely-navigable 3D tour of the CORE building's fir
 
 **2D NPC overlay as primary (not fallback):** Photoreal environment + low-poly 3D character = uncanny mismatch (we noted this ourselves in the report). A polished 2D portrait + dialogue box reads as an intentional art direction, is 10x less work, and is fully accessible (screen-reader-friendly DOM, easy audio overlay later). The NPC still has a 3D *presence*: a marker/sprite in the scene at fixed coordinates with a proximity trigger.
 
-**No Python backend:** Scripted dialogue is data, not computation. Storing it as JSON in the frontend means the whole product is static files → free hosting, zero maintenance, infinite scalability, trivially demoable. An LLM-powered "ask the guide anything" mode is a future-work extension that WOULD need a backend (or the Anthropic API) — do not build it before final lock (see `PLAN.md`) unless everything else is done.
+**No Python backend:** Scripted dialogue is data, not computation. Storing it as JSON in the frontend means the whole product is static files → free hosting, zero maintenance, infinite scalability, trivially demoable. An LLM-powered "ask the guide anything" mode is a future-work extension that WOULD need a backend (or the Anthropic API) — do not build it before final lock (see `docs/PLAN.md`) unless everything else is done.
 
 ## 3. Architecture
 
@@ -100,15 +100,23 @@ Each NPC = entry in `zones.json`: `{ id, zone, position [x,y,z], radius, portrai
 
 Dialogue UI is plain DOM over the canvas (not rendered in WebGL): portrait left, text box bottom, choices as buttons. This is keyboard-navigable and screen-reader-compatible for free, and audio narration is a later drop-in (`<audio>` per node or Web Speech API).
 
-### 3.5 Known issue: .spz delivery format rejected by Spark
+### 3.5 Known issue: .spz delivery format rejected by Spark (root cause identified 2026-09-11)
 
-SuperSplat's `.spz` export (tested against v3.0.0-alpha) is not currently usable for delivery. It produces a well-compressed file — roughly 13x smaller than the uncompressed `.ply` — but Spark's decompressor fails to load it with `Worker error: Invalid gzip header`, even though SuperSplat reads the same file back without complaint. The file is not corrupt; Spark simply does not recognize this `.spz` variant, plausibly a format-version mismatch tied to the alpha build.
+SuperSplat's `.spz` export (tested against v3.0.0-alpha) is not usable for delivery with our current renderer. It produces a well-compressed file — roughly 13x smaller than the uncompressed `.ply` — but Spark fails to load it with `Worker error: Invalid gzip header`, even though SuperSplat reads the same file back without complaint.
 
-Current workaround is to ship uncompressed `.ply` instead. Consequence: zones land far above the <50 MB target (a single small room exported at ~240 MB), which matters because this is a static-hosting delivery problem, not just a storage one — every visitor downloads a full zone file before they can walk it. Candidate fixes, cheapest first: dropping SuperSplat's SH Bands export setting (view-dependent color, default 3) to band 0; trying a stable SuperSplat release instead of the alpha; checking which `.spz` version Spark actually supports; gzip'ing `.ply` at the hosting layer.
+**Root cause.** The file is a valid **SPZ v4**, and Spark only reads v1–v3. Confirmed by inspecting the header of `public/splats/test-room.spz`: the first bytes are `4e 47 53 50 04` — ASCII magic `NGSP`, version byte `4`. SPZ v1–v3 wrap the whole payload in gzip (files start with `1f 8b`); v4 dropped the gzip wrapper in favour of a raw `NGSP` header followed by per-attribute ZSTD-compressed streams. Spark's viewer decodes `.spz` in a Rust WASM worker that expects the gzip wrapper, so a v4 file fails at the first byte. Upstream v4 support is `sparkjsdev/spark` PR #332 (opened May 2026, reviewed, still unmerged as of August 2026) — no released Spark version reads v4, so upgrading `@sparkjsdev/spark` does not fix this.
+
+**Resolution plan, cheapest first:**
+1. Export **Compressed PLY** from SuperSplat instead of `.spz`. Spark documents support for the SuperSplat/gsplat compressed `.ply` variant, and it was already the listed alternative in §2. Expect a size in the same range as the `.spz` (same quantization approach). Requires un-ignoring `public/splats/*.ply` in `.gitignore` so finished zones can be committed (the `*.ply` rule exists only to keep 240 MB raw exports out).
+2. Export **`.sog`** from SuperSplat — also on Spark's supported-format list. Untested by us.
+3. Transcode v4 → v3 with Niantic's reference `spz` tool. Works but adds a pipeline step for no gain over (1).
+4. If none of the above gets under 50 MB: drop SuperSplat's SH Bands export setting (default 3) to 0 or 1.
+
+**Interim workaround** is uncompressed `.ply`. Consequence: zones land far above the <50 MB target (a single small room exported at ~240 MB), which matters because this is a static-hosting delivery problem, not just a storage one — every visitor downloads a full zone file before they can walk it. Until (1) is verified, splat files are shared via Google Drive (see `docs/ONBOARDING.md`), not Git.
 
 ## 4. Pipeline (capture → web)
 
-1. **Capture** a zone: 4K video, slow walk, high overlap, loop closure, even lighting. (Full protocol in `skills/capture-protocol`.)
+1. **Capture** a zone: 4K video, slow walk, high overlap, loop closure, even lighting. (Full protocol in `.claude/skills/capture-protocol/SKILL.md`.)
 2. **Extract & pose**: `ns-process-data video --data zone.mp4 --output-dir data/zoneX` (runs COLMAP). Target 150–300 frames per zone.
 3. **Train**: `ns-train splatfacto --data data/zoneX`. Watch in the Nerfstudio viewer; ~30k steps.
 4. **Export**: `ns-export gaussian-splat ... ` → .ply
@@ -124,12 +132,12 @@ Current workaround is to ship uncompressed `.ply` instead. Consequence: zones la
 
 ## 6. Schedule
 
-Schedule, milestones, and decision gates live in `PLAN.md`. This document does not
+Schedule, milestones, and decision gates live in `docs/PLAN.md`. This document does not
 duplicate dates — if you need to know when something is due, that is the wrong file.
 
 ## 6a. Fallback options
 
-Technical fallbacks, listed without dates. `PLAN.md` gates decide when to trigger them.
+Technical fallbacks, listed without dates. `docs/PLAN.md` gates decide when to trigger them.
 
 **Nerfstudio install fails or stalls**
 Switch to Postshot Indie (native Windows, no WSL) or Luma AI cloud processing.
