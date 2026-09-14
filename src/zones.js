@@ -75,6 +75,7 @@ export class ZoneManager {
         if (zone.origin) mesh.position.set(...zone.origin);
 
         group.add(mesh);
+        if (zone.debugCollision) this.buildCollisionDebug(group, zone);
         console.info(
           `Loaded splat for zone "${zone.id}" from ${zone.splat}`,
           `(scale=${scale}, rotation=[${rx}, ${ry}, ${rz}]deg, origin=${JSON.stringify(zone.origin ?? [0, 0, 0])})`
@@ -91,6 +92,26 @@ export class ZoneManager {
     this.current = zone;
     this.currentGroup = group;
     return zone;
+  }
+
+  // Temporary alignment overlay: draw the same AABBs used by collision
+  // over a loaded splat. These meshes do not participate in movement checks.
+  buildCollisionDebug(group, zone) {
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x00ffff, transparent: true, opacity: 0.2, wireframe: true,
+      depthTest: false, depthWrite: false, side: THREE.DoubleSide
+    });
+    for (const box of zone.collision ?? []) {
+      const w = box.max[0] - box.min[0];
+      const h = box.max[1] - box.min[1];
+      const d = box.max[2] - box.min[2];
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+      mesh.position.set(
+        box.min[0] + w / 2, box.min[1] + h / 2, box.min[2] + d / 2
+      );
+      mesh.renderOrder = 1;
+      group.add(mesh);
+    }
   }
 
   // A stand-in room: grid floor + translucent boxes where the collision
