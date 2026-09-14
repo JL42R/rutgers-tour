@@ -53,9 +53,9 @@ the date and hope.
 
 | Gate | Date | Pass condition | If it fails |
 |---|---|---|---|
-| **G1 — Training works** | Fri Sep 11 | A splat trained from Johnny's own test capture renders and is walkable in our app — not just when `ns-train` completes. (The export-to-Spark-loader seam is where integration surprises would otherwise surface in October with no slack. Same criterion as `docs/SETUP_TRAINING.md` §9c.) | Evaluate in order: (1) Brush — Rust/wgpu trainer, avoids CUDA entirely (the direct answer to a CUDA-on-Blackwell failure), accepts COLMAP/Nerfstudio datasets so alignment work carries over, headless CLI, exports `.ply`; it's a self-described proof of concept with unoptimized performance and unvalidated on our hardware, so budget ~1hr to evaluate before committing. (2) Postshot (native Windows, no WSL). (3) Luma AI. Log the reason in `DESIGN.md`. |
+| **G1 — Training works (passed Sep 9)** | Fri Sep 11 | A splat trained from Johnny's own test capture renders and is walkable in our app — not just when `ns-train` completes. (The export-to-Spark-loader seam is where integration surprises would otherwise surface in October with no slack. Same criterion as `docs/SETUP_TRAINING.md` §9c.) | Evaluate in order: (1) Brush — Rust/wgpu trainer, avoids CUDA entirely (the direct answer to a CUDA-on-Blackwell failure), accepts COLMAP/Nerfstudio datasets so alignment work carries over, headless CLI, exports `.ply`; it's a self-described proof of concept with unoptimized performance and unvalidated on our hardware, so budget ~1hr to evaluate before committing. (2) Postshot (native Windows, no WSL). (3) Luma AI. Log the reason in `DESIGN.md`. |
 | **G2 — Primary capture complete** | Fri Sep 25 | Every zone in scope has a usable dataset backed up to cloud storage | Re-shoot window stays open through Oct 16, but scope drops to whatever is captured by then. |
-| **G3 — One zone shipped end to end** | Fri Oct 9 | Zone 1 trained, cleaned, exported `.spz`, walkable with collision and real NPCs | Cut to 2 zones total and reassess scope. |
+| **G3 — One zone shipped end to end** | Fri Oct 9 | Zone 1 trained, cleaned, exported in a supported compressed splat format under the delivery budget, walkable with collision and real NPCs | Cut to 2 zones total and reassess scope. |
 | **G4 — Feature freeze** | Fri Nov 6 | All zones integrated, all NPCs placed, app live on static hosting | Descope per the ladder in §7. |
 | **G5 — Final lock** | Fri Nov 20 | Tested, fixed, deployed, demo rehearsed | — |
 
@@ -65,9 +65,9 @@ the date and hope.
 
 ### Week 1 · Sep 1–6 — Install and first capture, in parallel
 
-- [ ] Install WSL2 + CUDA toolkit + Nerfstudio. Budget two full evenings; this install fails in
+- [x] Install WSL2 + CUDA toolkit + Nerfstudio. Budget two full evenings; this install fails in
       creative ways. Stop and ask for help at the 4-hour mark rather than grinding.
-- [ ] Verify the GPU is visible inside WSL (`nvidia-smi` from the Ubuntu shell)
+- [x] Verify the GPU is visible inside WSL (`nvidia-smi` from the Ubuntu shell)
 - [ ] Smoke capture: one small, well-lit space you control (apartment/dorm room), 150–300 photos.
       This exists to test the pipeline, not to ship.
 - [ ] Team walkthrough of the CORE first floor. Mark zone boundaries on a floor plan, commit the
@@ -80,16 +80,18 @@ the date and hope.
 
 ### Week 2 · Sep 7–13 — Prove the pipeline, capture Zone 1
 
-- [ ] Run COLMAP on the smoke dataset, then splatfacto. Expect failed runs. Record every setting
+- [x] Run COLMAP on the smoke dataset, then splatfacto. Expect failed runs. Record every setting
       that fits inside 8GB.
-- [ ] Export `.ply` — clean in SuperSplat — export compressed `.spz`
-- [ ] Load it into the app as a zone and walk around it
-- [ ] **GATE G1 (Sep 11)**
+- [ ] Export `.ply` — clean in SuperSplat — test a supported compressed splat format
+- [x] Load it into the app as a zone and walk around it
+- [x] **GATE G1 (Sep 11)** — passed Sep 9 on a test capture
+- [x] Capture and train the printing-room test zone (not CORE Zone 1): 451/452 frames registered, 30k iterations, raw `.ply` rendered and walkable in Spark
 - [ ] Capture CORE Zone 1, midday, using `.claude/skills/capture-protocol/SKILL.md`
 - [ ] Back the raw dataset up to cloud storage the same day it's shot
 
 ### Week 3 · Sep 14–20 — Train Zone 1, capture everything else
 
+- [x] Calibrate the printing-room test splat to measured physical scale and room boundaries; browser alignment verified Sep 14
 - [ ] Train Zone 1. Budget at least two rounds.
 - [ ] Write the working settings and any capture lessons into the skill files, and push, before
       the next capture session
@@ -102,8 +104,8 @@ the date and hope.
 
 - [ ] Any re-shoots identified in Week 3
 - [ ] **GATE G2 (Sep 25)** — primary capture complete
-- [ ] Clean Zone 1 in SuperSplat: crop floaters, trim outside geometry, floor at y=0
-- [ ] Export `.spz`, confirm under 50MB
+- [ ] Clean Zone 1 in SuperSplat: crop floaters, trim outside geometry, preserve reconstruction coordinates; set floor position in `zones.json`
+- [ ] Export a supported compressed splat format, confirm under 50MB
 - [ ] Place in the app, author collision boxes, verify scale (1 unit = 1 meter)
 - [ ] First draft of NPC dialogue JSON from the secured staff bios and room descriptions
 

@@ -41,11 +41,11 @@ The first floor is captured, trained, and shipped as **2–4 separate zones** (e
 
 Reasons: (a) each training run stays within 8 GB VRAM and 16 GB system RAM; (b) each web file stays under the ~50 MB budget; (c) a bad capture only forces re-doing one zone; (d) the viewer lazy-loads the next zone as the user approaches a doorway (simple distance check → load → fade).
 
-Zones share a common coordinate convention: after cleanup in SuperSplat, each zone is exported with the floor at y=0, 1 unit = 1 meter (scale using a known measurement like a doorway height), and a documented origin point. Write each zone's origin/orientation into `zones.json`.
+Zones share a common web-scene coordinate convention: floor at y=0 and 1 unit = 1 meter. Preserve each cleaned splat's reconstruction coordinate system on export, then use per-zone `rotation`, uniform `scale`, and `origin` in `zones.json` to place it in that convention.
 
 **The coordinate seam.** COLMAP recovers geometry only up to an unknown scale factor — a small room filmed close up and a large room filmed from far away produce identical images, so the math cannot tell them apart. Splatfacto trains with `auto_scale_poses=True`, which normalizes that arbitrary scale further. Our collision boxes, by contrast, are authored in real-world meters against the 1 unit = 1 meter / floor-at-y=0 convention above. Reconciling COLMAP's arbitrary output scale with our real-world convention is a per-zone step, not something the pipeline gives us for free.
 
-**Decision: `rotation`/`scale` are `zones.json` fields, not a SuperSplat bake.** Baking a correction into the splat file itself means every attempt requires re-exporting a 240 MB file, which makes iteration impractical and blocks teammates from working on the same zone in parallel. Instead, `src/zones.js` applies `rotation` (Euler degrees, `[x, y, z]`) and `scale` (a single uniform number — splat correction is always uniform, since non-uniform scaling would distort the geometry) to the loaded splat mesh at runtime, in that order, followed by `origin` for position. This turns orientation correction into a JSON edit anyone can make and reload in seconds.
+**Decision: `rotation`/`scale`/`origin` are `zones.json` fields, not a SuperSplat bake.** Baking a correction into the splat file itself means every attempt requires re-exporting a 240 MB file, which makes iteration impractical and blocks teammates from working on the same zone in parallel. Instead, `src/zones.js` applies uniform `scale` (non-uniform scaling would distort the geometry), `rotation` (XYZ Euler degrees, `[x, y, z]`), then `origin` for position at runtime. This turns physical calibration into a JSON edit anyone can make and reload in seconds.
 
 **Zone schema fields** (`public/zones.json`, one entry per zone):
 - `splat` — path to the zone's exported splat file
@@ -56,9 +56,9 @@ Zones share a common coordinate convention: after cleanup in SuperSplat, each zo
 - `spawn` `[x, y, z]` — player spawn position
 - `collision` — array of hand-authored AABB `{min, max}` boxes; never derived from splat geometry
 
-**Printing room status:** the splat renders but is not correctly oriented yet. A `rotation` of `X=90` renders it upside down, so `X=-90` is the likely correction; `scale` and the floor-offset (`origin`) have not yet been derived.
+**Printing room status (verified in browser 2026-09-14):** the splat is aligned using `origin: [-0.4239378102298068, 0.074344140921842, 3.17070150997874]`, `rotation: [180, 91.78889410373753, 0]`, and `scale: 2.881555849683783` in `public/zones.json`. Four collision boundary walls use the room's measured physical dimensions; temporary `debugCollision` wireframe support makes them visible over the splat.
 
-First zone measured: printing room, tape-measured at 40.8 × 14.3 × 10.8 ft = 12.44 × 4.36 × 3.29 m.
+First zone measured: printing room, tape-measured at 40.8 × 14.3 × 10.8 ft = 12.43584 × 4.35864 × 3.29184 m.
 
 ### 3.2 Runtime structure (frontend)
 ```
@@ -120,9 +120,9 @@ SuperSplat's `.spz` export (tested against v3.0.0-alpha) is not usable for deliv
 2. **Extract & pose**: `ns-process-data video --data zone.mp4 --output-dir data/zoneX` (runs COLMAP). Target 150–300 frames per zone.
 3. **Train**: `ns-train splatfacto --data data/zoneX`. Watch in the Nerfstudio viewer; ~30k steps.
 4. **Export**: `ns-export gaussian-splat ... ` → .ply
-5. **Clean**: open .ply in SuperSplat → delete floaters, crop to room bounds, orient floor to y=0 → export compressed (.spz or compressed .ply).
+5. **Clean**: open .ply in SuperSplat → delete floaters, crop to room bounds, perform privacy cleanup → preserve reconstruction coordinates on export (Compressed PLY is the next delivery-format test).
 6. **Budget check**: file < 50 MB? renders 30+ fps in Spark on a mid laptop? If not: prune more aggressively in SuperSplat or retrain at lower cap.
-7. **Integrate**: drop into `public/splats/`, add zone entry to `zones.json`.
+7. **Integrate and calibrate**: drop into `public/splats/`, add the zone entry, then set `rotation`, uniform `scale`, and `origin` in `zones.json` to put the floor at world y=0 and match physical meters. Do not bake those transforms into the PLY.
 
 ## 5. Hardware notes
 - Training machine: laptop RTX 5060, **8 GB VRAM** (documented minimum for this pipeline), 16 GB system RAM.

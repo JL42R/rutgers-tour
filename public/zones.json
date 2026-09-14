@@ -1,11 +1,11 @@
 {
-  "startZone": "demo-room",
+  "startZone": "printing-room",
   "zones": [
     {
-      "id": "demo-room",
-      "label": "Demo Room (placeholder until first real capture)",
+      "id": "printing-room",
+      "label": "3D Printing Room",
       "placeholder": false,
-      "placeholderSize": [14, 10],
+      "placeholderSize": [12.43584, 4.35864],
       "splat":  "./splats/printing-room-updated.ply",
       "origin": [-0.4239378102298068, 0.074344140921842, 3.17070150997874],
       "rotation": [180, 91.78889410373753, 0],
@@ -18,23 +18,7 @@
         { "min": [-6.41792, 0, -2.17932], "max": [-6.21792, 3.29184, 2.17932] },
         { "min": [6.21792, 0, -2.17932],  "max": [6.41792, 3.29184, 2.17932]  }
       ],
-      "npcs": [
-        {
-          "name": "Riley the Guide",
-          "position": [2.5, 1.6, -3],
-          "radius": 2.2,
-          "portrait": null,
-          "dialogueFile": "./dialogue/demo-guide.json"
-        },
-        {
-          "id": "mohsen_jafari",
-          "name": "Mohsen Jafari",
-          "position": [-2.5, 1.6, 3],
-          "radius": 2.2,
-          "portrait": null,
-          "dialogueFile": "./dialogue/mohsen_jafari.json"
-        }
-      ]
+      "npcs": []
     }
   ]
 }

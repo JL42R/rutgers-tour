@@ -2,6 +2,19 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-09-14
+
+### Printing-room alignment completed
+- Tape-measured room: 40.8 × 14.3 × 10.8 ft = 12.43584 × 4.35864 × 3.29184 m.
+- Independent analysis parsed 1,013,854 splats from the original PLY. The long axis is approximately raw Z, width raw X, and upward raw -Y. Fitted raw dimensions: length ≈ 4.3077, width ≈ 1.6839, height ≈ 1.1445 units.
+- Length and height measurements were used to derive a uniform scale of `2.881555849683783`.
+- Final browser-verified runtime transform in `public/zones.json`: `origin: [-0.4239378102298068, 0.074344140921842, 3.17070150997874]`, `rotation: [180, 91.78889410373753, 0]`, `scale: 2.881555849683783`.
+- Four collision boundary walls now use the measured physical room dimensions. Temporary `debugCollision: true` support draws a translucent cyan wireframe over the real splat; collision still uses only the AABB data.
+- `npm run build` passes.
+
+### Next work
+- Measure an FPS/load-time baseline, then test SuperSplat Compressed PLY for delivery. The raw PLY remains approximately 240 MB and outside Git.
+
 ## 2026-09-09
 
 ### G1 passed — full pipeline validated end to end

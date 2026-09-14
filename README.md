@@ -17,9 +17,9 @@ npm install
 npm run dev
 ```
 
-Open the URL it prints (usually http://localhost:5173). Click the scene, walk with **WASD**, look with the mouse, press **E** near the floating badge to talk to the demo NPC, **Esc** to release the mouse.
+Open the URL it prints (usually http://localhost:5173). Click the scene, walk with **WASD**, look with the mouse, and press **Esc** to release the mouse. NPC interaction is implemented, but the current printing-room zone has no NPC placements.
 
-You'll see a gray placeholder room — that's expected. It gets replaced by real captured scans of CORE as zones are trained (see below).
+The current printing-room scan is a raw ~240 MB PLY shared through Drive (see [onboarding](docs/ONBOARDING.md#7a-download-the-current-splat-not-in-the-repo)), not Git. A fresh clone without that file falls back to the gray placeholder room. Compressed PLY is the planned delivery format; SPZ v4 from the tested SuperSplat version is incompatible with the current Spark decoder.
 
 ## Project layout
 
@@ -33,7 +33,7 @@ src/npc.js          NPC markers + proximity detection
 src/dialogue.js     conversation UI
 public/zones.json   THE map: zones, walls, NPC placement — most edits happen here
 public/dialogue/    one JSON per NPC's conversation — writers edit these, no code
-public/splats/      trained .spz / .compressed.ply zone files go here
+public/splats/      local Drive PLY and future compressed zone files go here
 .claude/skills/     pipeline procedures — auto-loaded by Claude Code, readable by any AI assistant
 ```
 

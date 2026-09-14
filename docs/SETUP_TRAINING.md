@@ -354,13 +354,14 @@ present but cannot execute. Force the target explicitly:
 
 ```bash
 export TORCH_CUDA_ARCH_LIST="12.0"
-export MAX_JOBS=4
+export MAX_JOBS=2
 pip install --no-build-isolation gsplat
 ```
 
-`MAX_JOBS=4` caps parallel compilation. With 16 GB of system RAM, unbounded parallel `nvcc`
-jobs can exhaust memory and get the compiler killed — which surfaces as a bewildering
-"build failed" with no obvious cause.
+`MAX_JOBS=2` is the verified cap for parallel compilation on this machine: `MAX_JOBS=4`
+caused the gsplat CUDA compile to be killed, while 2 succeeded with the 12 GB WSL2 memory
+allocation and 4 GB swap from section 4b. This setting is also persisted in `~/.bashrc`
+for gsplat's first-use JIT compile.
 
 Persist the arch flag so future rebuilds don't regress:
 
@@ -463,8 +464,9 @@ ns-export gaussian-splat --load-config outputs/.../config.yml --output-dir expor
 cp exports/hallway/splat.ply /mnt/c/dev/rutgers-tour/tmp/
 ```
 
-Then clean it in SuperSplat, export compressed `.spz`, drop it into the zone loader, and walk
-around it in the browser with WASD.
+Then clean it in SuperSplat while preserving reconstruction coordinates, test Compressed PLY,
+drop it into the zone loader, and walk around it in the browser with WASD. SuperSplat SPZ v4
+is incompatible with the current Spark release; see `DESIGN.md`.
 
 **G1 passes when you have walked through your own hallway in our own app.** Not when
 `ns-train` finishes.
@@ -554,8 +556,9 @@ tmp/
 Raw captures, COLMAP output, and uncompressed `.ply` files never enter Git history — they are
 large and irreversible once committed.
 
-The final compressed `.spz` zone files **are** committed, because static hosting serves them
-straight from the repo. Keep each under 50 MB per `DESIGN.md`.
+Commit a compressed zone file only after its format loads in Spark, it is under 50 MB, and the
+repo's ignore rules permit that specific finished file. The current Compressed PLY format is
+the next test; keep the approximately 240 MB raw PLY outside Git.
 
 ---
 

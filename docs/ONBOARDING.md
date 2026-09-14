@@ -31,8 +31,7 @@ Welcome! This guide takes you from a blank computer to running the project and m
 
 ### 5. GitHub account
 - [ ] Create a free account at https://github.com (use a username you're OK with professors seeing).
-- [ ] Send your username in the group chat so you can be added to the private repo.
-- [ ] Wait for the invite email, accept it.
+- [ ] Send your username in the group chat so teammates can find you for Issues and Pull Request reviews. Ask a maintainer for collaborator access when you need to push a branch; anyone can clone the public repo.
 
 ### 6. An AI coding assistant (pick ONE — your choice)
 This repo is set up so any major AI coding tool understands the project: the project brief lives in `AGENTS.md`, a cross-tool standard file that these tools read.
@@ -54,13 +53,15 @@ This repo is set up so any major AI coding tool understands the project: the pro
   cd C:\dev
   git clone https://github.com/JL42R/rutgers-tour.git
   ```
-  (If that URL fails, you haven't accepted the repo invite yet — see step 5.)
+  The repository is public; cloning does not require an invite. If the command fails, check the URL and your network connection.
 
 ### 7a. Download the current splat (not in the repo)
-Splat files are **not** in git, on purpose. GitHub blocks any push containing a file
-over 100 MB, and our current printing-room export is 240 MB, so `*.ply` and `*.mp4`
-stay in `.gitignore` permanently — this is deliberate, not an oversight. Do not remove
-those `.gitignore` rules or try to commit a splat file yourself.
+The current raw printing-room PLY is **not** in Git. At approximately 240 MB it exceeds
+GitHub's 100 MB file limit, so raw/uncompressed PLY files remain excluded and are shared
+through Drive. Finished Compressed PLY files may later be committed after the format is
+validated and `.gitignore` is narrowed to allow those files while still excluding raw PLYs.
+Do not change `.gitignore` yet or try to commit the current raw export. Raw video captures
+also remain outside Git.
 
 - [ ] Open the shared Drive folder: https://drive.google.com/drive/u/0/folders/1CH1AtdKyM76MwLCx59VzMFqnssYlIFHT
 - [ ] Download the current zone's splat file and place it in `public/splats/`
@@ -77,7 +78,7 @@ those `.gitignore` rules or try to commit a splat file yourself.
   npm run dev
   ```
 - [ ] Ctrl+click the `http://localhost:5173` link that appears.
-- [ ] **Success check:** you see a 3D room. Click it, walk with WASD, look with the mouse, walk to the floating scarlet badge and press **E** to talk to the demo NPC. Esc releases your mouse. If all that works, your setup is done.
+- [ ] **Success check:** you see the printing-room splat if you downloaded its PLY, or the gray fallback room if you did not. Click it, walk with WASD, look with the mouse, and press **Esc** to release your mouse. The printing-room zone currently has no NPC markers.
 - [ ] To stop the server later: click in the terminal, press **Ctrl+C**. To run other commands while it's running, open a second terminal with the **+** button.
 
 ---
@@ -97,7 +98,7 @@ Why several docs? Each has one job: `README.md` = front door for humans (GitHub 
 - [ ] Habits that matter with ANY tool: describe tasks specifically ("add X to the dialogue box") not vaguely ("make it better") · review every change it makes before accepting · commit working code BEFORE asking for big changes · if it goes in circles twice, start a fresh session with a better prompt instead of arguing with it.
 
 ### 11. Make your first change (proves the whole loop works)
-- [ ] With `npm run dev` running, open `public/dialogue/demo-guide.json` and change one of Riley's lines. Save. Watch the browser update. Talk to Riley — your words.
+- [ ] With `npm run dev` running, open `index.html` and change a word in the visible top-left hint (for example, "Click to explore."). Save and watch the browser update.
 - [ ] Revert it (Ctrl+Z, save) or keep it if it's an improvement.
 
 ### 12. Your first real task
@@ -134,7 +135,7 @@ testing, deployment — is open to whoever has time.
 - **Gaussian splat**: the photorealistic 3D scan format we use. Lives in `public/splats/`.
 - **Zone**: one captured area (lobby, hallway…). Defined in `public/zones.json`.
 - **NPC**: a tour guide character. Its script is a JSON file in `public/dialogue/` — editing it requires zero code.
-- **Placeholder room**: the gray grid room you see before a zone has a real scan.
+- **Placeholder room**: the gray grid room shown when a zone's configured scan is unavailable.
 - **Vite / npm run dev**: the tool that serves the app locally and auto-refreshes your browser on save.
 
 ---
