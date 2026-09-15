@@ -53,7 +53,7 @@ async function init() {
     await zones.loadZone(startZone.id);
     npcs.setNPCs(startZone.npcs ?? []);
     if (startZone.spawn) {
-      camera.position.set(startZone.spawn[0], EYE_HEIGHT, startZone.spawn[2]);
+      camera.position.set(startZone.spawn[0], (startZone.spawn[1] ?? 0) + EYE_HEIGHT, startZone.spawn[2]);
     }
   } catch (err) {
     console.error('World failed to load:', err);

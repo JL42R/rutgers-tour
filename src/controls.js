@@ -67,6 +67,6 @@ export class PlayerControls {
 
     // Try to move, sliding along any collision walls.
     const next = resolveMovement(this.camera.position, step, collisionBoxes);
-    this.camera.position.set(next.x, EYE_HEIGHT, next.z);
+    this.camera.position.set(next.x, this.camera.position.y, next.z);
   }
 }
