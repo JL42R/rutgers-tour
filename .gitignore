@@ -9,4 +9,5 @@ outputs/
 exports/
 tmp/
 *.ply
+!public/splats/printing-room-updated.compressed.ply
 *.mp4

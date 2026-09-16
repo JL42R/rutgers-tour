@@ -6,7 +6,7 @@
       "label": "3D Printing Room",
       "placeholder": false,
       "placeholderSize": [12.43584, 4.35864],
-      "splat":  "./splats/printing-room-updated.ply",
+      "splat":  "./splats/printing-room-updated.compressed.ply",
       "origin": [-0.4239378102298068, 0.074344140921842, 3.17070150997874],
       "rotation": [180, 91.78889410373753, 0],
       "scale": 2.881555849683783,

@@ -53,7 +53,10 @@ export class ZoneManager {
       // catch, instead of failing silently after this function has
       // already returned.
       try {
-        const mesh = new SplatMesh({ url: zone.splat });
+        const mesh = new SplatMesh({
+          url: zone.splat,
+          lod: true,
+        });
         await mesh.initialized;
 
         // Splat files land in an arbitrary coordinate space: COLMAP recovers

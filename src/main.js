@@ -21,11 +21,14 @@ camera.position.set(0, EYE_HEIGHT, 3); // start 3m back from zone origin, at eye
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(1);
 app.appendChild(renderer.domElement);
 
 // Spark makes Gaussian splats render inside the normal Three.js scene.
-const spark = new SparkRenderer({ renderer });
+const spark = new SparkRenderer({
+  renderer,
+  lodSplatCount: 500000,
+});
 scene.add(spark);
 
 // Light only matters for placeholder meshes and sprites; splats carry their own color.
