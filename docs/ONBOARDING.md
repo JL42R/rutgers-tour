@@ -69,6 +69,11 @@ also remain outside Git.
   filename you just downloaded (e.g. `"./splats/printing-room-updated.ply"`) — if the
   filename doesn't match, the app can't find the file
 
+Raw capture videos (the phone footage a capture session produces, before COLMAP/training)
+live in a separate Drive folder, not the one above: https://drive.google.com/drive/folders/1ux-tWNdUBWBhVojNKb_qSXBVEBpQkwyW?usp=drive_link
+Upload captures there per `.claude/skills/capture-protocol/SKILL.md`; you only need this
+folder if you're doing capture work.
+
 ### 8. Open and run it
 - [ ] VS Code → **File → Open Folder** → `C:\dev\rutgers-tour`. Click "Yes, I trust the authors."
 - [ ] Open the built-in terminal: **View → Terminal**.
