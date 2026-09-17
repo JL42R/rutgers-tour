@@ -2,6 +2,96 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-09-17
+
+### Documentation synced to verified state
+No code or pipeline changes. The docs had drifted far enough from reality to be actively
+misleading — several described blockers that were already solved and a zone count we had moved
+past. Corrected against the repo as it actually stands:
+
+- **The printing room is Zone 1**, an official CORE zone, not a test zone. Every doc that called
+  it a test/smoke capture now says so.
+- **Compressed PLY works** (see the 2026-09-15 entry). Removed the "download the splat from
+  Drive", "fresh clone falls back to the placeholder room", and "Compressed PLY is the next
+  test" language from `README.md`, `AGENTS.md`, `docs/ONBOARDING.md`, `DESIGN.md`, and
+  `docs/SETUP_TRAINING.md`. A fresh clone renders Zone 1 with no download step.
+- **Scope is 4–5 zones in a star topology**: the hallway is the hub, every transition is
+  hallway↔room, never room↔room. This makes the hallway the shared reference frame — it is
+  aligned first and every other zone's origin/rotation is expressed relative to it. Recorded in
+  `DESIGN.md` §3.1, `AGENTS.md`, `docs/PLAN.md` §2, and the training-pipeline skill's Stage 6.
+- **The real remaining blocker is size, not format.** Zone 1 is 62 MB against a 50 MB target.
+  SH is 74% of the file; band 1 projects to ~26 MB and band 0 to ~16.5 MB. The band choice is
+  deliberately NOT made — band 1 and band 0 get compared side by side first. `DESIGN.md` §3.5.
+- **`docs/PLAN.md` §4 (week-by-week) deleted.** Nobody maintained it, so it described a project
+  we were not running. Replaced by a pointer to the GitHub milestone board, which is the
+  task-level source of truth. `AGENTS.md`'s status checklist was removed for the same reason.
+  §5's Friday ritual is now milestone-board triage.
+- **G3 re-specified**: two zones walkable with collision and real NPCs, live on a public URL,
+  loaded by someone who is not Johnny. Compression moved from gate to target. The GitHub
+  milestone was renamed to match and now carries the pass condition in its description.
+  Its fallback was rewritten — "cut to 2 zones" was a no-op against a two-zone gate. The gate
+  bundles three legs of very different descopability: the second zone is cuttable, while the
+  public URL and real NPCs are both on §7's never-cut list, so failing those means stopping
+  other work rather than descoping.
+- **Descoping ladder** now runs from five zones, with a note that planning 4–5 means its first
+  two rungs are pre-spent — they buy back no time we had not already committed.
+
+### Skills reconciled against measured practice
+- **OPEN QUESTION recorded, deliberately unresolved:** the capture protocol specifies 250 frames
+  (150–300) and 2–4 minute clips; our only successful capture used `--num-frames-target 450` and
+  a 7:16 clip. Nobody has run the same room both ways. The runtime consequence is recorded
+  because it is large and measured: ~24 min of COLMAP at ~300 frames vs 135m53s at 452.
+- **SuperSplat cleanup is recorded as harmful-in-practice and undiagnosed** — see the 2026-09-15
+  entry. Stage 5 of the training pipeline now prefers SH band reduction over splat deletion.
+- **Stage 5's "hard gate" language corrected to "target."** It claimed ≤ 50 MB was a hard gate
+  while the shipped zone is 62 MB — the skill was asserting something untrue.
+- **SH Bands must now be recorded in `CHANGELOG.md` on every export.** Without it, zone files
+  cannot be compared and the pending band test is uninterpretable.
+- **Capture file convention standardized on `.MOV`**, matching issues #3/#4 and what the iPhone
+  actually writes. `.gitignore` previously covered only `*.mp4`, leaving a 1.5–3 GB take
+  unprotected — `*.MOV` and `*.mov` added, verified with `git check-ignore`. This mattered
+  ahead of the Sep 18 hallway shoot.
+- Verified while testing those rules: a future zone's `hallway.compressed.ply` is **ignored**,
+  because the `!` negation is per-file rather than a pattern. Documented in the training-pipeline
+  skill (Stage 6) and `docs/SETUP_TRAINING.md` §12 — a new zone needs its own negation line or
+  Git will silently skip it.
+- Added: re-verify the `eval_utils.py` `weights_only` venv patch before the first export of each
+  new zone. Nothing has been exported since Sep 9, so its current state is assumed, not observed.
+
+### Removed
+- `public/dialogue/demo-guide.json` (Riley, the demo NPC). Unreferenced by `src/` and absent from
+  `zones.json` since the demo room was retired. Recoverable from Git history.
+
+## 2026-09-15
+
+### Compressed PLY works — delivery format resolved (012a723)
+The `.spz` blocker is resolved on the load side. SuperSplat's **Compressed PLY** export loads in
+Spark 2.1.0, so the format question from #8 is answered; `.spz` stays dead (SuperSplat writes v4,
+no released Spark decoder reads it) and is not worth revisiting unless PR #332 lands.
+
+- `public/splats/printing-room-updated.compressed.ply` committed at **62,132,080 bytes**
+  (1,013,854 splats, SH bands 3). First splat file ever to enter the repo.
+- `.gitignore` gained a per-file negation past the blanket `*.ply` rule. The negation is per-file,
+  not a pattern — every future zone needs its own line or Git will silently ignore it.
+- `zones.json` switched the printing room to the compressed file. Alignment, collision, and spawn
+  settings were preserved unchanged.
+- Spark LOD enabled: `lod: true` on the `SplatMesh`, `lodSplatCount: 500000` on the
+  `SparkRenderer`.
+- Renderer pixel ratio pinned to `1`, down from `Math.min(devicePixelRatio, 2)`. This is a real
+  tradeoff, not a pure win: on a HiDPI display the scene now renders at 1x and looks softer, in
+  exchange for a large fill-rate saving.
+
+### Still over budget
+62 MB misses the < 50 MB target. SH is ~74% of the file, so band selection is the lever — band 1
+projects to ~26 MB, band 0 to ~16.5 MB. Neither has been exported or looked at yet. #8 stays open
+for the size problem rather than the format problem.
+
+### SuperSplat cleanup skipped — it made quality worse
+The team cleaned the printing room in SuperSplat and observed visual quality **decreasing**
+against the uncleaned export, so the shipped file has no cleanup applied. **Cause never
+diagnosed.** Until someone does, treat cleanup as a change requiring an A/B look in the browser
+rather than an automatic improvement, and do not rely on it to hit the size budget.
+
 ## 2026-09-14
 
 ### Printing-room alignment completed

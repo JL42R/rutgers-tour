@@ -434,12 +434,24 @@ ns-process-data video --data ~/work/hallway.mp4 --output-dir ~/work/hallway-proc
 ns-train splatfacto --data ~/work/hallway-proc
 ```
 
-**COLMAP time budget:** observed ~24 minutes wall time for 309 frames on the apt-installed
-CPU-only COLMAP (24m6s real, 146m43s user — roughly 6-way parallelism across cores). A CUDA
-COLMAP build would accelerate feature extraction and matching but not the mapping /
-bundle-adjustment stage, so expect roughly 2–4x, not an order of magnitude — this estimate is
-unmeasured. Weigh that against the planned zone count before deciding whether building COLMAP
-from source with CUDA (see step 5) is worth the time.
+**COLMAP time budget.** Two measured runs on the apt-installed CPU-only COLMAP:
+
+| Frames | Wall time | CPU time | Parallelism | Capture |
+|---|---|---|---|---|
+| 309 | 24m6s | 146m43s | ~6x | Sep 7 apartment hallway |
+| 452 | 135m53s | 1712m | ~12.6x | Sep 9 printing room (Zone 1) |
+
+Runtime scales far worse than linearly in frame count: 1.46x the frames cost 5.6x the wall
+time. Matching is the reason — it grows superlinearly, and on the 452-frame run feature
+matching alone was **112 of 136 minutes**. Budget accordingly before raising
+`--num-frames-target`; the cost is not proportional to what you ask for.
+
+A CUDA COLMAP build accelerates feature extraction and matching but not mapping /
+bundle adjustment. Per issue #17's stage breakdown, **roughly 95% of runtime sits in
+CUDA-accelerable stages**, so the available speedup is substantial — likely well above the
+2–4x first guessed here. **This is a projection from stage timings, not a measurement**; we
+have never run a CUDA COLMAP build. Weigh it against the planned zone count before deciding
+whether building COLMAP from source with CUDA (see step 5) is worth the time.
 
 `ns-process-data` also supports `--matching-method`. Sequential matching is better suited to
 video than the default (exhaustive), since frames adjacent in time are the ones that actually
@@ -464,9 +476,10 @@ ns-export gaussian-splat --load-config outputs/.../config.yml --output-dir expor
 cp exports/hallway/splat.ply /mnt/c/dev/rutgers-tour/tmp/
 ```
 
-Then clean it in SuperSplat while preserving reconstruction coordinates, test Compressed PLY,
-drop it into the zone loader, and walk around it in the browser with WASD. SuperSplat SPZ v4
-is incompatible with the current Spark release; see `DESIGN.md`.
+Then clean it in SuperSplat while preserving reconstruction coordinates, export **Compressed
+PLY** (our confirmed delivery format — Spark 2.1.0 loads it), drop it into the zone loader, and
+walk around it in the browser with WASD. Do not export SPZ: SuperSplat writes v4 and no
+released Spark decoder reads it; see `DESIGN.md` §3.5.
 
 **G1 passes when you have walked through your own hallway in our own app.** Not when
 `ns-train` finishes.
@@ -502,6 +515,16 @@ the venv is recreated, if Nerfstudio is reinstalled or upgraded, or on a fresh m
 rebuilding this environment must reapply it by hand. This is a known fragility in the current
 setup — if the environment is ever rebuilt, scripting this patch or vendoring a patch file into
 the repo is worth doing.
+
+**Re-verify this patch before the first export of every new zone.** Nothing since the Sep 9
+printing-room export has been trained or exported, so the venv has sat untouched for weeks and
+the patch's current state is assumed, not observed. Run the `grep` above before you need
+`ns-export` to work — it costs one second, and finding out at export time costs a confusing
+half hour:
+
+```bash
+grep -n "loaded_state = torch.load" ~/nerf/lib/python3.11/site-packages/nerfstudio/utils/eval_utils.py
+```
 
 ---
 
@@ -542,23 +565,30 @@ gate exists to enforce it.
 
 ## 12. Repo hygiene
 
-Confirm `.gitignore` covers, before any splat file exists on disk:
+`.gitignore` excludes the large stuff by blanket rule, then negates that rule for each finished
+compressed zone file by name:
 
 ```
-*.ply
+captures/
 data/
 outputs/
 exports/
 tmp/
+*.ply
+!public/splats/printing-room-updated.compressed.ply
 *.mp4
 ```
 
 Raw captures, COLMAP output, and uncompressed `.ply` files never enter Git history — they are
 large and irreversible once committed.
 
-Commit a compressed zone file only after its format loads in Spark, it is under 50 MB, and the
-repo's ignore rules permit that specific finished file. The current Compressed PLY format is
-the next test; keep the approximately 240 MB raw PLY outside Git.
+**Adding a zone means adding its own negation line.** The `!` entry is per-file, not a pattern,
+so a new zone's compressed PLY stays invisible to Git until you add it. Verify with
+`git status` before assuming the file is staged.
+
+Commit a compressed zone file once it loads in Spark and its negation line is in place. The
+50 MB target is a target, not a gate — Zone 1 shipped at 62 MB, which is over it. Keep the
+~240 MB raw PLY outside Git regardless.
 
 ---
 

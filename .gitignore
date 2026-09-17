@@ -10,4 +10,8 @@ exports/
 tmp/
 *.ply
 !public/splats/printing-room-updated.compressed.ply
+# Raw capture video. .MOV is what the iPhone writes and our naming convention;
+# a single 4K take is 1.5-3 GB, well over GitHub's 100 MB limit.
 *.mp4
+*.MOV
+*.mov

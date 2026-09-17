@@ -17,7 +17,7 @@ A web-based, photorealistic, freely-navigable 3D tour of the CORE building's fir
 | Pose estimation (SfM) | COLMAP, invoked automatically via Nerfstudio's `ns-process-data` | RealityCapture (free under $1M revenue) exports poses Nerfstudio can import |
 | Splat training | **Nerfstudio `splatfacto`** (gsplat CUDA backend) | Postshot (Windows GUI, Indie tier ~€17/mo for PLY export) |
 | Splat cleanup | **SuperSplat** (free browser editor) — crop, delete floaters | — |
-| Delivery format | Compressed **.spz** (or SuperSplat compressed .ply), target **< 50 MB per zone** | .sog / .ksplat, all supported by renderer |
+| Delivery format | **SuperSplat Compressed PLY** (confirmed in Spark 2.1.0), target **< 50 MB per zone** | .sog / .ksplat, supported by renderer. **Not .spz** — see §3.5 |
 | Web renderer | **Spark** (`@sparkjsdev/spark`) on Three.js + WebGL2 | mkkellogg GaussianSplats3D |
 | NPC visuals | **2D character portraits + dialogue box overlay** (visual-novel style) | Simple 3D billboard sprites in-scene |
 | Dialogue logic | **Frontend JSON** — no backend | — |
@@ -37,9 +37,13 @@ A web-based, photorealistic, freely-navigable 3D tour of the CORE building's fir
 ## 3. Architecture
 
 ### 3.1 Zone-based scenes (important)
-The first floor is captured, trained, and shipped as **2–4 separate zones** (e.g., lobby, main hallway, ISE lab, secondary corridor), not one monolithic splat.
+The first floor is captured, trained, and shipped as **4–5 separate zones** (the main hallway plus the rooms opening off it), not one monolithic splat.
 
 Reasons: (a) each training run stays within 8 GB VRAM and 16 GB system RAM; (b) each web file stays under the ~50 MB budget; (c) a bad capture only forces re-doing one zone; (d) the viewer lazy-loads the next zone as the user approaches a doorway (simple distance check → load → fade).
+
+**Star topology: the hallway is the hub.** Every zone-to-zone transition is hallway↔room; there are no room↔room transitions. This falls out of the building itself — the rooms connect to each other only through the hallway — and it buys a real simplification: each room only ever has to align against one neighbour, the hallway, instead of against every room it might border.
+
+That makes **the hallway the shared reference frame.** Align it first, then express every other zone's `origin` and `rotation` relative to it. A room's alignment error stays local to that room instead of propagating around a loop of mutually-aligned neighbours.
 
 Zones share a common web-scene coordinate convention: floor at y=0 and 1 unit = 1 meter. Preserve each cleaned splat's reconstruction coordinate system on export, then use per-zone `rotation`, uniform `scale`, and `origin` in `zones.json` to place it in that convention.
 
@@ -100,28 +104,45 @@ Each NPC = entry in `zones.json`: `{ id, zone, position [x,y,z], radius, portrai
 
 Dialogue UI is plain DOM over the canvas (not rendered in WebGL): portrait left, text box bottom, choices as buttons. This is keyboard-navigable and screen-reader-compatible for free, and audio narration is a later drop-in (`<audio>` per node or Web Speech API).
 
-### 3.5 Known issue: .spz delivery format rejected by Spark (root cause identified 2026-09-11)
+### 3.5 Delivery format: Compressed PLY (resolved 2026-09-15) — and why not .spz
 
 SuperSplat's `.spz` export (tested against v3.0.0-alpha) is not usable for delivery with our current renderer. It produces a well-compressed file — roughly 13x smaller than the uncompressed `.ply` — but Spark fails to load it with `Worker error: Invalid gzip header`, even though SuperSplat reads the same file back without complaint.
 
 **Root cause.** The file is a valid **SPZ v4**, and Spark only reads v1–v3. Confirmed by inspecting the header of `public/splats/test-room.spz`: the first bytes are `4e 47 53 50 04` — ASCII magic `NGSP`, version byte `4`. SPZ v1–v3 wrap the whole payload in gzip (files start with `1f 8b`); v4 dropped the gzip wrapper in favour of a raw `NGSP` header followed by per-attribute ZSTD-compressed streams. Spark's viewer decodes `.spz` in a Rust WASM worker that expects the gzip wrapper, so a v4 file fails at the first byte. Upstream v4 support is `sparkjsdev/spark` PR #332 (opened May 2026, reviewed, still unmerged as of August 2026) — no released Spark version reads v4, so upgrading `@sparkjsdev/spark` does not fix this.
 
-**Resolution plan, cheapest first:**
-1. Export **Compressed PLY** from SuperSplat instead of `.spz`. Spark documents support for the SuperSplat/gsplat compressed `.ply` variant, and it was already the listed alternative in §2. Expect a size in the same range as the `.spz` (same quantization approach). Requires un-ignoring `public/splats/*.ply` in `.gitignore` so finished zones can be committed (the `*.ply` rule exists only to keep 240 MB raw exports out).
-2. Export **`.sog`** from SuperSplat — also on Spark's supported-format list. Untested by us.
-3. Transcode v4 → v3 with Niantic's reference `spz` tool. Works but adds a pipeline step for no gain over (1).
-4. If none of the above gets under 50 MB: drop SuperSplat's SH Bands export setting (default 3) to 0 or 1.
+**Resolution: Compressed PLY, confirmed working 2026-09-15.** SuperSplat's Compressed PLY export loads in Spark 2.1.0 — option (1) below, the cheapest one, worked. The printing room ships as `public/splats/printing-room-updated.compressed.ply` (62,132,080 bytes), committed to the repo with a `.gitignore` negation past the blanket `*.ply` rule, and renders with LOD enabled (`lodSplatCount` 500000, pixel ratio 1). `.spz` is abandoned, not pending; do not spend time on it again unless PR #332 lands.
 
-**Interim workaround** is uncompressed `.ply`. Consequence: zones land far above the <50 MB target (a single small room exported at ~240 MB), which matters because this is a static-hosting delivery problem, not just a storage one — every visitor downloads a full zone file before they can walk it. Until (1) is verified, splat files are shared via Google Drive (see `docs/ONBOARDING.md`), not Git.
+Options considered, cheapest first — (1) is what we took:
+1. **Compressed PLY** from SuperSplat. Adopted.
+2. `.sog` from SuperSplat — also on Spark's supported-format list. Never needed; remains the fallback if Compressed PLY ever fails on a future zone.
+3. Transcode v4 → v3 with Niantic's reference `spz` tool. Rejected — a pipeline step for no gain over (1).
+
+**The open problem is size, not format.** 62 MB is over our 50 MB target, and this is a delivery
+problem rather than a storage one: every visitor downloads a full zone file before they can walk
+it. The dominant term is spherical harmonics. At SuperSplat's default SH Bands = 3, the file is
+1,013,854 splats × (16 bytes base + 45 bytes SH) ≈ 61.85 MB plus chunk metadata — **SH is 74% of
+the file.** Projecting the same splat count at lower bands:
+
+| SH Bands | Bytes/splat | Projected size | Visual cost |
+|---|---|---|---|
+| 3 (current) | 16 + 45 | 62 MB | — |
+| 1 | 16 + 9 | ~26 MB | unmeasured |
+| 0 | 16 + 0 | ~16.5 MB | unmeasured |
+
+**SH band selection is the primary size lever, and the band choice is not yet made.** Band 1 and
+band 0 get exported and compared side by side in the browser before we set a project standard —
+the projections above are arithmetic, not a judgement about how either one looks. Culling splats
+is the secondary lever, but see the cleanup caveat in §4 step 5. Issue #8.
 
 ## 4. Pipeline (capture → web)
 
 1. **Capture** a zone: 4K video, slow walk, high overlap, loop closure, even lighting. (Full protocol in `.claude/skills/capture-protocol/SKILL.md`.)
-2. **Extract & pose**: `ns-process-data video --data zone.mp4 --output-dir data/zoneX` (runs COLMAP). Target 150–300 frames per zone.
+2. **Extract & pose**: `ns-process-data video --data zone.MOV --output-dir data/zoneX` (runs COLMAP). Frame target is an open question — see the capture-protocol skill before picking one.
 3. **Train**: `ns-train splatfacto --data data/zoneX`. Watch in the Nerfstudio viewer; ~30k steps.
 4. **Export**: `ns-export gaussian-splat ... ` → .ply
-5. **Clean**: open .ply in SuperSplat → delete floaters, crop to room bounds, perform privacy cleanup → preserve reconstruction coordinates on export (Compressed PLY is the next delivery-format test).
-6. **Budget check**: file < 50 MB? renders 30+ fps in Spark on a mid laptop? If not: prune more aggressively in SuperSplat or retrain at lower cap.
+5. **Clean**: open .ply in SuperSplat → delete floaters, crop to room bounds, perform privacy cleanup → preserve reconstruction coordinates → export **Compressed PLY**.
+   **Caveat, unresolved:** on the printing room the team observed visual quality getting *worse* after cleanup, so the shipped Zone 1 file is uncleaned. The cause was never diagnosed. Until someone does, treat aggressive cleanup as a change that needs an A/B look in the browser, not a free win — and prefer SH band reduction as the size lever.
+6. **Budget check**: file < 50 MB? renders 30+ fps in Spark on a mid laptop? If not, lower SH Bands on export (see §3.5) before pruning splats.
 7. **Integrate and calibrate**: drop into `public/splats/`, add the zone entry, then set `rotation`, uniform `scale`, and `origin` in `zones.json` to put the floor at world y=0 and match physical meters. Do not bake those transforms into the PLY.
 
 ## 5. Hardware notes
@@ -156,7 +177,7 @@ Replace seamless transitions with a menu that jumps between zones. If that also
 fails, ship the single best zone. A polished one-zone tour beats a broken four-zone one.
 
 ## 7. Constraints traceability (for the report)
-- *Performance/loading*: compressed .spz, < 50 MB/zone, Spark LoD, zone lazy-loading.
+- *Performance/loading*: Compressed PLY, < 50 MB/zone target (currently 62 MB — SH band reduction pending, §3.5), Spark LoD, zone lazy-loading.
 - *Accessibility*: DOM-based dialogue (screen readers), visible NPC markers, keyboard navigation, audio narration slot.
 - *Privacy*: capture during off-hours, no people in frames, blur/exclude posted personal info in SuperSplat cleanup, get building permission in writing.
 - *Standards*: HTML/CSS/JS, WebGL2 (98%+ support), static hosting.
