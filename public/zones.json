@@ -20,11 +20,11 @@
       ],
       "npcs": [
         {
-          "id": "printing-room-guide",
-          "name": "Printing Room Guide",
-          "position": [3, 1.6, -1],
+          "id": "johnny_bambu",
+          "name": "Johnny",
+          "position": [3.5, 1.6, 1],
           "radius": 2.0,
-          "dialogueFile": "./dialogue/printing-room-guide.json"
+          "dialogueFile": "./dialogue/johnny_bambu.json"
         }
       ]
     }
