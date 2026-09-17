@@ -18,7 +18,15 @@
         { "min": [-6.41792, 0, -2.17932], "max": [-6.21792, 3.29184, 2.17932] },
         { "min": [6.21792, 0, -2.17932],  "max": [6.41792, 3.29184, 2.17932]  }
       ],
-      "npcs": []
+      "npcs": [
+        {
+          "id": "printing-room-guide",
+          "name": "Printing Room Guide",
+          "position": [3, 1.6, -1],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/printing-room-guide.json"
+        }
+      ]
     }
   ]
 }

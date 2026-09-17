@@ -1,0 +1,9 @@
+{
+  "name": "Printing Room Guide",
+  "nodes": {
+    "start": {
+      "text": "Testing the printing-room NPC location.",
+      "end": true
+    }
+  }
+}
