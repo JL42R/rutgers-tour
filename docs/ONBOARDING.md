@@ -60,10 +60,10 @@ This repo is set up so any major AI coding tool understands the project: the pro
 Compressed PLY, so the clone you just made already renders the real scan. Skip to step 8.
 
 What stays out of Git, and why: raw uncompressed PLY exports are ~240 MB each, over GitHub's
-100 MB hard limit, so `.gitignore` excludes `*.ply` and then negates that rule for the one
-finished compressed zone file. Raw capture video is excluded for the same reason. When you
-add a new zone, follow `.claude/skills/training-pipeline/SKILL.md` — it covers the
-`.gitignore` negation the new file needs.
+100 MB hard limit, so `.gitignore` excludes `*.ply` and re-includes only the finished
+`public/splats/*.compressed.ply` files. Raw capture video is excluded for the same reason. A new
+zone named `<zone>.compressed.ply` is therefore tracked automatically — see
+`.claude/skills/training-pipeline/SKILL.md` when you add one.
 
 **Drive folders — only if you're doing capture or training work:**
 - Raw capture videos (phone footage, before COLMAP/training): https://drive.google.com/drive/folders/1ux-tWNdUBWBhVojNKb_qSXBVEBpQkwyW?usp=drive_link

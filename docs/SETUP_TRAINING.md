@@ -565,8 +565,8 @@ gate exists to enforce it.
 
 ## 12. Repo hygiene
 
-`.gitignore` excludes the large stuff by blanket rule, then negates that rule for each finished
-compressed zone file by name:
+`.gitignore` excludes the large stuff by blanket rule, then re-includes finished compressed zone
+files by pattern:
 
 ```
 captures/
@@ -575,20 +575,23 @@ outputs/
 exports/
 tmp/
 *.ply
-!public/splats/printing-room-updated.compressed.ply
+!public/splats/*.compressed.ply
 *.mp4
+*.MOV
+*.mov
 ```
 
 Raw captures, COLMAP output, and uncompressed `.ply` files never enter Git history — they are
 large and irreversible once committed.
 
-**Adding a zone means adding its own negation line.** The `!` entry is per-file, not a pattern,
-so a new zone's compressed PLY stays invisible to Git until you add it. Verify with
-`git status` before assuming the file is staged.
+**The filename is what decides.** A file named `<zone>.compressed.ply` in `public/splats/` is
+tracked automatically — no `.gitignore` edit per zone. A raw export keeps the plain `.ply` name
+and stays ignored. That makes the naming convention load-bearing rather than cosmetic: misname a
+finished zone and Git silently ignores it, so run `git status` and confirm the file appears
+before assuming it is staged.
 
-Commit a compressed zone file once it loads in Spark and its negation line is in place. The
-50 MB target is a target, not a gate — Zone 1 shipped at 62 MB, which is over it. Keep the
-~240 MB raw PLY outside Git regardless.
+Commit a compressed zone file once it loads in Spark. The 50 MB target is a target, not a gate —
+Zone 1 shipped at 62 MB, which is over it. Keep the ~240 MB raw PLY outside Git regardless.
 
 ---
 

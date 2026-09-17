@@ -9,7 +9,10 @@ outputs/
 exports/
 tmp/
 *.ply
-!public/splats/printing-room-updated.compressed.ply
+# Finished compressed zones are the exception and match by pattern, so a new
+# zone is tracked automatically — name it <zone>.compressed.ply and nothing else
+# is needed. Raw ~240 MB exports keep the plain .ply name and stay ignored.
+!public/splats/*.compressed.ply
 # Raw capture video. .MOV is what the iPhone writes and our naming convention;
 # a single 4K take is 1.5-3 GB, well over GitHub's 100 MB limit.
 *.mp4

@@ -51,10 +51,13 @@ past. Corrected against the repo as it actually stands:
   actually writes. `.gitignore` previously covered only `*.mp4`, leaving a 1.5–3 GB take
   unprotected — `*.MOV` and `*.mov` added, verified with `git check-ignore`. This mattered
   ahead of the Sep 18 hallway shoot.
-- Verified while testing those rules: a future zone's `hallway.compressed.ply` is **ignored**,
-  because the `!` negation is per-file rather than a pattern. Documented in the training-pipeline
-  skill (Stage 6) and `docs/SETUP_TRAINING.md` §12 — a new zone needs its own negation line or
-  Git will silently skip it.
+- **Fixed a latent footgun found while testing those rules.** The `!` negation was written for
+  one specific filename, so a future zone's `hallway.compressed.ply` came back ignored — zone 2
+  would have been silently skipped at commit time. Replaced with
+  `!public/splats/*.compressed.ply`, which re-includes finished zones by pattern while leaving
+  raw `.ply` exports ignored. Verified both directions with `git check-ignore`. The consequence
+  is that the `.compressed.ply` naming convention is now load-bearing, which is documented
+  wherever the pipeline touches it.
 - Added: re-verify the `eval_utils.py` `weights_only` venv patch before the first export of each
   new zone. Nothing has been exported since Sep 9, so its current state is assumed, not observed.
 
@@ -71,8 +74,8 @@ no released Spark decoder reads it) and is not worth revisiting unless PR #332 l
 
 - `public/splats/printing-room-updated.compressed.ply` committed at **62,132,080 bytes**
   (1,013,854 splats, SH bands 3). First splat file ever to enter the repo.
-- `.gitignore` gained a per-file negation past the blanket `*.ply` rule. The negation is per-file,
-  not a pattern — every future zone needs its own line or Git will silently ignore it.
+- `.gitignore` gained a negation past the blanket `*.ply` rule. (As originally written it matched
+  one filename only; generalized to a pattern on 2026-09-17.)
 - `zones.json` switched the printing room to the compressed file. Alignment, collision, and spawn
   settings were preserved unchanged.
 - Spark LOD enabled: `lod: true` on the `SplatMesh`, `lodSplatCount: 500000` on the

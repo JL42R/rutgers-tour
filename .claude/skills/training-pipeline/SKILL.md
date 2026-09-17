@@ -66,10 +66,10 @@ every other zone is positioned against. Concretely:
 - Express every other zone's `origin` and `rotation` **relative to the aligned hallway**, using the doorway you filmed from both directions as the shared landmark.
 - Never re-align the hallway after rooms have been placed against it — that invalidates every room's transform at once. If the hallway is wrong, fix it before adding zones, not after.
 
-1. Copy the tested Compressed PLY to `public/splats/<zone>.compressed.ply`, and add a `!public/splats/<zone>.compressed.ply` negation line to `.gitignore` — the blanket `*.ply` rule hides it otherwise. Confirm with `git status` that Git actually sees the file.
+1. Copy the tested Compressed PLY to `public/splats/<zone>.compressed.ply`. **The `.compressed.ply` suffix is load-bearing:** `.gitignore` blanket-ignores `*.ply` and re-includes `public/splats/*.compressed.ply` by pattern, so a correctly-named file is tracked automatically and a misnamed one is silently invisible. Confirm with `git status` that Git sees it.
 2. Add/update the zone entry in `public/zones.json`: set `splat` to the file path, remove `"placeholder": true`, and record runtime `rotation`, uniform `scale`, and `origin` so the floor is world y=0 and 1 unit = 1 meter. Keep or author `collision` boxes and `npcs` in those world coordinates. `src/zones.js` applies the transform after loading; collision never uses splat geometry.
 3. `npm run dev`, walk the zone, tune collision boxes to match real walls.
-4. Record capture/training results in `CHANGELOG.md` and the relevant GitHub Issue: capture date, frame target used, frames registered, iterations, **SH bands exported at**, final byte count, and known issues. Commit the compressed zone file once it loads in Spark and its `.gitignore` negation is in place — 50 MB is a target, not a commit gate. Raw PLY exports stay outside Git.
+4. Record capture/training results in `CHANGELOG.md` and the relevant GitHub Issue: capture date, frame target used, frames registered, iterations, **SH bands exported at**, final byte count, and known issues. Commit the compressed zone file once it loads in Spark — 50 MB is a target, not a commit gate. Raw PLY exports stay outside Git.
 
 ## Conventions
 - Zone ids: short lowercase (`lobby`, `hallway-a`, `ise-lab`).
