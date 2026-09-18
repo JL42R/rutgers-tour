@@ -64,10 +64,15 @@ the date and hope.
 | Gate | Date | Pass condition | If it fails |
 |---|---|---|---|
 | **G1 — Training works ✅ passed Sep 9** | Fri Sep 11 | **Passed on the printing room, which is Zone 1 — not a throwaway test capture.** 451/452 frames registered (99.78%), trained 30k iterations, renders and is walkable in our app. The zone it produced is the one we ship. (The export-to-Spark-loader seam is where integration surprises would otherwise surface in October with no slack. Same criterion as `docs/SETUP_TRAINING.md` §9c.) | Evaluate in order: (1) Brush — Rust/wgpu trainer, avoids CUDA entirely (the direct answer to a CUDA-on-Blackwell failure), accepts COLMAP/Nerfstudio datasets so alignment work carries over, headless CLI, exports `.ply`; it's a self-described proof of concept with unoptimized performance and unvalidated on our hardware, so budget ~1hr to evaluate before committing. (2) Postshot (native Windows, no WSL). (3) Luma AI. Log the reason in `DESIGN.md`. |
-| **G2 — Primary capture complete** | Fri Sep 25 | Every zone in scope has a usable dataset backed up to cloud storage | Re-shoot window stays open through Oct 16, but scope drops to whatever is captured by then. |
-| **G3 — Two zones shipped end to end** | Fri Oct 9 | **Both zones walkable with collision and real NPCs, live on a public URL, and loaded by someone who is not Johnny.** The last clause is the point of the gate: it catches the "works on the training laptop" failures — absolute paths, missing files, hosting config — while there is still time. *Target, not gate:* zone files under 50 MB. Shipping at 62 MB is acceptable here; shipping something only Johnny can open is not. | **Diagnose which leg failed — they are not equally cuttable.** Only one of the three is descopable at all.<br><br>**Second zone not ready** → ship zone 1 live, move zone 2 to G4, and treat 4–5 zones as dead: spend §7 rungs 1 and 2 *that week* rather than carrying scope you no longer have time for.<br><br>**Public URL or real NPCs not ready** → neither is descopable; both are on §7's never-cut list. This becomes the only work happening that week. Pull people off capture.<br><br>**Only the not-Johnny clause failed** → almost always hosting config, absolute paths, or a missing file. Hours, not weeks. Fix it before Monday; do not move the gate for it. |
-| **G4 — Feature freeze** | Fri Nov 6 | All zones integrated, all NPCs placed, app live on static hosting | Descope per the ladder in §7. |
-| **G5 — Final lock** | Fri Nov 20 | Tested, fixed, deployed, demo rehearsed | — |
+| **G2 — Hallway captured, scope fixed** | Fri Sep 25 | **Hallway captured, registered ≥ 80%, backed up to Drive.** The zone list and every doorway off the hallway are finalized and committed. Remaining rooms are captured on an ongoing basis after this date; **Oct 16 is the hard stop** for any capture. | Re-shoot window stays open through Oct 16, but scope drops to whatever is captured by then. If the hallway itself is what missed, it takes priority over every room — nothing else can be aligned until it exists. |
+| **G3 — Every zone exists (breadth)** | Fri Oct 9 | **Every expected zone is *primitive*:** captured (≥ 70% registration), trained, exported at the chosen SH band, placed in `zones.json`, aligned to the hallway, reachable from it through a working transition, and carrying a rough collision box. **No NPCs, no cleanup, and no compression target required** — this gate is about coverage, not finish. Plus: live on a public URL, loaded on a machine that isn't Johnny's, which catches the "works on the training laptop" failures (absolute paths, missing files, hosting config) while there is still time to fix them. | **Any zone not primitive on Oct 9 is cut, not chased** — that is the gate's purpose, not its failure mode, so removing a zone here is a pass, not a miss. Take the cut at the review and update §7's ladder to match; do not carry a half-done zone into G4 hoping for time that does not exist.<br><br>**If the public URL leg is what failed** → it is on §7's never-cut list and is not descopable. It becomes the only work happening that week. Usually hosting config or a missing file: hours, not weeks. Fix it before Monday rather than moving the gate. |
+| **G4 — Every zone finished (depth)** | Fri Nov 6 | **Every surviving zone reachable from the hallway.** Every zone has **at least one NPC with real dialogue**. The first user-testing round is complete, scored against the four criteria from the project report (navigability, reconstruction completeness, visual quality, overall performance), with a **ranked fix list** produced. **No new features after this date.** | Descope per the ladder in §7 — but note that zone cuts were already taken at G3, so what remains to cut here is polish: audio overlay, then branching dialogue. If a surviving zone still has no NPC, that zone is the priority; NPC dialogue text is on the never-cut list. |
+| **G5 — Final lock** | Fri Nov 20 | **Top three fixes from testing merged.** The deployed URL **cold-loads on a non-team machine**. The demo has been **rehearsed twice end to end, once on venue wifi**. A **backup video** is recorded and stored off-repo. | — |
+
+**Why the gates are ordered this way:** G3 measures *breadth* (every zone exists), G4 measures
+*depth* (every zone is finished), and G5 measures *the stranger test* under demo conditions.
+Breadth is gated first because capture and training run on an external clock — daylight and a
+single training machine — while polish does not.
 
 ---
 
@@ -91,6 +96,11 @@ file keeps only what doesn't change week to week: why the order is what it is (�
 
 Each milestone's description carries its pass condition, so the board is readable without
 opening this file.
+
+> **Stale after the Sep 17 gate rewrite.** The titles above are what the board currently says;
+> §3 has since renamed G2–G4 and rewritten every pass condition. Rename the four milestones and
+> replace their descriptions to match §3 — until that happens, **§3 is authoritative and the
+> board is not.**
 
 To find your next task: open the board, filter to the nearest open milestone, take something
 unassigned, and say so in the team chat before you start. If a milestone is empty and its date
@@ -144,6 +154,15 @@ things to cut, so if capture slips we lose them and land back at the original th
 with nothing else sacrificed. But it also means the first two rungs buy back **no** time we
 weren't always prepared to give up. If you are behind and reach for this ladder, expect to be
 on rung 3 almost immediately, and treat cutting into dialogue quality as the first *real* cut.
+
+**Zone cuts happen at the G3 review on Oct 9, not gradually.** That date is the single decision
+point for scope: any zone that is not *primitive* by then — captured, trained, placed, aligned to
+the hallway, reachable through a working transition, rough collision box — comes out of scope
+rather than being chased into G4. Cutting it there is the gate working as designed, not a
+failure. What makes this worth holding to is that a half-finished zone is the most expensive
+thing you can own: it consumes November attention that the surviving zones need for NPCs,
+testing, and fixes, and it usually still doesn't land. Decide once, on the date, and spend the
+rest of the time finishing what survived.
 
 The star topology helps here: dropping a room is cheap because nothing else aligns against it.
 **Never cut the hallway** — every other zone is positioned relative to it, so losing it doesn't
