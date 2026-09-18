@@ -19,7 +19,7 @@ npm run dev
 
 Open the URL it prints (usually http://localhost:5173). Click the scene, walk with **WASD**, look with the mouse, and press **Esc** to release the mouse. NPC interaction is implemented, but the current printing-room zone has no NPC placements.
 
-The current printing-room scan is a raw ~240 MB PLY shared through Drive (see [onboarding](docs/ONBOARDING.md#7a-download-the-current-splat-not-in-the-repo)), not Git. A fresh clone without that file falls back to the gray placeholder room. Compressed PLY is the planned delivery format; SPZ v4 from the tested SuperSplat version is incompatible with the current Spark decoder.
+Zone 1, the printing room, is committed to the repo as a 62 MB Compressed PLY, so a fresh clone renders the real scan with no download step. Compressed PLY is our delivery format — Spark 2.1.0 loads it. (SPZ v4, which the tested SuperSplat version exports, is not readable by any released Spark decoder; don't go down that path.) Raw uncompressed PLYs and raw capture video stay out of Git and live in Drive — see [onboarding](docs/ONBOARDING.md#7a-the-splat-files).
 
 ## Project layout
 
@@ -33,7 +33,7 @@ src/npc.js          NPC markers + proximity detection
 src/dialogue.js     conversation UI
 public/zones.json   THE map: zones, walls, NPC placement — most edits happen here
 public/dialogue/    one JSON per NPC's conversation — writers edit these, no code
-public/splats/      local Drive PLY and future compressed zone files go here
+public/splats/      compressed zone files, committed; raw PLYs stay out of Git
 .claude/skills/     pipeline procedures — auto-loaded by Claude Code, readable by any AI assistant
 ```
 
@@ -43,7 +43,7 @@ Follow `.claude/skills/training-pipeline/SKILL.md` (or just ask your AI assistan
 
 ## Working with AI coding assistants
 
-Any AI coding assistant works here via `AGENTS.md` — it holds all the project context. Claude Code and Gemini CLI both pick it up automatically (`CLAUDE.md` and `GEMINI.md` are thin pointers to it); Claude Code also loads the skills when relevant. After every work session, update the status checklist at the bottom of `AGENTS.md`.
+Any AI coding assistant works here via `AGENTS.md` — it holds all the project context. Claude Code and Gemini CLI both pick it up automatically (`CLAUDE.md` and `GEMINI.md` are thin pointers to it); Claude Code also loads the skills when relevant. After every work session, update the relevant GitHub Issue and add a `CHANGELOG.md` entry — those are the maintained records, not a checklist in a doc.
 
 ## Deploying
 

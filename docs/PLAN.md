@@ -11,10 +11,11 @@
 
 ## 1. How to use this document
 
-Tasks are listed by week, unassigned. Pick up whatever is open and mark it off. The only hard
-constraint on who does what is hardware: **Johnny's laptop is the only machine with a GPU capable
-of training**, so every training task lands there by necessity. Everything else — capture,
-dialogue writing, collision authoring, testing, deployment — is open to whoever has time.
+Tasks live on the GitHub milestone board (§4), unassigned. Pick up whatever is open and claim it
+there. The only hard constraint on who does what is hardware: **Johnny's laptop is the only
+machine with a GPU capable of training**, so every training task lands there by necessity.
+Everything else — capture, dialogue writing, collision authoring, testing, deployment — is open
+to whoever has time.
 
 Keep it that way deliberately. With four people at maybe 6–8 hours a week each during a semester,
 rigid ownership creates blocking. Open tasks let whoever has a free evening move the project.
@@ -34,11 +35,20 @@ daylight is actively shrinking: New Jersey loses roughly two and a half hours be
 September and late November, and overcast days become the norm. A dataset shot in September can be
 retrained ten times; a dataset that doesn't exist until November can't be fixed at all.
 
-**But Zone 1 gets captured and trained before the rest are shot.** The one real risk of capturing
-early is capturing badly — wrong overlap, wrong pacing, wrong lighting — and burning several
-sessions before anyone knows. So Zone 1 goes through capture *and* training first, the lessons get
-written into the capture protocol, and the remaining zones are shot with those lessons applied a
-week later. Primary capture still finishes in September.
+**Zone 1 was captured and trained before the rest were shot — and that paid off.** The one real
+risk of capturing early is capturing badly — wrong overlap, wrong pacing, wrong lighting — and
+burning several sessions before anyone knows. Zone 1 (the printing room) went through capture
+*and* training first, which is exactly how we learned that HDR destroys registration: three
+captures took us 0.63% → 18.45% → 99.78%. Those lessons are now in the capture protocol, and
+every remaining zone gets shot with them applied.
+
+**The scene is 4–5 zones in a star topology, with the hallway as the hub.** Every transition is
+hallway↔room; the rooms never connect to each other directly. Two scheduling consequences follow.
+First, **the hallway is the shared reference frame** — it gets captured and aligned before the
+rooms that hang off it, because every other zone's position is expressed relative to it. Second,
+hallways are the hardest subject in structure-from-motion — long, thin, repetitive, often
+blank-walled — so the hardest capture is also the one on the critical path. Plan more than one
+take for it.
 
 **The 8GB VRAM ceiling is the hard technical limit.** Training is the only step that can fail in a
 way we can't quickly engineer around. Navigation, collision, NPCs, and dialogue are already built
@@ -53,127 +63,57 @@ the date and hope.
 
 | Gate | Date | Pass condition | If it fails |
 |---|---|---|---|
-| **G1 — Training works (passed Sep 9)** | Fri Sep 11 | A splat trained from Johnny's own test capture renders and is walkable in our app — not just when `ns-train` completes. (The export-to-Spark-loader seam is where integration surprises would otherwise surface in October with no slack. Same criterion as `docs/SETUP_TRAINING.md` §9c.) | Evaluate in order: (1) Brush — Rust/wgpu trainer, avoids CUDA entirely (the direct answer to a CUDA-on-Blackwell failure), accepts COLMAP/Nerfstudio datasets so alignment work carries over, headless CLI, exports `.ply`; it's a self-described proof of concept with unoptimized performance and unvalidated on our hardware, so budget ~1hr to evaluate before committing. (2) Postshot (native Windows, no WSL). (3) Luma AI. Log the reason in `DESIGN.md`. |
-| **G2 — Primary capture complete** | Fri Sep 25 | Every zone in scope has a usable dataset backed up to cloud storage | Re-shoot window stays open through Oct 16, but scope drops to whatever is captured by then. |
-| **G3 — One zone shipped end to end** | Fri Oct 9 | Zone 1 trained, cleaned, exported in a supported compressed splat format under the delivery budget, walkable with collision and real NPCs | Cut to 2 zones total and reassess scope. |
-| **G4 — Feature freeze** | Fri Nov 6 | All zones integrated, all NPCs placed, app live on static hosting | Descope per the ladder in §7. |
-| **G5 — Final lock** | Fri Nov 20 | Tested, fixed, deployed, demo rehearsed | — |
+| **G1 — Training works ✅ passed Sep 9** | Fri Sep 11 | **Passed on the printing room, which is Zone 1 — not a throwaway test capture.** 451/452 frames registered (99.78%), trained 30k iterations, renders and is walkable in our app. The zone it produced is the one we ship. (The export-to-Spark-loader seam is where integration surprises would otherwise surface in October with no slack. Same criterion as `docs/SETUP_TRAINING.md` §9c.) | Evaluate in order: (1) Brush — Rust/wgpu trainer, avoids CUDA entirely (the direct answer to a CUDA-on-Blackwell failure), accepts COLMAP/Nerfstudio datasets so alignment work carries over, headless CLI, exports `.ply`; it's a self-described proof of concept with unoptimized performance and unvalidated on our hardware, so budget ~1hr to evaluate before committing. (2) Postshot (native Windows, no WSL). (3) Luma AI. Log the reason in `DESIGN.md`. |
+| **G2 — Hallway captured, scope fixed** | Fri Sep 25 | **Hallway captured, registered ≥ 80%, backed up to Drive.** The zone list and every doorway off the hallway are finalized and committed. Remaining rooms are captured on an ongoing basis after this date; **Oct 16 is the hard stop** for any capture. | Re-shoot window stays open through Oct 16, but scope drops to whatever is captured by then. If the hallway itself is what missed, it takes priority over every room — nothing else can be aligned until it exists. |
+| **G3 — Every zone exists (breadth)** | Fri Oct 9 | **Every expected zone is *primitive*:** captured (≥ 70% registration), trained, exported at the chosen SH band, placed in `zones.json`, aligned to the hallway, reachable from it through a working transition, and carrying a rough collision box. **No NPCs, no cleanup, and no compression target required** — this gate is about coverage, not finish. Plus: live on a public URL, loaded on a machine that isn't Johnny's, which catches the "works on the training laptop" failures (absolute paths, missing files, hosting config) while there is still time to fix them. | **Any zone not primitive on Oct 9 is cut, not chased** — that is the gate's purpose, not its failure mode, so removing a zone here is a pass, not a miss. Take the cut at the review and update §7's ladder to match; do not carry a half-done zone into G4 hoping for time that does not exist.<br><br>**If the public URL leg is what failed** → it is on §7's never-cut list and is not descopable. It becomes the only work happening that week. Usually hosting config or a missing file: hours, not weeks. Fix it before Monday rather than moving the gate. |
+| **G4 — Every zone finished (depth)** | Fri Nov 6 | **Every surviving zone reachable from the hallway.** Every zone has **at least one NPC with real dialogue**. The first user-testing round is complete, scored against the four criteria from the project report (navigability, reconstruction completeness, visual quality, overall performance), with a **ranked fix list** produced. **No new features after this date.** | Descope per the ladder in §7 — but note that zone cuts were already taken at G3, so what remains to cut here is polish: audio overlay, then branching dialogue. If a surviving zone still has no NPC, that zone is the priority; NPC dialogue text is on the never-cut list. |
+| **G5 — Final lock** | Fri Nov 20 | **Top three fixes from testing merged.** The deployed URL **cold-loads on a non-team machine**. The demo has been **rehearsed twice end to end, once on venue wifi**. A **backup video** is recorded and stored off-repo. | — |
+
+**Why the gates are ordered this way:** G3 measures *breadth* (every zone exists), G4 measures
+*depth* (every zone is finished), and G5 measures *the stranger test* under demo conditions.
+Breadth is gated first because capture and training run on an external clock — daylight and a
+single training machine — while polish does not.
 
 ---
 
-## 4. Week-by-week
+## 4. Where the work lives
 
-### Week 1 · Sep 1–6 — Install and first capture, in parallel
+**The GitHub milestone board is the task-level source of truth. Not this file.**
 
-- [x] Install WSL2 + CUDA toolkit + Nerfstudio. Budget two full evenings; this install fails in
-      creative ways. Stop and ask for help at the 4-hour mark rather than grinding.
-- [x] Verify the GPU is visible inside WSL (`nvidia-smi` from the Ubuntu shell)
-- [ ] Smoke capture: one small, well-lit space you control (apartment/dorm room), 150–300 photos.
-      This exists to test the pipeline, not to ship.
-- [ ] Team walkthrough of the CORE first floor. Mark zone boundaries on a floor plan, commit the
-      image to the repo.
-- [ ] Finalize zone count — target 3, hard max 4 — and pick Zone 1 as the highest-value space
-      (main entry / hallway toward the ISE lab)
-- [ ] Confirm everyone can run `npm run dev` and walk the placeholder room
-- [ ] Start a running list of possible user testers for November. Aim for 8+ names so the test
-      round doesn't depend on any one person saying yes.
+There used to be a week-by-week checklist here. Nobody maintained it, so it described a project
+we were no longer running — which is worse than having no list, because a stale plan still gets
+read and believed. Tasks now live as GitHub Issues grouped into one milestone per gate. This
+file keeps only what doesn't change week to week: why the order is what it is (§2), the gates
+(§3), the risks (§6), and what to cut when you're behind (§7).
 
-### Week 2 · Sep 7–13 — Prove the pipeline, capture Zone 1
+| Milestone on the board | Gate | Date |
+|---|---|---|
+| *(none — closed)* | **G1** Training works | ✅ passed Sep 9 |
+| `G2 — Hallway captured, scope fixed` | **G2** | Fri Sep 25 |
+| `G3 — Every zone exists (breadth)` | **G3** | Fri Oct 9 |
+| `G4 — Every zone finished (depth)` | **G4** | Fri Nov 6 |
+| `G5 — Final lock` | **G5** | Fri Nov 20 |
 
-- [x] Run COLMAP on the smoke dataset, then splatfacto. Expect failed runs. Record every setting
-      that fits inside 8GB.
-- [ ] Export `.ply` — clean in SuperSplat — test a supported compressed splat format
-- [x] Load it into the app as a zone and walk around it
-- [x] **GATE G1 (Sep 11)** — passed Sep 9 on a test capture
-- [x] Capture and train the printing-room test zone (not CORE Zone 1): 451/452 frames registered, 30k iterations, raw `.ply` rendered and walkable in Spark
-- [ ] Capture CORE Zone 1, midday, using `.claude/skills/capture-protocol/SKILL.md`
-- [ ] Back the raw dataset up to cloud storage the same day it's shot
+Each milestone's description carries its full pass condition from §3, so the board is readable
+without opening this file. Both were last reconciled 2026-09-17 — if you change a gate in §3,
+change the milestone too, or the board quietly starts lying.
 
-### Week 3 · Sep 14–20 — Train Zone 1, capture everything else
+To find your next task: open the board, filter to the nearest open milestone, take something
+unassigned, and say so in the team chat before you start. If a milestone is empty and its date
+is close, that is itself the signal — raise it at Monday's check-in.
 
-- [x] Calibrate the printing-room test splat to measured physical scale and room boundaries; browser alignment verified Sep 14
-- [ ] Train Zone 1. Budget at least two rounds.
-- [ ] Write the working settings and any capture lessons into the skill files, and push, before
-      the next capture session
-- [ ] Capture the remaining zones with those lessons applied — all of them this week
-- [ ] Quality-check every dataset the same day it's shot: photo count, coverage, blur, exposure.
-      A bad dataset caught today is a re-shoot; caught in November it's a cut feature.
-- [ ] Back up every dataset to cloud storage
-
-### Week 4 · Sep 21–27 — Close out capture, integrate Zone 1
-
-- [ ] Any re-shoots identified in Week 3
-- [ ] **GATE G2 (Sep 25)** — primary capture complete
-- [ ] Clean Zone 1 in SuperSplat: crop floaters, trim outside geometry, preserve reconstruction coordinates; set floor position in `zones.json`
-- [ ] Export a supported compressed splat format, confirm under 50MB
-- [ ] Place in the app, author collision boxes, verify scale (1 unit = 1 meter)
-- [ ] First draft of NPC dialogue JSON from the secured staff bios and room descriptions
-
-### Week 5 · Sep 28 – Oct 2 — Zone 1 complete
-
-- [ ] Place the first real NPCs in Zone 1 with real dialogue
-- [ ] Retire Riley and the placeholder room from the default load path
-- [ ] Train Zone 2
-
-### Week 6 · Oct 5–9 — First zone signed off
-
-- [ ] Fix whatever Zone 1 integration surfaced
-- [ ] **GATE G3 (Oct 9)** — demo walkable Zone 1 to an outside viewer for early signal
-- [ ] Clean and export Zone 2
-- [ ] Train Zone 3
-
-### Week 7 · Oct 12–16 — Last re-capture window
-
-- [ ] Re-shoot anything that trained badly. **This is the last capture week** — after this,
-      daylight and building access stop being reliable.
-- [ ] Integrate Zone 2
-- [ ] Full dialogue draft for all rooms, committed as JSON
-
-### Week 8 · Oct 19–23 — Everything integrated
-
-- [ ] Train, clean, and integrate remaining zones
-- [ ] Build zone transitions: loading, unloading, entry points
-- [ ] Collision passes on all zones
-
-### Week 9 · Oct 26–30 — Content and deploy
-
-- [ ] All NPCs placed across all zones with final dialogue
-- [ ] Accessibility pass: keyboard navigation, dialogue text readable by screen readers, audio
-      overlay if time allows (this was an explicit commitment in the project report)
-- [ ] Deploy to GitHub Pages or Cloudflare Pages. Get the real public URL working now, not in
-      November.
-
-### Week 10 · Nov 2–6 — User testing
-
-- [ ] Structured test with 5–8 people who have never seen the build
-- [ ] Watch silently. Record where people get stuck, not what they say they liked.
-- [ ] Score against the four criteria from the project report: navigability, reconstruction
-      completeness, visual quality, overall performance
-- [ ] **GATE G4 (Nov 6)** — feature freeze
-
-### Week 11 · Nov 9–13 — Fix
-
-- [ ] Fix the top three issues by frequency across testers. Only those three.
-- [ ] Performance pass: load time, frame rate on a mid-range laptop, mobile browser check
-- [ ] Short second test round to confirm the fixes landed
-
-### Week 12 · Nov 16–20 — Lock
-
-- [ ] Final deploy, verified from a machine that isn't yours
-- [ ] Rehearse the demo end to end, twice, including a cold start on venue wifi
-- [ ] Record a backup video walkthrough in case the live demo fails
-- [ ] **GATE G5 (Nov 20) — project locked**
-
-### Buffer · Nov 23–30
-Thanksgiving is Thursday Nov 26; assume the team is unavailable. Written report, slides, and
-contingency only. If you are writing code this week, something upstream went wrong.
+**Buffer · Nov 23–30.** Thanksgiving is Thursday Nov 26; assume the team is unavailable. Written
+report, slides, and contingency only. If you are writing code that week, something upstream went
+wrong.
 
 ---
 
 ## 5. Standing rhythm
 
 - **Monday, async, 15 min:** what shipped, what you're picking up, what's blocked
-- **Friday:** someone updates the checkboxes in this file and pushes
+- **Friday, milestone-board triage:** someone walks the board — close what's done, re-milestone
+  what slipped, open issues for anything discovered this week that isn't tracked yet. Ten
+  minutes. The board is only trustworthy if somebody does this.
 - **Every session:** `git pull` before you start, `git push` when you stop
 
 ---
@@ -196,11 +136,33 @@ contingency only. If you are writing code this week, something upstream went wro
 If you're behind at a gate, cut in this order. Cut early and deliberately — a polished three-zone
 tour demos far better than a broken five-zone one.
 
-1. Fourth zone
-2. Audio overlay for dialogue (keep the visible text, note it as future work)
-3. Branching dialogue → linear dialogue
-4. Third zone
-5. Zone transitions → a simple menu to jump between zones
+1. Fifth zone
+2. Fourth zone
+3. Audio overlay for dialogue (keep the visible text, note it as future work)
+4. Branching dialogue → linear dialogue
+5. Third zone
+6. Zone transitions → a simple menu to jump between zones
+
+**Know what this ladder costs before you climb it.** Scoping at 4–5 zones instead of the
+original 3 means rungs 1 and 2 are *deliberately pre-spent* — we have chosen to hold the slack
+as extra zones rather than as schedule. That is a real bet: zones 4 and 5 are the cheapest
+things to cut, so if capture slips we lose them and land back at the original three-zone plan
+with nothing else sacrificed. But it also means the first two rungs buy back **no** time we
+weren't always prepared to give up. If you are behind and reach for this ladder, expect to be
+on rung 3 almost immediately, and treat cutting into dialogue quality as the first *real* cut.
+
+**Zone cuts happen at the G3 review on Oct 9, not gradually.** That date is the single decision
+point for scope: any zone that is not *primitive* by then — captured, trained, placed, aligned to
+the hallway, reachable through a working transition, rough collision box — comes out of scope
+rather than being chased into G4. Cutting it there is the gate working as designed, not a
+failure. What makes this worth holding to is that a half-finished zone is the most expensive
+thing you can own: it consumes November attention that the surviving zones need for NPCs,
+testing, and fixes, and it usually still doesn't land. Decide once, on the date, and spend the
+rest of the time finishing what survived.
+
+The star topology helps here: dropping a room is cheap because nothing else aligns against it.
+**Never cut the hallway** — every other zone is positioned relative to it, so losing it doesn't
+cost one zone, it costs the tour's whole coordinate system.
 
 **Never cut:** collision (walking through walls destroys the illusion), NPC dialogue text (it's the
 actual point of the project), or the deployed public URL.
