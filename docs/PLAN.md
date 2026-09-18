@@ -89,18 +89,14 @@ file keeps only what doesn't change week to week: why the order is what it is (�
 | Milestone on the board | Gate | Date |
 |---|---|---|
 | *(none — closed)* | **G1** Training works | ✅ passed Sep 9 |
-| `G2 — Primary capture complete` | **G2** | Fri Sep 25 |
-| `G3 — Two zones shipped end to end` | **G3** | Fri Oct 9 |
-| `G4 — Feature freeze` | **G4** | Fri Nov 6 |
+| `G2 — Hallway captured, scope fixed` | **G2** | Fri Sep 25 |
+| `G3 — Every zone exists (breadth)` | **G3** | Fri Oct 9 |
+| `G4 — Every zone finished (depth)` | **G4** | Fri Nov 6 |
 | `G5 — Final lock` | **G5** | Fri Nov 20 |
 
-Each milestone's description carries its pass condition, so the board is readable without
-opening this file.
-
-> **Stale after the Sep 17 gate rewrite.** The titles above are what the board currently says;
-> §3 has since renamed G2–G4 and rewritten every pass condition. Rename the four milestones and
-> replace their descriptions to match §3 — until that happens, **§3 is authoritative and the
-> board is not.**
+Each milestone's description carries its full pass condition from §3, so the board is readable
+without opening this file. Both were last reconciled 2026-09-17 — if you change a gate in §3,
+change the milestone too, or the board quietly starts lying.
 
 To find your next task: open the board, filter to the nearest open milestone, take something
 unassigned, and say so in the team chat before you start. If a milestone is empty and its date
