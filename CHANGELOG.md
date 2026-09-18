@@ -4,66 +4,28 @@ Newest entry first. This records what changed and when — for schedule and gate
 
 ## 2026-09-17
 
-### Documentation synced to verified state
-No code or pipeline changes. The docs had drifted far enough from reality to be actively
-misleading — several described blockers that were already solved and a zone count we had moved
-past. Corrected against the repo as it actually stands:
+### Docs synced, gates rewritten, board rebuilt (PR #22, merged as f32f882)
+No code or pipeline changes — the docs described blockers already solved and a scope we'd moved past.
 
-- **The printing room is Zone 1**, an official CORE zone, not a test zone. Every doc that called
-  it a test/smoke capture now says so.
-- **Compressed PLY works** (see the 2026-09-15 entry). Removed the "download the splat from
-  Drive", "fresh clone falls back to the placeholder room", and "Compressed PLY is the next
-  test" language from `README.md`, `AGENTS.md`, `docs/ONBOARDING.md`, `DESIGN.md`, and
-  `docs/SETUP_TRAINING.md`. A fresh clone renders Zone 1 with no download step.
-- **Scope is 4–5 zones in a star topology**: the hallway is the hub, every transition is
-  hallway↔room, never room↔room. This makes the hallway the shared reference frame — it is
-  aligned first and every other zone's origin/rotation is expressed relative to it. Recorded in
-  `DESIGN.md` §3.1, `AGENTS.md`, `docs/PLAN.md` §2, and the training-pipeline skill's Stage 6.
-- **The real remaining blocker is size, not format.** Zone 1 is 62 MB against a 50 MB target.
-  SH is 74% of the file; band 1 projects to ~26 MB and band 0 to ~16.5 MB. The band choice is
-  deliberately NOT made — band 1 and band 0 get compared side by side first. `DESIGN.md` §3.5.
-- **`docs/PLAN.md` §4 (week-by-week) deleted.** Nobody maintained it, so it described a project
-  we were not running. Replaced by a pointer to the GitHub milestone board, which is the
-  task-level source of truth. `AGENTS.md`'s status checklist was removed for the same reason.
-  §5's Friday ritual is now milestone-board triage.
-- **G3 re-specified**: two zones walkable with collision and real NPCs, live on a public URL,
-  loaded by someone who is not Johnny. Compression moved from gate to target. The GitHub
-  milestone was renamed to match and now carries the pass condition in its description.
-  Its fallback was rewritten — "cut to 2 zones" was a no-op against a two-zone gate. The gate
-  bundles three legs of very different descopability: the second zone is cuttable, while the
-  public URL and real NPCs are both on §7's never-cut list, so failing those means stopping
-  other work rather than descoping.
-- **Descoping ladder** now runs from five zones, with a note that planning 4–5 means its first
-  two rungs are pre-spent — they buy back no time we had not already committed.
+- **Zone 1 is the printing room**, official, not a test capture. Compressed PLY ships in the repo,
+  so a fresh clone renders it — the "download from Drive" steps are gone from all five docs.
+- **Scope: 4–5 zones, star topology.** The hallway is the hub and the shared reference frame:
+  every transition is hallway↔room, and it is aligned before anything is positioned against it.
+- **Gates now each measure one thing** — G3 breadth (every zone primitive), G4 depth (every surviving
+  zone finished), G5 the stranger test. Cuts are taken at the Oct 9 G3 review; milestones match §3.
+- **Unmaintained checklists deleted** (PLAN.md §4, AGENTS.md status block) — both had drifted into
+  describing a project we weren't running. GitHub Issues is the task-level record.
+- **`.gitignore`:** added `*.MOV`/`*.mov`; generalized the splat negation to `!public/splats/*.compressed.ply`,
+  which had named one file — the next zone would have been silently ignored. Removed `demo-guide.json`.
 
-### Skills reconciled against measured practice
-- **OPEN QUESTION recorded, deliberately unresolved:** the capture protocol specifies 250 frames
-  (150–300) and 2–4 minute clips; our only successful capture used `--num-frames-target 450` and
-  a 7:16 clip. Nobody has run the same room both ways. The runtime consequence is recorded
-  because it is large and measured: ~24 min of COLMAP at ~300 frames vs 135m53s at 452.
-- **SuperSplat cleanup is recorded as harmful-in-practice and undiagnosed** — see the 2026-09-15
-  entry. Stage 5 of the training pipeline now prefers SH band reduction over splat deletion.
-- **Stage 5's "hard gate" language corrected to "target."** It claimed ≤ 50 MB was a hard gate
-  while the shipped zone is 62 MB — the skill was asserting something untrue.
-- **SH Bands must now be recorded in `CHANGELOG.md` on every export.** Without it, zone files
-  cannot be compared and the pending band test is uninterpretable.
-- **Capture file convention standardized on `.MOV`**, matching issues #3/#4 and what the iPhone
-  actually writes. `.gitignore` previously covered only `*.mp4`, leaving a 1.5–3 GB take
-  unprotected — `*.MOV` and `*.mov` added, verified with `git check-ignore`. This mattered
-  ahead of the Sep 18 hallway shoot.
-- **Fixed a latent footgun found while testing those rules.** The `!` negation was written for
-  one specific filename, so a future zone's `hallway.compressed.ply` came back ignored — zone 2
-  would have been silently skipped at commit time. Replaced with
-  `!public/splats/*.compressed.ply`, which re-includes finished zones by pattern while leaving
-  raw `.ply` exports ignored. Verified both directions with `git check-ignore`. The consequence
-  is that the `.compressed.ply` naming convention is now load-bearing, which is documented
-  wherever the pipeline touches it.
-- Added: re-verify the `eval_utils.py` `weights_only` venv patch before the first export of each
-  new zone. Nothing has been exported since Sep 9, so its current state is assumed, not observed.
+### Board rebuilt — 14 issues opened, #23–#36
+#23 SH bands · #24 FPS baseline · #25 cleanup regression · #26 debugCollision · #27 hallway align ·
+#28 zone list · #29 testers · #30 frame count · #31 venv patch · #32 primitive checklist · #33 a11y
+· #34 performance · #35 demo prep · #36 push local NPC work
 
-### Removed
-- `public/dialogue/demo-guide.json` (Riley, the demo NPC). Unreferenced by `src/` and absent from
-  `zones.json` since the demo room was retired. Recoverable from Git history.
+**Three decisions left open on purpose, each now an issue rather than a guess in a doc:** the SH
+band standard (#23 — blocks every zone export), the `ns-process-data` frame target (#30 — 250 vs
+the 450 that worked), and the cleanup quality regression (#25 — cause undiagnosed).
 
 ## 2026-09-15
 
