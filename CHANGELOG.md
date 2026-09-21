@@ -2,6 +2,19 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-09-21
+
+### Dialogue audio narration implemented and manually verified (Issue #14)
+- Added opt-in Web Speech API narration for the currently displayed dialogue text. Advancing or
+  closing dialogue cancels speech, disabling narration stops it immediately, and the On/Off setting
+  persists while dialogue is closed and reopened during the page session.
+- Audible narration was manually verified in normal Chrome through the existing dialogue system,
+  using a temporary browser-only fixture because production NPC placement is not yet integrated.
+  The fixture did not change repository files, and full NPC-triggered end-to-end testing is not claimed.
+- This completes the audio-narration scope of Issue #14 only. Broader accessibility work remains in
+  Issue #33, including focus behavior, keyboard-only verification, screen-reader testing, and
+  pointer-lock accessibility limitations; none of those items is claimed complete here.
+
 ## 2026-09-17
 
 ### Docs synced, gates rewritten, board rebuilt (PR #22, merged as f32f882)
