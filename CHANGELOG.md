@@ -4,6 +4,14 @@ Newest entry first. This records what changed and when — for schedule and gate
 
 ## 2026-09-21
 
+### Printing-room collision debug overlay disabled and manually verified (Issue #26)
+- Changed the printing room's `debugCollision` setting from `true` to `false`, so the translucent
+  cyan collision wireframes are no longer enabled for public/deployment use.
+- Collision AABBs and runtime behavior are unchanged, and the reusable debug rendering support
+  remains available in `src/zones.js` for future zone authoring.
+- Manual browser testing confirmed that the splat loads without the overlay while normal movement,
+  collision blocking, and sliding along collision boundaries continue to work.
+
 ### Dialogue audio narration implemented and manually verified (Issue #14)
 - Added opt-in Web Speech API narration for the currently displayed dialogue text. Advancing or
   closing dialogue cancels speech, disabling narration stops it immediately, and the On/Off setting
