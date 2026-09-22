@@ -1,0 +1,154 @@
+{
+  "npc": "johnny_stratasys",
+  "name": "Johnny",
+  "nodes": {
+    "start": {
+      "text": "Welcome to station three! This is the Stratasys uPrint SE / SE Plus, an FDM 3D printer.",
+      "choices": [
+        { "label": "That's cool.", "next": "main2" },
+        { "label": "What does FDM mean?", "next": "fdm" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "main2": {
+      "text": "This printer uses ABSplus thermoplastic to create durable parts. It's useful for prototypes and functional engineering models.",
+      "choices": [
+        { "label": "That's pretty useful.", "next": "main3" },
+        { "label": "What is ABSplus?", "next": "absplus" },
+        { "label": "What do you mean by functional?", "next": "functional" }
+      ]
+    },
+    "main3": {
+      "text": "The printer can also build soluble support material around the part. That helps make more complicated shapes possible.",
+      "choices": [
+        { "label": "Wait, soluble?", "next": "soluble_support" },
+        { "label": "That makes sense.", "next": "main4" },
+        { "label": "Why do prints need supports?", "next": "why_support" }
+      ]
+    },
+    "main4": {
+      "text": "After printing, those supports have to be removed. That's where post-processing becomes part of the workflow.",
+      "choices": [
+        { "label": "How do you remove them?", "next": "support_removal" },
+        { "label": "That's interesting.", "next": "main5" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "main5": {
+      "text": "So this printer can create durable parts with complex geometry. It's another way engineers turn CAD designs into physical parts.",
+      "choices": [
+        { "label": "That's really cool.", "next": "main6" },
+        { "label": "How is this different from the others?", "next": "comparison" },
+        { "label": "Tell me more about FDM.", "next": "fdm" }
+      ]
+    },
+    "main6": {
+      "text": "That's station three! Next, find number four to see what happens after certain parts finish printing.",
+      "choices": [
+        { "label": "What happens at station four?", "next": "station4_tease" },
+        { "label": "Start from the beginning.", "next": "start" },
+        { "label": "I'll go to station four.", "next": "bye" }
+      ]
+    },
+    "fdm": {
+      "text": "FDM stands for Fused Deposition Modeling. The printer deposits heated thermoplastic one layer at a time.",
+      "choices": [
+        { "label": "So it builds from the bottom up?", "next": "fdm_layers" },
+        { "label": "Got it. Keep going.", "next": "main2" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "fdm_layers": {
+      "text": "Exactly! Each thin layer is placed on the one below it. Together, those layers build the complete 3D part.",
+      "choices": [
+        { "label": "That makes sense.", "next": "main2" },
+        { "label": "What material does it use?", "next": "absplus" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "absplus": {
+      "text": "ABSplus is the thermoplastic this system uses for the model. It's made for durable prototypes and engineering parts.",
+      "choices": [
+        { "label": "Why does durability matter?", "next": "durability" },
+        { "label": "Got it. Keep going.", "next": "main3" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "durability": {
+      "text": "Sometimes engineers want to test more than appearance. A stronger prototype can help test fit, handling, or function.",
+      "choices": [
+        { "label": "That makes sense.", "next": "main3" },
+        { "label": "What makes something functional?", "next": "functional" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "functional": {
+      "text": "A functional prototype helps test how a design actually behaves. It's more than just checking what the part looks like.",
+      "choices": [
+        { "label": "Can you give me an example?", "next": "functional_example" },
+        { "label": "That makes sense.", "next": "main3" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "functional_example": {
+      "text": "For example, you might print a bracket or fixture to check its size and fit before making the final version.",
+      "choices": [
+        { "label": "That's really useful.", "next": "main3" },
+        { "label": "What material does it use?", "next": "absplus" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "soluble_support": {
+      "text": "The support is temporary material printed with the model. Compatible support material can later be dissolved away.",
+      "choices": [
+        { "label": "Why not just pull it off?", "next": "why_soluble" },
+        { "label": "How do you dissolve it?", "next": "support_removal" },
+        { "label": "That's cool. Keep going.", "next": "main4" }
+      ]
+    },
+    "why_support": {
+      "text": "Some designs have overhangs or sections with nothing underneath them. Supports hold those areas while they're being printed.",
+      "choices": [
+        { "label": "Oh, that makes sense.", "next": "main4" },
+        { "label": "Why use soluble supports?", "next": "why_soluble" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "why_soluble": {
+      "text": "Soluble support is useful for complex or hard-to-reach geometry. It can be removed without manually pulling every support away.",
+      "choices": [
+        { "label": "How is it removed?", "next": "support_removal" },
+        { "label": "That makes sense.", "next": "main4" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "support_removal": {
+      "text": "The support can be dissolved using a compatible cleaning process. We actually have equipment here that does that.",
+      "choices": [
+        { "label": "Which equipment?", "next": "station4_tease" },
+        { "label": "That's really cool.", "next": "main5" },
+        { "label": "Why are supports needed again?", "next": "why_support" }
+      ]
+    },
+    "comparison": {
+      "text": "Each printer has different strengths and workflows. This system focuses on FDM parts using ABSplus and soluble supports.",
+      "choices": [
+        { "label": "That makes sense.", "next": "main6" },
+        { "label": "Tell me about ABSplus.", "next": "absplus" },
+        { "label": "Tell me about the supports.", "next": "soluble_support" }
+      ]
+    },
+    "station4_tease": {
+      "text": "Station four is the support-cleaning system. It shows what happens to certain printed parts after they leave the printer.",
+      "choices": [
+        { "label": "I'll go check it out.", "next": "bye" },
+        { "label": "Why is cleaning needed?", "next": "soluble_support" },
+        { "label": "Keep explaining this printer.", "next": "main5" }
+      ]
+    },
+    "bye": {
+      "text": "Sounds good! When you're ready, look for number four to finish the 3D printing workflow.",
+      "end": true
+    }
+  }
+}

@@ -36,6 +36,24 @@
           "radius": 2.0,
           "portrait": "./portraits/johnny.png",
           "dialogueFile": "./dialogue/johnny-ultimaker.json"
+        },
+        {
+          "id": "johnny-stratasys",
+          "name": "Johnny",
+          "markerLabel": "3",
+          "position": [0, 1.6, 0],
+          "radius": 2.0,
+          "portrait": "./portraits/johnny.png",
+          "dialogueFile": "./dialogue/johnny-stratasys.json"
+        },
+        {
+          "id": "johnny-sca",
+          "name": "Johnny",
+          "markerLabel": "4",
+          "position": [0.5, 1.6, 0.5],
+          "radius": 2.0,
+          "portrait": "./portraits/johnny.png",
+          "dialogueFile": "./dialogue/johnny-sca.json"
         }
       ]
     }
