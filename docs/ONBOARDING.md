@@ -84,6 +84,30 @@ zone named `<zone>.compressed.ply` is therefore tracked automatically — see
 - [ ] **Success check:** you see the printing-room splat — a photoreal 3D scan, not a gray box. Click it, walk with WASD, look with the mouse, and press **Esc** to release your mouse. The printing-room zone currently has no NPC markers. If you get the gray placeholder room instead, something is wrong; see troubleshooting below.
 - [ ] To stop the server later: click in the terminal, press **Ctrl+C**. To run other commands while it's running, open a second terminal with the **+** button.
 
+### 8a. Production deployment (GitHub Pages)
+The current static host is **GitHub Pages**. The public tour is available at
+https://jl42r.github.io/rutgers-tour/.
+
+Deployment is automated by `.github/workflows/deploy.yml`. Every push or merged pull request to
+`main` runs `npm ci`, builds the production site with `npm run build`, and publishes the generated
+`dist/` directory. In the repository settings, **Settings → Pages → Source** must remain set to
+**GitHub Actions**; the workflow cannot publish through the older branch-based Pages setting.
+
+After a deployment:
+1. Open the repository's **Actions** tab and confirm **Deploy to GitHub Pages** passed.
+2. Open the public URL in a private browser window and time from navigation until the printing-room
+   splat is visible and usable.
+3. Confirm WASD, mouse-look, pointer lock/Esc release, collision, and sliding along room boundaries.
+4. Confirm the cyan collision debug overlay is hidden and no gray placeholder room appears.
+5. If loading fails, use the browser Network tab to check that `zones.json` and the configured
+   `.compressed.ply` request both return HTTP 200.
+
+Issue #11 established a deployment baseline on 2026-09-22: the tour became usable in approximately
+**12 seconds on a non-Johnny Windows machine over normal Wi-Fi**, with the real printing-room splat,
+movement, mouse-look, pointer lock, collision, and boundary sliding all working. Deployment test
+coverage exists for **Chrome and Edge**. **Firefox remains unverified. Safari remains unverified and
+requires a teammate with a macOS or iOS device.**
+
 ---
 
 ## Part 3 — Learn the project (~1–2 hours, can split across days)
