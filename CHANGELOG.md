@@ -2,6 +2,82 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-09-21
+
+### Printing-room collision debug overlay disabled and manually verified (Issue #26)
+- Changed the printing room's `debugCollision` setting from `true` to `false`, so the translucent
+  cyan collision wireframes are no longer enabled for public/deployment use.
+- Collision AABBs and runtime behavior are unchanged, and the reusable debug rendering support
+  remains available in `src/zones.js` for future zone authoring.
+- Manual browser testing confirmed that the splat loads without the overlay while normal movement,
+  collision blocking, and sliding along collision boundaries continue to work.
+
+### Dialogue audio narration implemented and manually verified (Issue #14)
+- Added opt-in Web Speech API narration for the currently displayed dialogue text. Advancing or
+  closing dialogue cancels speech, disabling narration stops it immediately, and the On/Off setting
+  persists while dialogue is closed and reopened during the page session.
+- Audible narration was manually verified in normal Chrome through the existing dialogue system,
+  using a temporary browser-only fixture because production NPC placement is not yet integrated.
+  The fixture did not change repository files, and full NPC-triggered end-to-end testing is not claimed.
+- This completes the audio-narration scope of Issue #14 only. Broader accessibility work remains in
+  Issue #33, including focus behavior, keyboard-only verification, screen-reader testing, and
+  pointer-lock accessibility limitations; none of those items is claimed complete here.
+
+## 2026-09-17
+
+### Docs synced, gates rewritten, board rebuilt (PR #22, merged as f32f882)
+No code or pipeline changes — the docs described blockers already solved and a scope we'd moved past.
+
+- **Zone 1 is the printing room**, official, not a test capture. Compressed PLY ships in the repo,
+  so a fresh clone renders it — the "download from Drive" steps are gone from all five docs.
+- **Scope: 4–5 zones, star topology.** The hallway is the hub and the shared reference frame:
+  every transition is hallway↔room, and it is aligned before anything is positioned against it.
+- **Gates now each measure one thing** — G3 breadth (every zone primitive), G4 depth (every surviving
+  zone finished), G5 the stranger test. Cuts are taken at the Oct 9 G3 review; milestones match §3.
+- **Unmaintained checklists deleted** (PLAN.md §4, AGENTS.md status block) — both had drifted into
+  describing a project we weren't running. GitHub Issues is the task-level record.
+- **`.gitignore`:** added `*.MOV`/`*.mov`; generalized the splat negation to `!public/splats/*.compressed.ply`,
+  which had named one file — the next zone would have been silently ignored. Removed `demo-guide.json`.
+
+### Board rebuilt — 14 issues opened, #23–#36
+#23 SH bands · #24 FPS baseline · #25 cleanup regression · #26 debugCollision · #27 hallway align ·
+#28 zone list · #29 testers · #30 frame count · #31 venv patch · #32 primitive checklist · #33 a11y
+· #34 performance · #35 demo prep · #36 push local NPC work
+
+**Three decisions left open on purpose, each now an issue rather than a guess in a doc:** the SH
+band standard (#23 — blocks every zone export), the `ns-process-data` frame target (#30 — 250 vs
+the 450 that worked), and the cleanup quality regression (#25 — cause undiagnosed).
+
+## 2026-09-15
+
+### Compressed PLY works — delivery format resolved (012a723)
+The `.spz` blocker is resolved on the load side. SuperSplat's **Compressed PLY** export loads in
+Spark 2.1.0, so the format question from #8 is answered; `.spz` stays dead (SuperSplat writes v4,
+no released Spark decoder reads it) and is not worth revisiting unless PR #332 lands.
+
+- `public/splats/printing-room-updated.compressed.ply` committed at **62,132,080 bytes**
+  (1,013,854 splats, SH bands 3). First splat file ever to enter the repo.
+- `.gitignore` gained a negation past the blanket `*.ply` rule. (As originally written it matched
+  one filename only; generalized to a pattern on 2026-09-17.)
+- `zones.json` switched the printing room to the compressed file. Alignment, collision, and spawn
+  settings were preserved unchanged.
+- Spark LOD enabled: `lod: true` on the `SplatMesh`, `lodSplatCount: 500000` on the
+  `SparkRenderer`.
+- Renderer pixel ratio pinned to `1`, down from `Math.min(devicePixelRatio, 2)`. This is a real
+  tradeoff, not a pure win: on a HiDPI display the scene now renders at 1x and looks softer, in
+  exchange for a large fill-rate saving.
+
+### Still over budget
+62 MB misses the < 50 MB target. SH is ~74% of the file, so band selection is the lever — band 1
+projects to ~26 MB, band 0 to ~16.5 MB. Neither has been exported or looked at yet. #8 stays open
+for the size problem rather than the format problem.
+
+### SuperSplat cleanup skipped — it made quality worse
+The team cleaned the printing room in SuperSplat and observed visual quality **decreasing**
+against the uncleaned export, so the shipped file has no cleanup applied. **Cause never
+diagnosed.** Until someone does, treat cleanup as a change requiring an A/B look in the browser
+rather than an automatic improvement, and do not rely on it to hit the size budget.
+
 ## 2026-09-14
 
 ### Printing-room alignment completed

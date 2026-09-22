@@ -49,7 +49,7 @@ For video, inspect the file that actually lands on disk. Before shooting the rea
 In Windows PowerShell with `ffprobe` installed:
 
 ```powershell
-ffprobe "FILE.mp4" 2>&1 | Select-String -Pattern 'Video:|DOVI'
+ffprobe "FILE.MOV" 2>&1 | Select-String -Pattern 'Video:|DOVI'
 ```
 
 - **Expected for this SDR workflow:** `yuv420p`, `bt709`, no `DOVI` line; also check resolution and frame rate.
@@ -74,7 +74,7 @@ For photos, stop fully at each viewpoint. For video, aim for 2–4 minutes of sl
 5. CLOSE THE LOOP: end near where you started, capturing the starting area again to provide matches for loop closure.
 6. Doorways/transitions between zones: capture overlapping views through each doorway from both directions — needed later to align zones.
 
-**Video length vs. frame count:** the existing training workflow targets 250 frames, within a 150–300-frame budget. At the same extraction target, a longer clip means wider time spacing between sampled views; it does not automatically add detail and can reduce overlap. For a small rehearsal area, plan 60–90 seconds; duration alone does not validate the pipeline. Use the full 2–4 minute coverage pattern when needed for a real zone. Budget accordingly: COLMAP took ~24 minutes for ~300 frames on our CPU-only build (no CUDA); equal frame counts do not guarantee equal runtimes.
+**Video length vs. frame count:** the existing training workflow targets 250 frames, within a 150–300-frame budget — **but see the OPEN QUESTION in the field notes below: our one successful capture used 450 frames and a 7:16 clip, and the two have never been compared head to head.** At the same extraction target, a longer clip means wider time spacing between sampled views; it does not automatically add detail and can reduce overlap. For a small rehearsal area, plan 60–90 seconds; duration alone does not validate the pipeline. Budget accordingly: COLMAP took ~24 minutes for ~300 frames and 135m53s for 452 on our CPU-only build (no CUDA); equal frame counts do not guarantee equal runtimes.
 
 ### Capture scope and the VRAM ceiling
 Training happens on a single 8 GB RTX 5060. Capture scope has to stay within what that GPU can actually train. This is why the building is split into zones at doorway chokepoints rather than captured as one continuous walk. A beautiful five-minute capture spanning half a floor may simply not train. If in doubt, capture a smaller area.
@@ -134,16 +134,53 @@ A low percentage calls for capture, extraction, and matching diagnosis before tr
 If a capture with HDR on cannot be reshot, frames can be re-extracted with explicit tonemapping and fed to `ns-process-data images` (not `video`):
 
 ```bash
-ffmpeg -i INPUT.mp4 -vf "zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p,fps=2" -q:v 2 OUTDIR/frame_%05d.jpg
+ffmpeg -i INPUT.MOV -vf "zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p,fps=2" -q:v 2 OUTDIR/frame_%05d.jpg
 ```
 
 Run this existing rescue command in WSL2 Ubuntu; it requires an ffmpeg build with `libzimg` for the `zscale` filter. Preserve the original and inspect converted frames before alignment. A new SDR capture is our preferred starting point, but conversion may salvage useful footage; success must be checked.
 
-File naming convention for this project: `captures/<zone-id>/<YYYY-MM-DD>-take<N>.mp4` (e.g., `captures/lobby/2026-08-04-take1.mp4`). Never delete takes — storage is cheap, re-shoots are not.
+File naming convention for this project: `captures/<zone-id>/<YYYY-MM-DD>-take<N>.MOV` (e.g., `captures/hallway/2026-09-18-take1.MOV`). Matches issues #3 and #4, and matches what the iPhone actually writes — keep the `.MOV` extension rather than renaming to `.mp4`. Never delete takes — storage is cheap, re-shoots are not.
+
+> **`.gitignore` covers `*.mp4` but not `*.MOV`.** A 4K take is 1.5–3 GB and will not be caught
+> by the ignore rules if it lands inside the repo. Keep captures in the Drive folder and out of
+> the working tree; run `git status` before staging after any capture session.
 
 For photos, use `captures/<zone-id>/<YYYY-MM-DD>-take<N>/` and retain original filenames inside it. Back up raw captures outside Git; do not commit photo datasets or videos.
 
 ## Field notes
+
+### ⚠️ OPEN QUESTION — frame count and clip length are NOT settled
+
+**This skill and our only successful capture disagree, and the disagreement is unresolved.**
+Do not treat either number as the answer; know that you are choosing between them.
+
+| | This skill says | The Sep 9 printing room (our only success) did |
+|---|---|---|
+| Frame target | 250, budget 150–300 | `--num-frames-target 450` → 452 extracted |
+| Clip length | 2–4 min per zone | 7:16 |
+| Result | — | 451/452 registered, **99.78%** |
+
+The 150–300 budget was written from the 8 GB VRAM / 16 GB RAM ceiling, before any capture had
+succeeded. The 450-frame run then registered at 99.78% and trained fine, so the budget was
+never actually validated as a ceiling — nor was it shown to be wrong, because nobody has run
+the same room at 250 to compare.
+
+**The runtime consequence is large and measured** (CPU-only COLMAP, the build we have):
+
+| Frames | COLMAP wall time |
+|---|---|
+| 309 | ~24 min |
+| 452 | **135m53s** |
+
+1.46x the frames cost 5.6x the wall time — matching grows superlinearly and dominated the long
+run (112 of 136 minutes). So the tradeoff is not "more frames, slightly slower": it is roughly
+half a workday of COLMAP per zone at 450 frames versus about 25 minutes at 300.
+
+**What would settle it:** process one already-captured zone at both targets and compare
+registration percentage and visual quality. Until someone does that, state which target you
+used and why in `CHANGELOG.md`, and budget the runtime above accordingly. Issue #17 (CUDA
+COLMAP) would change this calculus substantially if it ever lands.
+
 **2026-09-04, first real test capture session** (indoors, late-afternoon September light):
 - Take 1 — 2:38, 4K/30, reported HDR on: COLMAP registered 2 of 318 frames (0.63%). The original diagnosis was HDR contrast flattening affecting SIFT features; this is a hypothesis, not a cause established by the count alone.
 - Take 2 — 2:56, 4K/30, reported HDR off: COLMAP registered 57 of 309 frames (18.45%), and the registered frames formed an exactly contiguous block (frame_00114–frame_00170). The original diagnosis was motion blur breaking the match chain; the block suggests a matching break but does not prove blur or exclude a coverage gap.
@@ -157,6 +194,20 @@ The session motivated metadata checks and registration triage. Its original reco
 - `ns-process-data` run with `--num-frames-target 450 --matching-method sequential`, extracting 452 of 26,194 frames.
 - COLMAP registered 451 of 452 frames — **99.78%**, comfortably above the "healthy" threshold.
 - Registration across all three captures to date: 0.63% (HDR on) → 18.45% (HDR off, 4K/30, dim evening light) → 99.78% (this capture). Every correction below came from one of these three measured results, not from guessing.
+
+**2026-09-15, printing room — SuperSplat cleanup made it look WORSE, and we don't know why:**
+- The team cleaned the printing-room splat in SuperSplat (the standard floater-deletion and
+  crop pass this project's pipeline calls for) and observed **visual quality decreasing** in the
+  result compared to the uncleaned export.
+- **Cause unknown.** Not diagnosed. Plausible explanations nobody has tested: the selection was
+  removing splats that contribute to surfaces rather than true floaters; the crop cut geometry
+  that was reading as wall/ceiling detail at grazing angles; or the re-export quantized
+  differently. All three are guesses.
+- **The shipped Zone 1 file is therefore uncleaned.** `printing-room-updated.compressed.ply` is
+  the raw export compressed, with no SuperSplat cleanup applied.
+- Consequence for future zones: do not assume cleanup is a free quality win or a safe way to
+  hit the size budget. Export both, look at them side by side in the browser, and keep the one
+  that looks better. Use SH band reduction as the size lever instead — see `DESIGN.md` §3.5.
 
 **2026-09-07, Hamza's uploaded `IMG_4462 (1).mp4`** (review findings supplied for this documentation update):
 - Duration approximately 195.64 seconds; 3840 × 2160; approximately 30 fps.

@@ -55,19 +55,22 @@ This repo is set up so any major AI coding tool understands the project: the pro
   ```
   The repository is public; cloning does not require an invite. If the command fails, check the URL and your network connection.
 
-### 7a. Download the current splat (not in the repo)
-The current raw printing-room PLY is **not** in Git. At approximately 240 MB it exceeds
-GitHub's 100 MB file limit, so raw/uncompressed PLY files remain excluded and are shared
-through Drive. Finished Compressed PLY files may later be committed after the format is
-validated and `.gitignore` is narrowed to allow those files while still excluding raw PLYs.
-Do not change `.gitignore` yet or try to commit the current raw export. Raw video captures
-also remain outside Git.
+### 7a. The splat files
+**Nothing to download.** Zone 1 (the printing room) is committed to the repo as a 62 MB
+Compressed PLY, so the clone you just made already renders the real scan. Skip to step 8.
 
-- [ ] Open the shared Drive folder: https://drive.google.com/drive/u/0/folders/1CH1AtdKyM76MwLCx59VzMFqnssYlIFHT
-- [ ] Download the current zone's splat file and place it in `public/splats/`
-- [ ] Open `public/zones.json` and check the zone's `"splat"` field names the exact
-  filename you just downloaded (e.g. `"./splats/printing-room-updated.ply"`) — if the
-  filename doesn't match, the app can't find the file
+What stays out of Git, and why: raw uncompressed PLY exports are ~240 MB each, over GitHub's
+100 MB hard limit, so `.gitignore` excludes `*.ply` and re-includes only the finished
+`public/splats/*.compressed.ply` files. Raw capture video is excluded for the same reason. A new
+zone named `<zone>.compressed.ply` is therefore tracked automatically — see
+`.claude/skills/training-pipeline/SKILL.md` when you add one.
+
+**Drive folders — only if you're doing capture or training work:**
+- Raw capture videos (phone footage, before COLMAP/training): https://drive.google.com/drive/folders/1ux-tWNdUBWBhVojNKb_qSXBVEBpQkwyW?usp=drive_link
+  Upload every take here per `.claude/skills/capture-protocol/SKILL.md`. This footage is the
+  only irreplaceable asset in the project — a splat can be retrained, a capture session can't
+  be re-shot under the same light.
+- Raw and intermediate splat exports (archive, not needed to run the app): https://drive.google.com/drive/u/0/folders/1CH1AtdKyM76MwLCx59VzMFqnssYlIFHT
 
 ### 8. Open and run it
 - [ ] VS Code → **File → Open Folder** → `C:\dev\rutgers-tour`. Click "Yes, I trust the authors."
@@ -78,7 +81,7 @@ also remain outside Git.
   npm run dev
   ```
 - [ ] Ctrl+click the `http://localhost:5173` link that appears.
-- [ ] **Success check:** you see the printing-room splat if you downloaded its PLY, or the gray fallback room if you did not. Click it, walk with WASD, look with the mouse, and press **Esc** to release your mouse. The printing-room zone currently has no NPC markers.
+- [ ] **Success check:** you see the printing-room splat — a photoreal 3D scan, not a gray box. Click it, walk with WASD, look with the mouse, and press **Esc** to release your mouse. The printing-room zone currently has no NPC markers. If you get the gray placeholder room instead, something is wrong; see troubleshooting below.
 - [ ] To stop the server later: click in the terminal, press **Ctrl+C**. To run other commands while it's running, open a second terminal with the **+** button.
 
 ---
@@ -110,13 +113,14 @@ Why several docs? Each has one job: `README.md` = front door for humans (GitHub 
 ## Team rules
 1. `main` always runs. Never commit directly to it — branches + PRs only.
 2. Small PRs beat big ones. One issue, one PR.
-3. After every work session, update the status checklist at the bottom of `AGENTS.md` (so humans AND AI sessions know where things stand).
+3. After every work session, update your GitHub Issue and add a `CHANGELOG.md` entry. Those two are the project's memory — Markdown checklists go stale and nobody trusts them.
 4. Stuck for more than ~30 minutes? Ask the group chat. Struggling silently helps nobody.
 5. Weekly 30-min sync: demo what works, update the plan.
 
 ## Who does what (from docs/PLAN.md)
-Tasks are unassigned by design — see `docs/PLAN.md` §1. Pick up whatever's open in the current
-week's list, say so in the team chat before you start, and speak up within 48 hours if you stall.
+Tasks are unassigned by design — see `docs/PLAN.md` §1. Pick up whatever's open on the GitHub
+milestone board, say so in the team chat before you start, and speak up within 48 hours if you
+stall.
 
 The one hard constraint is hardware: **Johnny's laptop is the only machine with a GPU capable of
 training**, so every training task lands there by necessity. Nobody else needs WSL2/Nerfstudio/CUDA
@@ -126,8 +130,8 @@ testing, deployment — is open to whoever has time.
 ## Troubleshooting quick hits
 - `npm` "cannot be loaded / running scripts is disabled" → you skipped step 2 (execution policy).
 - `npm install` fails or acts weird → check the terminal prompt ends in `rutgers-tour` (you must be IN the project folder), and confirm the folder is not inside OneDrive.
-- Gray placeholder room instead of the real splat → expected until you've downloaded the splat file (see step 7a).
-- Console shows `Splat failed for zone ... using placeholder` → the file is missing from `public/splats/`, or the filename in `public/zones.json` doesn't match what you downloaded.
+- Gray placeholder room instead of the real splat → NOT expected any more; the splat ships with the repo. Check that `public/splats/printing-room-updated.compressed.ply` exists and is ~62 MB. If it's tiny, your clone didn't pull it down properly — re-clone.
+- Console shows `Splat failed for zone ... using placeholder` → the file is missing from `public/splats/`, or the filename in `public/zones.json` doesn't match it.
 - Blank page in the browser → press F12, open the Console tab, copy the red error, paste it to your AI assistant and ask it to fix it.
 - Anything else → ask your AI assistant first, then the group chat. Always paste the exact error text, never a description of it.
 
