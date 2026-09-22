@@ -2,6 +2,22 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-09-22
+
+### GitHub Pages deployment live and verified (Issue #11, PR #40)
+- Added `.github/workflows/deploy.yml`; pushes and merges to `main` now run the Vite production build
+  and publish `dist/` to https://jl42r.github.io/rutgers-tour/ through GitHub Pages.
+- The deployed page, `zones.json`, and 62,132,080-byte compressed printing-room PLY return HTTP 200.
+  The raw uncompressed PLY is not in the repository or deployment. The deployed scene loaded and
+  rendered all 1,013,854 splats successfully.
+- Manual public-site testing on a non-Johnny Windows machine over normal Wi-Fi reached a usable room
+  in approximately 12 seconds. WASD, mouse-look, pointer lock/Esc release, collision, boundary
+  sliding, and the disabled cyan collision overlay all behaved as expected, with no major visual
+  problems observed.
+- Chrome and Edge have deployment test coverage. Firefox is still unverified; Safari is still
+  unverified and requires an Apple device. Known non-blocking observations are a missing
+  `favicon.ico` request and a Three.js shader warning.
+
 ## 2026-09-21
 
 ### Printing-room collision debug overlay disabled and manually verified (Issue #26)
