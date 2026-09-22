@@ -20,11 +20,22 @@
       ],
       "npcs": [
         {
-          "id": "johnny_bambu",
+          "id": "johnny-bambu",
           "name": "Johnny",
           "position": [3.5, 1.6, 1],
           "radius": 2.0,
-          "dialogueFile": "./dialogue/johnny_bambu.json"
+          "portrait": "./portraits/johnny.png",
+          "markerImage": "./portraits/johnny.png",
+          "dialogueFile": "./dialogue/johnny-bambu.json"
+        },
+        {
+          "id": "johnny-ultimaker",
+          "name": "Johnny",
+          "markerLabel": "2",
+          "position": [4, 1.6, 0.5],
+          "radius": 2.0,
+          "portrait": "./portraits/johnny.png",
+          "dialogueFile": "./dialogue/johnny-ultimaker.json"
         }
       ]
     }
