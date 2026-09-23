@@ -4,6 +4,35 @@ Newest entry first. This records what changed and when — for schedule and gate
 
 ## 2026-09-22
 
+### Hallway captured, processed, and trained (Issue #27, #30)
+- **Capture:** 11:25.66 video, 3840×2160, 30 fps, H.264 High, `yuv420p`/`bt709` (SDR, no DOVI),
+  ~45 Mbps. Note: 4K/30 H.264, not the 4K/60 HEVC the printing room used — cause unknown, ask
+  Hamza before assuming a setting. Stored locally at `~/work/captures/hallway/<name>`; original on
+  Google Drive.
+- **COLMAP** (`ns-process-data`, `--matching-method sequential`, `--num-frames-target 720`):
+  Nerfstudio samples every `floor(20568/720)=28`th frame, so it overshoots the target — 735
+  extracted, ~0.93s apart (the printing room's 450→452 was the same overshoot behavior).
+  **684/735 registered — 93.06%.**
+- Missing frames scattered, not contiguous: 127, 144–145, 151, 153–157, 267–268, 280–283,
+  386–392, 499–502, 596–602, 610–611, 618–623, 726–735. Weakest stretches: 596–623 (15 of 28
+  lost, ~9:15–9:41) and 144–157 (8 of 14 lost, ~2:13–2:26). 726–735 is the tail of the clip.
+- Stage timings: extraction 4m42s, features 11m01s, matching 131m07s, bundle adjustment 21m32s,
+  refine intrinsics 1m54s. **Total wall 170m26s, user 1819m (~10.7x parallel).**
+- **vs. the Sep 9 printing room:** 1.63× the frames cost 1.25× total time and 1.17× matching
+  time — well under the 1.46×→5.6× figure recorded from the earlier 309-vs-452 comparison. That
+  comparison mixed matching method and footage quality along with frame count, so it was never a
+  clean measurement of frame count alone; today's runs share both matching method and roughly
+  comparable footage, and the result is a much smaller time cost per added frame. See the
+  capture-protocol and SETUP_TRAINING corrections below.
+- Confirmed: `~/.local/share/nerfstudio/` does not exist after two sequential-matching runs —
+  sequential matching does not fetch or use a vocab tree. The pipeline has no internet dependency.
+- **Training** (splatfacto, 30k iterations): ~43 ms/iter, ~12 M rays/s (printing room: ~23 ms,
+  ~22 M). ~20 min wall. Output at `outputs/hallway-proc/splatfacto/2026-09-22_181026/`.
+- Raw PLY exported to `~/work/exports/hallway/` and uploaded to Google Drive for the team.
+- **PENDING:** Gaussian count, PLY size, viewer inspection result, `sparse/` model count,
+  SuperSplat compressed export, alignment to the hallway reference frame (#27). Nothing from
+  this session is committed to the repo or wired into `zones.json` yet.
+
 ### GitHub Pages deployment live and verified (Issue #11, PR #40)
 - Added `.github/workflows/deploy.yml`; pushes and merges to `main` now run the Vite production build
   and publish `dist/` to https://jl42r.github.io/rutgers-tour/ through GitHub Pages.

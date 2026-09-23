@@ -434,17 +434,22 @@ ns-process-data video --data ~/work/hallway.mp4 --output-dir ~/work/hallway-proc
 ns-train splatfacto --data ~/work/hallway-proc
 ```
 
-**COLMAP time budget.** Two measured runs on the apt-installed CPU-only COLMAP:
+**COLMAP time budget.** Three measured runs on the apt-installed CPU-only COLMAP:
 
 | Frames | Wall time | CPU time | Parallelism | Capture |
 |---|---|---|---|---|
 | 309 | 24m6s | 146m43s | ~6x | Sep 7 apartment hallway |
 | 452 | 135m53s | 1712m | ~12.6x | Sep 9 printing room (Zone 1) |
+| 735 | 170m26s | 1819m | ~10.7x | Sep 22 CORE hallway (Zone 2) |
 
-Runtime scales far worse than linearly in frame count: 1.46x the frames cost 5.6x the wall
-time. Matching is the reason — it grows superlinearly, and on the 452-frame run feature
-matching alone was **112 of 136 minutes**. Budget accordingly before raising
-`--num-frames-target`; the cost is not proportional to what you ask for.
+**Runtime is expensive; it does not follow a known scaling curve, and an earlier version of
+this note overclaimed one.** The 309→452 jump (1.46x the frames, 5.6x the wall time) was
+originally read as matching growing superlinearly with frame count. But those two runs also
+differed in matching method (default vs. sequential) and footage quality (blurrier 4K/30 vs.
+sharper 4K/60), so frame count was never isolated. The 452→735 jump (1.63x the frames), run with
+matching method and footage quality held roughly constant, cost only 1.25x the total time and
+1.17x the matching time — far below what the earlier framing would have predicted. Budget
+generously before raising `--num-frames-target`, but do not treat 5.6x as a multiplier to expect.
 
 A CUDA COLMAP build accelerates feature extraction and matching but not mapping /
 bundle adjustment. Per issue #17's stage breakdown, **roughly 95% of runtime sits in

@@ -165,16 +165,21 @@ succeeded. The 450-frame run then registered at 99.78% and trained fine, so the 
 never actually validated as a ceiling — nor was it shown to be wrong, because nobody has run
 the same room at 250 to compare.
 
-**The runtime consequence is large and measured** (CPU-only COLMAP, the build we have):
+**The runtime consequence is real but was overstated — see the 2026-09-22 update below.**
+The original comparison (CPU-only COLMAP, the build we have):
 
 | Frames | COLMAP wall time |
 |---|---|
 | 309 | ~24 min |
 | 452 | **135m53s** |
 
-1.46x the frames cost 5.6x the wall time — matching grows superlinearly and dominated the long
-run (112 of 136 minutes). So the tradeoff is not "more frames, slightly slower": it is roughly
-half a workday of COLMAP per zone at 450 frames versus about 25 minutes at 300.
+1.46x the frames cost 5.6x the wall time. This was read as matching growing superlinearly with
+frame count, but the two runs differed in more than frame count — matching method (default vs.
+sequential) and footage quality (blurrier 4K/30 vs. sharper 4K/60) both changed at the same time,
+so the 1.46x→5.6x figure can't isolate frame count as the cause. **Do not repeat "matching grows
+superlinearly" as a settled scaling law** — the 2026-09-22 hallway run, which held matching
+method and footage quality roughly constant, measured a much smaller cost per added frame (see
+below). Treat runtime as expensive and worth budgeting for, not as following a known curve.
 
 **What would settle it:** process one already-captured zone at both targets and compare
 registration percentage and visual quality. Until someone does that, state which target you
@@ -208,6 +213,19 @@ The session motivated metadata checks and registration triage. Its original reco
 - Consequence for future zones: do not assume cleanup is a free quality win or a safe way to
   hit the size budget. Export both, look at them side by side in the browser, and keep the one
   that looks better. Use SH band reduction as the size lever instead — see `DESIGN.md` §3.5.
+
+**2026-09-22, hallway capture — the runtime comparison above was confounded, corrected here:**
+- 11:25.66, 4K/30, H.264 (not the printing room's 4K/60 HEVC — cause unknown, ask before
+  assuming a camera setting). `--num-frames-target 720` → 735 extracted → **684 registered,
+  93.06%**, healthy and well clear of the 80% line.
+- Registered at 1.63x the printing room's frame count, in 1.25x the total wall time and 1.17x
+  the matching time — not the 5.6x the earlier 309-vs-452 comparison implied. That comparison
+  changed matching method and footage quality alongside frame count; this one held both roughly
+  constant, and the frame-count cost dropped accordingly. Frame target itself remains an open
+  choice (see the OPEN QUESTION above) — this only corrects the runtime-scaling framing, not the
+  target decision.
+- Missing frames were scattered, not one contiguous block — evidence against a single blur/motion
+  event and more consistent with several short weak stretches. Full detail in `CHANGELOG.md`.
 
 **2026-09-07, Hamza's uploaded `IMG_4462 (1).mp4`** (review findings supplied for this documentation update):
 - Duration approximately 195.64 seconds; 3840 × 2160; approximately 30 fps.
