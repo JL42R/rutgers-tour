@@ -1,0 +1,214 @@
+{
+  "npc": "johnny_bambu",
+  "name": "Johnny",
+  "nodes": {
+    "start": {
+      "text": "Hey! This is our Bambu Lab X1E with the AMS. Students use this for projects, including Senior Design.",
+      "choices": [
+        {
+          "label": "That's awesome.",
+          "next": "main2"
+        },
+        {
+          "label": "What is the AMS?",
+          "next": "ams"
+        },
+        {
+          "label": "I'm going to keep looking around.",
+          "next": "bye"
+        }
+      ]
+    },
+    "main2": {
+      "text": "It's great when you want to turn a CAD design into a real part. That makes it really useful for prototypes and project ideas.",
+      "choices": [
+        {
+          "label": "That sounds really useful.",
+          "next": "main3"
+        },
+        {
+          "label": "What would a student print?",
+          "next": "student_projects"
+        },
+        {
+          "label": "I'm going to keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "main3": {
+      "text": "The X1E can work with many standard and engineering materials. That gives students options depending on what their design needs.",
+      "choices": [
+        {
+          "label": "That's pretty cool.",
+          "next": "main4"
+        },
+        {
+          "label": "Why would the material matter?",
+          "next": "materials"
+        },
+        {
+          "label": "I'm going to keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "main4": {
+      "text": "The big idea is being able to design, print, test, and improve. You can learn a lot once your design becomes a physical object.",
+      "choices": [
+        {
+          "label": "Definitely.",
+          "next": "main5"
+        },
+        {
+          "label": "What do you mean by prototype?",
+          "next": "prototype"
+        },
+        {
+          "label": "I'm going to check out another printer.",
+          "next": "bye"
+        }
+      ]
+    },
+    "main5": {
+      "text": "That's the Bambu Lab X1E! Ask me anything else, or check out the other machines.",
+      "choices": [
+        {
+          "label": "How is this used in Senior Design?",
+          "next": "senior_design"
+        },
+        {
+          "label": "Start from the beginning.",
+          "next": "start"
+        },
+        {
+          "label": "Thanks, Johnny!",
+          "next": "bye"
+        }
+      ]
+    },
+    "ams": {
+      "text": "AMS stands for Automatic Material System. It can automatically manage different filament spools for the printer.",
+      "choices": [
+        {
+          "label": "So it can switch materials?",
+          "next": "ams_switching"
+        },
+        {
+          "label": "Cool, keep going.",
+          "next": "main2"
+        },
+        {
+          "label": "I'm going to keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "ams_switching": {
+      "text": "Exactly! That can make multi-material or multi-color printing easier. The system handles switching between the loaded filaments.",
+      "choices": [
+        {
+          "label": "That's awesome.",
+          "next": "main2"
+        },
+        {
+          "label": "Why would I need different materials?",
+          "next": "materials"
+        },
+        {
+          "label": "I'm going to keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "student_projects": {
+      "text": "It could be a prototype, enclosure, bracket, or project component. The exact part really depends on what they're designing.",
+      "choices": [
+        {
+          "label": "That makes sense.",
+          "next": "main3"
+        },
+        {
+          "label": "Why make a prototype first?",
+          "next": "prototype"
+        },
+        {
+          "label": "I'm going to keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "materials": {
+      "text": "Different materials can behave differently in strength and flexibility. Engineers choose materials based on what the part needs to do.",
+      "choices": [
+        {
+          "label": "Oh, that makes sense.",
+          "next": "main4"
+        },
+        {
+          "label": "Can the AMS hold different materials?",
+          "next": "ams"
+        },
+        {
+          "label": "I'm going to keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "senior_design": {
+      "text": "Senior Design teams often need to turn ideas into real prototypes. Printing lets them test a design instead of only seeing it on-screen.",
+      "choices": [
+        {
+          "label": "That's really useful.",
+          "next": "main5"
+        },
+        {
+          "label": "What if the design doesn't work?",
+          "next": "iteration"
+        },
+        {
+          "label": "I'm going to keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "prototype": {
+      "text": "Think of a prototype as a test version of your design. You build it, find problems, improve it, and try again.",
+      "choices": [
+        {
+          "label": "That's cool.",
+          "next": "main5"
+        },
+        {
+          "label": "So you can print it again?",
+          "next": "iteration"
+        },
+        {
+          "label": "I'm going to keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "iteration": {
+      "text": "Exactly! That repeated improvement is called iteration. It's a really important part of engineering design.",
+      "choices": [
+        {
+          "label": "Got it!",
+          "next": "main5"
+        },
+        {
+          "label": "How does that help Senior Design?",
+          "next": "senior_design"
+        },
+        {
+          "label": "I'm going to keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "bye": {
+      "text": "Sounds good! Feel free to keep looking around. Come back if you want to learn more.",
+      "end": true
+    }
+  }
+}

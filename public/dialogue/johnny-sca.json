@@ -1,0 +1,198 @@
+{
+  "npc": "johnny_sca",
+  "name": "Johnny",
+  "nodes": {
+    "start": {
+      "text": "Plot twist—this one actually isn't a 3D printer. This is the SCA-1200HT Support Cleaning Apparatus.",
+      "choices": [
+        { "label": "Then what does it do?", "next": "main2" },
+        { "label": "Support Cleaning Apparatus?", "next": "what_is_sca" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "main2": {
+      "text": "Some printed parts come out surrounded by soluble support material. This machine helps remove that support after printing.",
+      "choices": [
+        { "label": "That's actually really cool.", "next": "main3" },
+        { "label": "Why is support material there?", "next": "why_support" },
+        { "label": "How does this machine remove it?", "next": "cleaning_process" }
+      ]
+    },
+    "main3": {
+      "text": "The SCA uses a heated cleaning solution and circulation around the part. Compatible support material gradually dissolves away.",
+      "choices": [
+        { "label": "So the actual part stays?", "next": "part_stays" },
+        { "label": "That makes sense.", "next": "main4" },
+        { "label": "Why use heat?", "next": "temperature" }
+      ]
+    },
+    "main4": {
+      "text": "This step is called post-processing because the printing itself is already finished. Now we're preparing the final part.",
+      "choices": [
+        { "label": "I didn't know that.", "next": "main5" },
+        { "label": "Why not just pull the supports off?", "next": "why_dissolve" },
+        { "label": "What does post-processing mean?", "next": "post_processing" }
+      ]
+    },
+    "main5": {
+      "text": "This is especially useful when support is inside cavities or around complex features that are difficult to reach by hand.",
+      "choices": [
+        { "label": "That makes sense.", "next": "main6" },
+        { "label": "What kinds of parts need that?", "next": "complex_parts" },
+        { "label": "How long does cleaning take?", "next": "cleaning_time" }
+      ]
+    },
+    "main6": {
+      "text": "So 3D printing doesn't always end when the printer stops. Cleaning can be an important final step in the workflow.",
+      "choices": [
+        { "label": "That's really cool.", "next": "main7" },
+        { "label": "Which printer connects to this?", "next": "stratasys_connection" },
+        { "label": "Tell me about the cleaning process again.", "next": "cleaning_process" }
+      ]
+    },
+    "main7": {
+      "text": "And that's station four! You've now seen printing, support material, and post-processing from start to finish.",
+      "choices": [
+        { "label": "Take me back to the beginning.", "next": "tour_recap" },
+        { "label": "I have another question.", "next": "question_menu" },
+        { "label": "Thanks for the tour, Johnny!", "next": "tour_complete" }
+      ]
+    },
+    "what_is_sca": {
+      "text": "SCA stands for Support Cleaning Apparatus. Think of it as a finishing station for compatible 3D printed parts.",
+      "choices": [
+        { "label": "What does it clean off?", "next": "why_support" },
+        { "label": "Got it. Keep going.", "next": "main2" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "why_support": {
+      "text": "Supports act like temporary scaffolding during printing. They hold up features that couldn't print properly on their own.",
+      "choices": [
+        { "label": "So they're temporary?", "next": "temporary_support" },
+        { "label": "How does the SCA remove them?", "next": "cleaning_process" },
+        { "label": "That makes sense. Keep going.", "next": "main3" }
+      ]
+    },
+    "temporary_support": {
+      "text": "Exactly. The support helps during printing but isn't meant to stay on the finished model.",
+      "choices": [
+        { "label": "How do you get rid of it?", "next": "cleaning_process" },
+        { "label": "Got it. Keep going.", "next": "main3" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "cleaning_process": {
+      "text": "The part goes into the cleaning system, where solution circulates around it. Compatible soluble supports dissolve over time.",
+      "choices": [
+        { "label": "Does the part dissolve too?", "next": "part_stays" },
+        { "label": "Why is the solution heated?", "next": "temperature" },
+        { "label": "Got it. Keep going.", "next": "main4" }
+      ]
+    },
+    "part_stays": {
+      "text": "That's the idea. The process removes compatible soluble support while leaving the printed model you want to keep.",
+      "choices": [
+        { "label": "That's really useful.", "next": "main4" },
+        { "label": "Why not remove it by hand?", "next": "why_dissolve" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "temperature": {
+      "text": "Temperature is part of the cleaning process. The SCA has different settings for compatible materials and cleaning conditions.",
+      "choices": [
+        { "label": "Does every part use the same setting?", "next": "temperature2" },
+        { "label": "That makes sense.", "next": "main4" },
+        { "label": "How does cleaning work again?", "next": "cleaning_process" }
+      ]
+    },
+    "temperature2": {
+      "text": "Not necessarily. The correct cleaning conditions depend on the printed material, support material, and recommended process.",
+      "choices": [
+        { "label": "Got it.", "next": "main4" },
+        { "label": "What materials can it handle?", "next": "materials" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "why_dissolve": {
+      "text": "Supports can surround delicate features or sit inside areas you can't easily reach. Dissolving them avoids pulling everything off by hand.",
+      "choices": [
+        { "label": "So it's good for complex parts?", "next": "complex_parts" },
+        { "label": "That makes sense.", "next": "main5" },
+        { "label": "How does it dissolve them?", "next": "cleaning_process" }
+      ]
+    },
+    "post_processing": {
+      "text": "Post-processing means work done after the printer finishes. That can include removing supports and preparing the completed part.",
+      "choices": [
+        { "label": "So printing is only one step?", "next": "post_processing2" },
+        { "label": "Got it. Keep going.", "next": "main5" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "post_processing2": {
+      "text": "Exactly. Depending on the process, a printed object may still need cleaning or other finishing before it's ready.",
+      "choices": [
+        { "label": "That's interesting.", "next": "main5" },
+        { "label": "Why is cleaning needed here?", "next": "why_dissolve" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "complex_parts": {
+      "text": "Parts with internal spaces, overhangs, or hard-to-reach features can benefit from soluble support and automated cleaning.",
+      "choices": [
+        { "label": "That makes sense.", "next": "main6" },
+        { "label": "How are those supports made?", "next": "stratasys_connection" },
+        { "label": "How long does cleaning take?", "next": "cleaning_time" }
+      ]
+    },
+    "cleaning_time": {
+      "text": "Cleaning time depends on the part, its geometry, support amount, and cleaning conditions. More complex parts may take longer.",
+      "choices": [
+        { "label": "Why does geometry matter?", "next": "complex_parts" },
+        { "label": "That makes sense.", "next": "main6" },
+        { "label": "I'm going to keep exploring.", "next": "bye" }
+      ]
+    },
+    "materials": {
+      "text": "The SCA-1200HT is designed for compatible soluble-support workflows with materials such as ABS, PC, and nylon.",
+      "choices": [
+        { "label": "Good to know.", "next": "main5" },
+        { "label": "Which printer here connects to it?", "next": "stratasys_connection" },
+        { "label": "How does the cleaning work?", "next": "cleaning_process" }
+      ]
+    },
+    "stratasys_connection": {
+      "text": "Remember the Stratasys printer at station three? Its soluble-support workflow is exactly why a cleaning system like this is useful.",
+      "choices": [
+        { "label": "Oh, now it connects!", "next": "main7" },
+        { "label": "Remind me what supports do.", "next": "why_support" },
+        { "label": "Tell me about cleaning again.", "next": "cleaning_process" }
+      ]
+    },
+    "tour_recap": {
+      "text": "You started with prototyping, explored materials and FDM, then finished here with support removal and post-processing.",
+      "choices": [
+        { "label": "That's a cool workflow.", "next": "main7" },
+        { "label": "Restart this station.", "next": "start" },
+        { "label": "Thanks for the tour!", "next": "tour_complete" }
+      ]
+    },
+    "question_menu": {
+      "text": "Of course! What do you want to know more about?",
+      "choices": [
+        { "label": "How does the cleaning work?", "next": "cleaning_process" },
+        { "label": "Why are supports needed?", "next": "why_support" },
+        { "label": "How does this connect to station three?", "next": "stratasys_connection" }
+      ]
+    },
+    "tour_complete": {
+      "text": "You made it through all four stations! Thanks for checking out our 3D printing room.",
+      "end": true
+    },
+    "bye": {
+      "text": "No problem! Feel free to keep looking around, and come back if you have more questions.",
+      "end": true
+    }
+  }
+}

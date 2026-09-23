@@ -18,7 +18,56 @@
         { "min": [-6.41792, 0, -2.17932], "max": [-6.21792, 3.29184, 2.17932] },
         { "min": [6.21792, 0, -2.17932],  "max": [6.41792, 3.29184, 2.17932]  }
       ],
-      "npcs": []
+      "npcs": [
+        {
+          "id": "johnny-bambu",
+          "name": "Johnny",
+          "position": [3.5, 1.85, -1.35],
+          "radius": 2.0,
+          "portrait": "./portraits/johnny.jpg",
+          "markerImage": "./portraits/johnny.jpg",
+          "dialogueFile": "./dialogue/johnny-bambu.json"
+        },
+        {
+          "id": "johnny-ultimaker",
+          "name": "Johnny",
+          "markerLabel": "2",
+          "position": [5.05, 1.85, -1.35],
+          "radius": 2.0,
+          "portrait": "./portraits/johnny2.jpeg",
+          "markerImage": "./portraits/johnny2.jpeg",
+          "dialogueFile": "./dialogue/johnny-ultimaker.json"
+        },
+        {
+          "id": "johnny-stratasys",
+          "name": "Johnny",
+          "markerLabel": "3",
+          "position": [0.85, 2.0, -1.35],
+          "radius": 2.0,
+          "portrait": "./portraits/johnny3.jpeg",
+          "markerImage": "./portraits/johnny3.jpeg",
+          "dialogueFile": "./dialogue/johnny-stratasys.json"
+        },
+        {
+          "id": "johnny-sca",
+          "name": "Johnny",
+          "markerLabel": "4",
+          "position": [2.0, 1.6, -1.35],
+          "radius": 2.0,
+          "portrait": "./portraits/johnny4.jpeg",
+          "markerImage": "./portraits/johnny4.jpeg",
+          "dialogueFile": "./dialogue/johnny-sca.json"
+        },
+        {
+          "id": "vishan-ergonomics",
+          "name": "Vishan",
+          "position": [2, 1.6, 4],
+          "radius": 2.0,
+          "portrait": "./portraits/vishan.png",
+          "markerImage": "./portraits/vishan.png",
+          "dialogueFile": "./dialogue/vishan-ergonomics.json"
+        }
+      ]
     }
   ]
 }

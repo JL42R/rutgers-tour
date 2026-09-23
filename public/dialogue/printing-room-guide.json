@@ -1,0 +1,35 @@
+{
+  "name": "Printing Room Guide",
+  "nodes": {
+    "start": {
+      "text": "Welcome! What would you like to know about this room?",
+      "choices": [
+        { "label": "What happens in this room?", "next": "about" },
+        { "label": "What equipment is here?", "next": "equipment" },
+        { "label": "What do students make here?", "next": "projects" },
+        { "label": "Are there safety rules?", "next": "safety" },
+        { "label": "I'll keep exploring.", "next": "bye" }
+      ]
+    },
+    "about": {
+      "text": "[CONTENT NEEDED: describe what students use the printing room for.]",
+      "next": "start"
+    },
+    "equipment": {
+      "text": "[CONTENT NEEDED: list the equipment in the printing room.]",
+      "next": "start"
+    },
+    "projects": {
+      "text": "[CONTENT NEEDED: describe what students make in the printing room.]",
+      "next": "start"
+    },
+    "safety": {
+      "text": "[CONTENT NEEDED: provide verified safety rules for the printing room.]",
+      "next": "start"
+    },
+    "bye": {
+      "text": "Enjoy exploring!",
+      "end": true
+    }
+  }
+}
