@@ -18,10 +18,77 @@ ns-process-data video \
   --output-dir data/<zone> \
   --num-frames-target 250
 ```
-- **The frame target is an OPEN QUESTION — read the capture-protocol skill's field notes before picking one.** 250 (range 150–300) is this document's original RAM-derived budget; our only successful capture used `--num-frames-target 450` and registered 99.78%. The two have never been compared head to head, so choose deliberately rather than copying the command above. Runtime is the thing that bites: ~24 min of COLMAP at ~300 frames vs **135m53s at 452** on our CPU-only build.
-- Whichever you pick, record it and the registration percentage in `CHANGELOG.md`.
+- **The frame target is an OPEN QUESTION — read the capture-protocol skill's field notes before picking one.** 250 (range 150–300) is this document's original RAM-derived budget; our successful captures used 450 (printing room, 99.78%) and 720 (hallway, 93.06%). The candidates have never been compared head to head on the same footage, so choose deliberately rather than copying the command above.
+- **`--num-frames-target` overshoots.** Nerfstudio samples every `floor(total_source_frames / target)`-th frame, so the extracted count is usually a bit above the target — 450→452 on the printing room, 720→735 on the hallway. This is normal; don't chase the exact number.
+- **No vocab tree, no network dependency.** `--matching-method sequential` never populates `~/.local/share/nerfstudio/` — confirmed after two sequential-matching runs on this machine, both cold. Only the default (exhaustive-with-vocab-tree) matching mode would need one.
+- **Diagnosing which part of a capture is weak:** convert a frame number to its position in the source video with `((frame - 1) * step / fps)` seconds, where `step` is the overshoot divisor above (28 for both zones captured so far) and `fps` is the source frame rate. A cluster of missing frames maps to a specific stretch of footage you can go back and inspect or re-shoot.
+- Whichever target you pick, record it and the registration percentage in `CHANGELOG.md`.
 - Close browsers/apps during this — COLMAP eats system RAM.
 - SUCCESS CHECK: output says the vast majority of frames matched (e.g., "245/250 images"). If under ~70% matched, STOP — this is a capture problem. Consult the capture-protocol skill's failure table; do not try to train on bad poses.
+
+### Diagnostics for a long-running or already-finished COLMAP pass
+
+**Checking matching progress on a run in progress** (read-only, does not touch the live process):
+```bash
+sqlite3 -readonly data/<zone>/colmap/database.db \
+  "SELECT MAX(pair_id) / 2147483647.0 AS approx_progress_id,
+          (SELECT COUNT(*) FROM images) AS image_count
+   FROM matches;"
+```
+COLMAP encodes each matched pair as `pair_id = image_id1 * 2147483647 + image_id2`, so the max
+`pair_id` divided by that constant approximates how far through the image set matching has
+reached; divide by `image_count` for a rough fraction complete. **This estimates the matching
+stage only** — extraction, bundle adjustment, and intrinsics refinement aren't reflected in it.
+
+**Finding exactly which frames didn't register, after a run finishes:**
+```bash
+python3 - <<'PY'
+import json, re, pathlib
+
+data = json.load(open("data/<zone>/transforms.json"))
+registered = {int(re.search(r"(\d+)", f["file_path"]).group())
+              for f in data["frames"]}
+all_frames = {int(re.search(r"(\d+)", p.name).group())
+              for p in pathlib.Path("data/<zone>/images").glob("frame_*.jpg")}
+missing = sorted(all_frames - registered)
+
+ranges, start = [], missing[0] if missing else None
+prev = start
+for n in missing[1:]:
+    if n == prev + 1:
+        prev = n
+        continue
+    ranges.append((start, prev))
+    start = prev = n
+if start is not None:
+    ranges.append((start, prev))
+
+print(", ".join(f"{a}" if a == b else f"{a}-{b}" for a, b in ranges))
+PY
+```
+Compares `transforms.json` (what COLMAP registered) against the full `images/` directory (what
+was extracted) and prints the gaps as ranges — feed each range into the frame→video-time formula
+above to find what to re-shoot.
+
+### Running a long COLMAP/training pass without losing it
+
+A 700+ frame COLMAP pass runs for hours. Protect it:
+- **Run inside tmux**, not a bare terminal: `tmux new -s splat`, detach with `Ctrl+b d`, reattach
+  later with `tmux attach -t splat`. A closed terminal or dropped SSH/WSL session kills a bare
+  process; tmux survives it.
+- **`nerf` does not carry into a new tmux session automatically** — run it again inside the new
+  pane before any `ns-*` command, or you'll get a confusing "command not found."
+- **Log to a file as well as the screen:** append `2>&1 | tee run.log` to the command so you can
+  `grep` progress later without scrolling tmux history.
+- **Set Windows' lid-close action to "Do nothing"** for the duration (Settings → Power) — the
+  default suspends the machine, which pauses WSL and the training run with it.
+- **Train only while plugged in and stationary.** A laptop on battery or moved mid-run risks
+  thermal throttling or a suspend the lid setting above doesn't catch (e.g. automatic sleep).
+- **Check disk space with `df -h /mnt/c`, not `df -h ~`.** WSL2's Linux filesystem is a virtual
+  disk file living on the Windows `C:` drive, and that file does not shrink when you delete
+  files inside WSL — `df -h ~` reports space against the virtual disk's *allocated* size, which
+  can look fine while `C:` itself is actually tight. Check the Windows-side mount to see real
+  free space.
 
 ## Stage 2: train (~30–60 min on the 5060)
 ```bash

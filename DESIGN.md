@@ -21,7 +21,7 @@ A web-based, photorealistic, freely-navigable 3D tour of the CORE building's fir
 | Web renderer | **Spark** (`@sparkjsdev/spark`) on Three.js + WebGL2 | mkkellogg GaussianSplats3D |
 | NPC visuals | **2D character portraits + dialogue box overlay** (visual-novel style) | Simple 3D billboard sprites in-scene |
 | Dialogue logic | **Frontend JSON** — no backend | — |
-| Hosting | **GitHub Pages or Cloudflare Pages** (static, free) | Vercel/Netlify free tier |
+| Hosting | **GitHub Pages**, via `.github/workflows/deploy.yml` (Settings → Pages → Source: GitHub Actions). Live at https://jl42r.github.io/rutgers-tour/ | Cloudflare Pages, or Vercel/Netlify free tier |
 | Build tooling | Vite + vanilla JS (or TS) | — |
 
 ### Why these choices

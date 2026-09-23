@@ -74,6 +74,18 @@ the date and hope.
 Breadth is gated first because capture and training run on an external clock — daylight and a
 single training machine — while polish does not.
 
+**G2 status as of 2026-09-22, two days before the Sep 25 date — not yet passed.**
+- ✅ Hallway captured: 11:25 video, 684/735 registered (93.06%, above the ≥80% floor)
+- ✅ Backed up to Drive
+- ✅ Trained (30k iterations)
+- ❌ Zone list and every doorway off the hallway finalized and committed — #28 still open, no
+  floor plan has been committed to the repo
+- *(Not a G2 condition, but the next gate-critical step: hallway alignment to the world frame,
+  #27, has not started.)*
+
+The uncaptured/unregistered legs are done; the paperwork leg is not. #28 is what stands between
+here and a passed G2.
+
 ---
 
 ## 4. Where the work lives
