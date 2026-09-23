@@ -57,6 +57,15 @@
           "portrait": "./portraits/johnny4.jpeg",
           "markerImage": "./portraits/johnny4.jpeg",
           "dialogueFile": "./dialogue/johnny-sca.json"
+        },
+        {
+          "id": "vishan-ergonomics",
+          "name": "Vishan",
+          "position": [2, 1.6, 4],
+          "radius": 2.0,
+          "portrait": "./portraits/vishan.png",
+          "markerImage": "./portraits/vishan.png",
+          "dialogueFile": "./dialogue/vishan-ergonomics.json"
         }
       ]
     }
