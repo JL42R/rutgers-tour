@@ -28,15 +28,42 @@ export class ZoneManager {
     return this.current?.collision ?? [];
   }
 
+  disposeCurrentGroup() {
+    if (!this.currentGroup) return;
+
+    const geometries = new Set();
+    const materials = new Set();
+    const textures = new Set();
+    this.currentGroup.traverse((object) => {
+      if (object instanceof SplatMesh) {
+        object.dispose();
+        return;
+      }
+
+      if (object.geometry?.dispose) geometries.add(object.geometry);
+      const objectMaterials = Array.isArray(object.material)
+        ? object.material
+        : [object.material];
+      for (const material of objectMaterials) {
+        if (material?.map?.dispose) textures.add(material.map);
+        if (material?.dispose) materials.add(material);
+      }
+    });
+
+    for (const geometry of geometries) geometry.dispose();
+    for (const texture of textures) texture.dispose();
+    for (const material of materials) material.dispose();
+    this.scene.remove(this.currentGroup);
+    this.currentGroup.clear();
+    this.currentGroup = null;
+  }
+
   async loadZone(zoneId) {
     const zone = this.config.zones.find(z => z.id === zoneId);
     if (!zone) throw new Error(`Unknown zone "${zoneId}"`);
 
-    // Remove the previous zone's objects, if any.
-    if (this.currentGroup) {
-      this.scene.remove(this.currentGroup);
-      this.currentGroup = null;
-    }
+    // Release the previous zone's GPU and Three.js resources before replacing it.
+    this.disposeCurrentGroup();
 
     const group = new THREE.Group();
     group.name = `zone-${zone.id}`;
@@ -91,10 +118,61 @@ export class ZoneManager {
       this.buildPlaceholder(group, zone);
     }
 
+    this.buildSigns(group, zone);
     this.scene.add(group);
     this.current = zone;
     this.currentGroup = group;
     return zone;
+  }
+
+  buildSigns(group, zone) {
+    for (const sign of zone.signs ?? []) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 360;
+      const context = canvas.getContext('2d');
+
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.strokeStyle = '#cc0033';
+      context.lineWidth = 24;
+      context.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+      context.fillStyle = '#cc0033';
+      context.fillRect(54, 172, canvas.width - 108, 8);
+
+      context.fillStyle = '#171717';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.font = 'bold 72px system-ui, sans-serif';
+      context.fillText(sign.title, canvas.width / 2, 112, canvas.width - 108);
+      context.font = '44px system-ui, sans-serif';
+      context.fillText(sign.subtitle, canvas.width / 2, 250, canvas.width - 108);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.FrontSide,
+        depthTest: true,
+        polygonOffset: true,
+        polygonOffsetFactor: -4,
+        polygonOffsetUnits: -4
+      });
+      const [width, height] = sign.size ?? [1.2, 0.42];
+      const mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(width, height),
+        material
+      );
+      mesh.name = `sign-${sign.id}`;
+      mesh.position.set(...sign.position);
+      const [rx, ry, rz] = sign.rotation ?? [0, 0, 0];
+      mesh.rotation.set(
+        THREE.MathUtils.degToRad(rx),
+        THREE.MathUtils.degToRad(ry),
+        THREE.MathUtils.degToRad(rz)
+      );
+      group.add(mesh);
+    }
   }
 
   // Temporary alignment overlay: draw the same AABBs used by collision

@@ -1,5 +1,5 @@
 {
-  "startZone": "printing-room",
+  "startZone": "hallway",
   "zones": [
     {
       "id": "printing-room",
@@ -7,22 +7,43 @@
       "placeholder": false,
       "placeholderSize": [12.43584, 4.35864],
       "splat":  "./splats/printing-room-updated.compressed.ply",
-      "origin": [-0.4239378102298068, 0.074344140921842, 3.17070150997874],
-      "rotation": [180, 91.78889410373753, 0],
+      "origin": [0.7237599145844933, 0.074344140921842, 2.7959428682414633],
+      "rotation": [-180, 1.7888941037375379, 0],
       "scale": 2.881555849683783,
       "debugCollision": false,
-      "spawn": [0, 0, 1.5],
+      "spawn": [-0.9469415953942466, 0, 2.3720050580116565],
       "collision": [
-        { "min": [-6.21792, 0, -2.37932], "max": [6.21792, 3.29184, -2.17932] },
-        { "min": [-6.21792, 0, 2.17932],  "max": [6.21792, 3.29184, 2.37932]  },
-        { "min": [-6.41792, 0, -2.17932], "max": [-6.21792, 3.29184, 2.17932] },
-        { "min": [6.21792, 0, -2.17932],  "max": [6.41792, 3.29184, 2.17932]  }
+        { "min": [-4.8262615953942465, 0, -3.845914941988344], "max": [-4.626261595394246, 3.29184, 8.589925058011657] },
+        { "min": [-0.267621595, 0, -3.845914942], "max": [-0.067621595, 3.29184, 4.80] },
+        { "min": [-0.267621595, 0, 6.55], "max": [-0.067621595, 3.29184, 8.589925058] },
+        { "min": [-4.626261595394247, 0, 8.589925058011657], "max": [-0.2676215953942469, 3.29184, 8.789925058011656] },
+        { "min": [-4.626261595394246, 0, -4.045914941988343], "max": [-0.267621595394246, 3.29184, -3.845914941988344] }
+      ],
+      "transitions": [
+        {
+          "id": "hallway-door",
+          "target": "hallway",
+          "axis": "x",
+          "plane": -0.62295043,
+          "direction": "positive",
+          "range": [4.80, 6.55]
+        }
+      ],
+      "signs": [
+        {
+          "id": "hallway-exit-sign",
+          "title": "RETURN TO HALLWAY",
+          "subtitle": "Walk through this door to exit",
+          "position": [-0.283, 1.57, 5.6775],
+          "rotation": [0, -90, 0],
+          "size": [1.20, 0.42]
+        }
       ],
       "npcs": [
         {
           "id": "johnny-bambu",
           "name": "Johnny",
-          "position": [3.5, 1.85, -1.35],
+          "position": [-3.7969415953942462, 1.85, -1.1279949419883435],
           "radius": 2.0,
           "portrait": "./portraits/johnny.jpg",
           "markerImage": "./portraits/johnny.jpg",
@@ -32,7 +53,7 @@
           "id": "johnny-ultimaker",
           "name": "Johnny",
           "markerLabel": "2",
-          "position": [5.05, 1.85, -1.35],
+          "position": [-3.7969415953942462, 1.85, -2.6779949419883433],
           "radius": 2.0,
           "portrait": "./portraits/johnny2.jpeg",
           "markerImage": "./portraits/johnny2.jpeg",
@@ -42,7 +63,7 @@
           "id": "johnny-stratasys",
           "name": "Johnny",
           "markerLabel": "3",
-          "position": [0.85, 2.0, -1.35],
+          "position": [-3.7969415953942467, 2, 1.5220050580116564],
           "radius": 2.0,
           "portrait": "./portraits/johnny3.jpeg",
           "markerImage": "./portraits/johnny3.jpeg",
@@ -52,7 +73,7 @@
           "id": "johnny-sca",
           "name": "Johnny",
           "markerLabel": "4",
-          "position": [2.0, 1.6, -1.35],
+          "position": [-3.7969415953942462, 1.6, 0.3720050580116565],
           "radius": 2.0,
           "portrait": "./portraits/johnny4.jpeg",
           "markerImage": "./portraits/johnny4.jpeg",
@@ -61,13 +82,75 @@
         {
           "id": "vishan-ergonomics",
           "name": "Vishan",
-          "position": [2, 1.6, 4],
+          "position": [1.5530584046057534, 1.6, 0.37200505801165673],
           "radius": 2.0,
           "portrait": "./portraits/vishan.png",
           "markerImage": "./portraits/vishan.png",
           "dialogueFile": "./dialogue/vishan-ergonomics.json"
         }
       ]
+    },
+    {
+      "id": "hallway",
+      "label": "CORE Hallway",
+      "placeholder": false,
+      "splat": "./splats/hallway.compressed.ply",
+      "origin": [0, 1.68, 0],
+      "rotation": [-89.57814, 0.04974, -14.72266],
+      "scale": 18.90,
+      "debugCollision": false,
+      "spawn": [0, 0, 0],
+      "collision": [
+        {
+          "min": [-1.15, 0, -20.2],
+          "max": [-1.00, 3.15, 4.80]
+        },
+        {
+          "min": [-1.15, 0, 6.55],
+          "max": [-1.00, 3.15, 16.33]
+        },
+        {
+          "min": [1.07, 0, -20.2],
+          "max": [1.22, 3.15, 16.33]
+        },
+        {
+          "min": [-1.44, 0, 16.33],
+          "max": [-1.29, 3.15, 19.00]
+        },
+        {
+          "min": [1.36, 0, 16.33],
+          "max": [1.51, 3.15, 19.00]
+        },
+        {
+          "min": [-1.44, 0, 18.85],
+          "max": [1.51, 3.15, 19.00]
+        },
+        {
+          "min": [-1.15, 0, -20.20],
+          "max": [1.22, 3.15, -20.05]
+        }
+      ],
+      "transitions": [
+        {
+          "id": "printing-room-door",
+          "target": "printing-room",
+          "axis": "x",
+          "plane": -0.62295043,
+          "direction": "negative",
+          "range": [4.80, 6.55]
+        }
+      ],
+      "signs": [
+        {
+          "id": "printing-room-entry-sign",
+          "title": "3D PRINTING ROOM",
+          "subtitle": "Walk through this door to enter",
+          "position": [-0.985, 1.57, 5.6775],
+          "rotation": [0, 90, 0],
+          "size": [1.20, 0.42]
+        }
+      ],
+      "npcs": []
     }
   ]
 }

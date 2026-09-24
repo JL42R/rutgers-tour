@@ -2,6 +2,21 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-09-24
+
+### Hallway integrated and connected to the printing room
+- Integrated the 19,617,110-byte hallway Compressed PLY. Runtime calibration used the measured
+  128 ft length, 6 ft 4 in standard width, 10 ft 4 in standard ceiling, 8 ft 8 in widened end,
+  and 12 ft 11 in taller end section to level, scale, and place the hallway through `zones.json`.
+- Authored and browser-validated hallway collision boundaries, including full-width caps that
+  prevent walking beyond both captured ends into empty space.
+- Aligned the printing-room doorway between the two independent reconstructions and rigidly
+  transformed the room's collision boxes, NPC positions, and spawn with its world placement.
+- Added automatic directional hallway↔printing-room transitions that preserve player position
+  and view direction, with outgoing splat and NPC resources disposed during repeated switches.
+- Added data-driven doorway guidance signs and disabled both collision debug overlays after
+  visual and movement validation.
+
 ## 2026-09-23
 
 ### Repository status and documentation reconciled

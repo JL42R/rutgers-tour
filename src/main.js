@@ -67,11 +67,61 @@ async function init() {
 }
 init();
 
+let zoneSwitchInProgress = false;
+
+async function switchZone(zoneId) {
+  if (zoneSwitchInProgress || zones.current?.id === zoneId) return;
+
+  const oldZoneId = zones.current?.id ?? 'none';
+  zoneSwitchInProgress = true;
+  controls.enabled = false;
+
+  try {
+    const newZone = await zones.loadZone(zoneId);
+    npcs.setNPCs(newZone.npcs ?? []);
+    console.info(`Switched zone from "${oldZoneId}" to "${newZone.id}".`);
+  } catch (err) {
+    console.error(`Could not switch from zone "${oldZoneId}" to "${zoneId}".`, err);
+  } finally {
+    controls.enabled = true;
+    zoneSwitchInProgress = false;
+  }
+}
+
+function crossedTransition(previousPosition, currentPosition, transition) {
+  if (transition.axis !== 'x' && transition.axis !== 'z') return false;
+  if (!Array.isArray(transition.range) || transition.range.length !== 2) return false;
+
+  const rangeAxis = transition.axis === 'x' ? 'z' : 'x';
+  const insideRange = currentPosition[rangeAxis] >= transition.range[0]
+    && currentPosition[rangeAxis] <= transition.range[1];
+  if (!insideRange) return false;
+
+  if (transition.direction === 'negative') {
+    return previousPosition[transition.axis] >= transition.plane
+      && currentPosition[transition.axis] < transition.plane;
+  }
+  if (transition.direction === 'positive') {
+    return previousPosition[transition.axis] <= transition.plane
+      && currentPosition[transition.axis] > transition.plane;
+  }
+  return false;
+}
+
 // --- Frame loop ---
 const clock = new THREE.Clock();
 renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.05); // clamp so tab-switch doesn't teleport you
+  const previousPosition = { x: camera.position.x, z: camera.position.z };
   controls.update(dt, zones.getCollisionBoxes());
+
+  if (!zoneSwitchInProgress) {
+    const transition = (zones.current?.transitions ?? []).find((candidate) =>
+      crossedTransition(previousPosition, camera.position, candidate)
+    );
+    if (transition) void switchZone(transition.target);
+  }
+
   npcs.update(camera.position);
   renderer.render(scene, camera);
 });

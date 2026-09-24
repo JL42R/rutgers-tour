@@ -33,8 +33,8 @@ src/{main,zones,controls,collision,npc,dialogue}.js · public/{splats,dialogue,p
 
 ## Zone 1 — printing room (official CORE zone, done; verified in browser 2026-09-14)
 - Not a test zone. Captured 2026-09-09 (451/452 frames registered, 99.78%), trained 30k iterations, aligned, collision authored, shipped as `public/splats/printing-room-updated.compressed.ply`.
-- Calibrated transform in `public/zones.json`: `origin: [-0.4239378102298068, 0.074344140921842, 3.17070150997874]`, `rotation: [180, 91.78889410373753, 0]`, `scale: 2.881555849683783`.
-- Four collision boundary walls use the measured physical room dimensions, 12.43584 × 4.35864 × 3.29184 m. `debugCollision: false` keeps their cyan wireframe hidden in the current build.
+- Hallway-aligned transform in `public/zones.json`: `origin: [0.7237599145844933, 0.074344140921842, 2.7959428682414633]`, `rotation: [-180, 1.7888941037375379, 0]`, `scale: 2.881555849683783`. A data-driven doorway transition connects the two captured zones.
+- Five collision wall boxes preserve the measured 12.43584 × 4.35864 × 3.29184 m room boundary while leaving the aligned hallway doorway open. `debugCollision: false` keeps their cyan wireframe hidden in the current build.
 - Runtime rotation, uniform scale, and origin are confirmed working in the browser. Compressed PLY loads in Spark 2.1.0 with LOD enabled (`lodSplatCount` 500000, pixel ratio 1). A fresh clone renders this zone with no download step.
 - SuperSplat cleanup was **skipped** on this zone: the team observed visual quality getting worse when they cleaned it. Cause unknown and uninvestigated.
 

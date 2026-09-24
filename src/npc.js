@@ -43,6 +43,10 @@ export class NPCManager {
   }
 
   setNPCs(list) {
+    for (const npc of this.npcs) {
+      npc.sprite.material.map?.dispose();
+      npc.sprite.material.dispose();
+    }
     this.group.clear();
     this.npcs = list.map((data) => {
       const markerLabel = data.markerLabel ?? (data.name ?? '?')[0].toUpperCase();

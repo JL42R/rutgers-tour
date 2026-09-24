@@ -17,7 +17,7 @@ npm install
 npm run dev
 ```
 
-Open the URL it prints (usually http://localhost:5173). Click the scene, walk with **WASD**, look with the mouse, and press **Esc** to release the mouse. NPC interaction is implemented, and the current printing-room zone has five NPC placements.
+Open the URL it prints (usually http://localhost:5173). Click the scene, walk with **WASD**, look with the mouse, and press **Esc** to release the mouse. The hallway and printing room are integrated captured zones; walk through the marked printing-room doorway to transition between them. NPC interaction is implemented, and the printing room has five NPC placements.
 
 Zone 1, the printing room, is committed to the repo as a 62 MB Compressed PLY, so a fresh clone renders the real scan with no download step. Compressed PLY is our delivery format — Spark 2.1.0 loads it. (SPZ v4, which the tested SuperSplat version exports, is not readable by any released Spark decoder; don't go down that path.) Raw uncompressed PLYs and raw capture video stay out of Git and live in Drive — see [onboarding](docs/ONBOARDING.md#7a-the-splat-files).
 
