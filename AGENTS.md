@@ -19,12 +19,12 @@ You are helping a 4-person senior design team (no prior 3D/web experience) build
 - Web: Vite + Three.js + Spark (`@sparkjsdev/spark` ^2.1.0). `SplatMesh` is a `THREE.Object3D`; NPCs/colliders live in the same scene graph.
 - Navigation: first-person, WASD + Pointer Lock mouse-look, eye height 1.65 m. Collision = hand-authored AABBs in `zones.json`, NEVER against splat geometry.
 - NPCs: 2D portrait + DOM dialogue overlay (visual-novel style), proximity-triggered via markers placed at coordinates in `zones.json`. Dialogue = JSON node graphs in `public/dialogue/`. NO 3D characters.
-- NO backend. Everything is static files. Hosting: GitHub Pages / Cloudflare Pages.
+- NO backend. Everything is static files. GitHub Pages deployment through `.github/workflows/deploy.yml` is implemented and live; Cloudflare Pages remains a fallback.
 - Scripted dialogue only through final lock (see `docs/PLAN.md`). LLM dialogue is future work.
 
 ## Repo layout
-src/{main,zones,controls,collision,npc,dialogue}.js · public/{splats,dialogue,zones.json}
-(`public/portraits/` is planned but does not exist yet. `public/dialogue/` holds `mohsen_jafari.json`. The printing-room zone has no NPC placements in `zones.json` — that work exists only on teammates' local machines; see issues #9 and #20.)
+src/{main,zones,controls,collision,npc,dialogue}.js · public/{splats,dialogue,portraits,zones.json}
+(`public/portraits/` contains four Johnny portrait assets. The printing-room zone has five NPC placements in `zones.json`.)
 
 ## Known blockers (verified — do not "fix" by guessing)
 - **`.spz` from SuperSplat does not load in Spark — do not retry it.** Root cause confirmed 2026-09-11 by inspecting the file header: SuperSplat (v3.0.0-alpha) exports SPZ **v4** (`NGSP` magic, ZSTD streams). Spark's WASM decoder only reads gzip-wrapped SPZ v1–v3 and fails with `Worker error: Invalid gzip header`. Upstream fix is `sparkjsdev/spark` PR #332, still unmerged as of Aug 2026 — no released Spark version reads v4, so bumping Spark does not help. **Resolved in practice by Compressed PLY**, which Spark 2.1.0 loads; `.spz` itself is still dead. Issue #8.
@@ -34,7 +34,7 @@ src/{main,zones,controls,collision,npc,dialogue}.js · public/{splats,dialogue,z
 ## Zone 1 — printing room (official CORE zone, done; verified in browser 2026-09-14)
 - Not a test zone. Captured 2026-09-09 (451/452 frames registered, 99.78%), trained 30k iterations, aligned, collision authored, shipped as `public/splats/printing-room-updated.compressed.ply`.
 - Calibrated transform in `public/zones.json`: `origin: [-0.4239378102298068, 0.074344140921842, 3.17070150997874]`, `rotation: [180, 91.78889410373753, 0]`, `scale: 2.881555849683783`.
-- Four collision boundary walls use the measured physical room dimensions, 12.43584 × 4.35864 × 3.29184 m. `debugCollision: true` temporarily draws their cyan wireframe over the real splat.
+- Four collision boundary walls use the measured physical room dimensions, 12.43584 × 4.35864 × 3.29184 m. `debugCollision: false` keeps their cyan wireframe hidden in the current build.
 - Runtime rotation, uniform scale, and origin are confirmed working in the browser. Compressed PLY loads in Spark 2.1.0 with LOD enabled (`lodSplatCount` 500000, pixel ratio 1). A fresh clone renders this zone with no download step.
 - SuperSplat cleanup was **skipped** on this zone: the team observed visual quality getting worse when they cleaned it. Cause unknown and uninvestigated.
 

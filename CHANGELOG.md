@@ -2,6 +2,15 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-09-23
+
+### Repository status and documentation reconciled
+- Reconciled repository documentation with the merged NPC and GitHub Pages deployment state;
+  corrected `AGENTS.md`, `README.md`, and the obsolete `.MOV` warning in the capture protocol.
+- No architecture or runtime behavior changed.
+- Identified two unresolved NPC asset/content inconsistencies: the missing Vishan portrait asset
+  and duplicate Bambu dialogue filename. Issue-board cleanup is still required separately.
+
 ## 2026-09-22
 
 ### Hallway captured, processed, and trained (Issue #27, #30)

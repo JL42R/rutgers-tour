@@ -17,7 +17,7 @@ npm install
 npm run dev
 ```
 
-Open the URL it prints (usually http://localhost:5173). Click the scene, walk with **WASD**, look with the mouse, and press **Esc** to release the mouse. NPC interaction is implemented, but the current printing-room zone has no NPC placements.
+Open the URL it prints (usually http://localhost:5173). Click the scene, walk with **WASD**, look with the mouse, and press **Esc** to release the mouse. NPC interaction is implemented, and the current printing-room zone has five NPC placements.
 
 Zone 1, the printing room, is committed to the repo as a 62 MB Compressed PLY, so a fresh clone renders the real scan with no download step. Compressed PLY is our delivery format — Spark 2.1.0 loads it. (SPZ v4, which the tested SuperSplat version exports, is not readable by any released Spark decoder; don't go down that path.) Raw uncompressed PLYs and raw capture video stay out of Git and live in Drive — see [onboarding](docs/ONBOARDING.md#7a-the-splat-files).
 
@@ -47,4 +47,4 @@ Any AI coding assistant works here via `AGENTS.md` — it holds all the project 
 
 ## Deploying
 
-`npm run build` produces a static site in `dist/`. Host on GitHub Pages or Cloudflare Pages — there is no backend.
+`npm run build` produces a static site in `dist/`. GitHub Pages deployment is implemented through `.github/workflows/deploy.yml`: pushes and merges to `main` build and deploy the static Vite site. The current public deployment has been successfully verified for the printing-room build. There is no backend.

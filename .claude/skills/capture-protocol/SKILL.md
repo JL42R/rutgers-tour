@@ -141,9 +141,9 @@ Run this existing rescue command in WSL2 Ubuntu; it requires an ffmpeg build wit
 
 File naming convention for this project: `captures/<zone-id>/<YYYY-MM-DD>-take<N>.MOV` (e.g., `captures/hallway/2026-09-18-take1.MOV`). Matches issues #3 and #4, and matches what the iPhone actually writes — keep the `.MOV` extension rather than renaming to `.mp4`. Never delete takes — storage is cheap, re-shoots are not.
 
-> **`.gitignore` covers `*.mp4` but not `*.MOV`.** A 4K take is 1.5–3 GB and will not be caught
-> by the ignore rules if it lands inside the repo. Keep captures in the Drive folder and out of
-> the working tree; run `git status` before staging after any capture session.
+> **Raw videos remain outside Git.** `.gitignore` covers `*.mp4`, `*.MOV`, and `*.mov`.
+> Keep captures in the Drive folder and out of the working tree; still run `git status` before
+> staging after any capture session.
 
 For photos, use `captures/<zone-id>/<YYYY-MM-DD>-take<N>/` and retain original filenames inside it. Back up raw captures outside Git; do not commit photo datasets or videos.
 
