@@ -2,6 +2,21 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-09-29
+
+### Dialogue keyboard accessibility implemented; NVDA verification pending
+- Contained Tab and Shift+Tab navigation within enabled, visible dialogue controls while preserving
+  native Enter/Space activation, number-key choices, and Escape-to-close behavior.
+- Restored focus to a valid previous target after dialogue closes, with the labeled `#app` 3D-tour
+  region as a programmatically focusable fallback that does not automatically reacquire pointer lock.
+- Connected the dialog to its current text with `aria-describedby` and made the existing polite live
+  region atomic so dialogue-node updates expose one coherent message to assistive technology.
+- Visible-browser keyboard testing passed for focus wrapping and restoration, Enter, Space, number
+  shortcuts, Escape, narration controls, multi-step dialogue, movement afterward, and pointer-lock
+  release/reacquisition behavior.
+- **NVDA verification remains pending, so Issue #33 stays open.** Nonvisual NPC discoverability was
+  not changed here and remains separate work in Issue #15.
+
 ## 2026-09-24
 
 ### Hallway integrated and connected to the printing room
