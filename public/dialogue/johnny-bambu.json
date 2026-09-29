@@ -39,7 +39,8 @@
       "choices": [
         { "label": "How is this used in Senior Design?", "next": "senior_design" },
         { "label": "Start from the beginning.", "next": "start" },
-        { "label": "Thanks, Johnny!", "next": "bye" }
+        { "label": "Thanks, Johnny!", "next": "bye" },
+        { "label": "Ask Johnny a question.", "action": "ask-ai" }
       ]
     },
     "ams": {
