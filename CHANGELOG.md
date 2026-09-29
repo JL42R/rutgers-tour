@@ -4,6 +4,16 @@ Newest entry first. This records what changed and when — for schedule and gate
 
 ## 2026-09-29
 
+### Zone list fixed; G2 passed (Issue #28)
+- Added `docs/ZONES.md` and the schematic `docs/img/first-floor-zones.svg`: the definition of
+  "every expected zone" at G3. Five zones: `hallway` (hub), `printing-room`, `machine-shop`,
+  `project-studio`, and `computer-lab` (optional fifth zone, first on the `PLAN.md` §7 cut ladder).
+- Doorways: D1 printing room on the −x wall (wired); D2 machine shop, D3 project studio, and D4
+  computer lab all on the +x wall, all inside the captured hallway. Their z ranges are measured
+  from the hallway splat at G3 wiring, as D1 was.
+- G2 marked passed in `PLAN.md` §3 and §4. Non-gate issues re-milestoned: #17, #23, and #30 to G3;
+  #31 closed on the evidence of the Sep 22 `ns-export`.
+
 ### Dialogue keyboard accessibility implemented; NVDA verification pending
 - Contained Tab and Shift+Tab navigation within enabled, visible dialogue controls while preserving
   native Enter/Space activation, number-key choices, and Escape-to-close behavior.

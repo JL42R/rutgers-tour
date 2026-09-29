@@ -64,7 +64,7 @@ the date and hope.
 | Gate | Date | Pass condition | If it fails |
 |---|---|---|---|
 | **G1 — Training works ✅ passed Sep 9** | Fri Sep 11 | **Passed on the printing room, which is Zone 1 — not a throwaway test capture.** 451/452 frames registered (99.78%), trained 30k iterations, renders and is walkable in our app. The zone it produced is the one we ship. (The export-to-Spark-loader seam is where integration surprises would otherwise surface in October with no slack. Same criterion as `docs/SETUP_TRAINING.md` §9c.) | Evaluate in order: (1) Brush — Rust/wgpu trainer, avoids CUDA entirely (the direct answer to a CUDA-on-Blackwell failure), accepts COLMAP/Nerfstudio datasets so alignment work carries over, headless CLI, exports `.ply`; it's a self-described proof of concept with unoptimized performance and unvalidated on our hardware, so budget ~1hr to evaluate before committing. (2) Postshot (native Windows, no WSL). (3) Luma AI. Log the reason in `DESIGN.md`. |
-| **G2 — Hallway captured, scope fixed** | Fri Sep 25 | **Hallway captured, registered ≥ 80%, backed up to Drive.** The zone list and every doorway off the hallway are finalized and committed. Remaining rooms are captured on an ongoing basis after this date; **Oct 16 is the hard stop** for any capture. | Re-shoot window stays open through Oct 16, but scope drops to whatever is captured by then. If the hallway itself is what missed, it takes priority over every room — nothing else can be aligned until it exists. |
+| **G2 — Hallway captured, scope fixed ✅ passed Sep 29** | Fri Sep 25 | **Hallway captured, registered ≥ 80%, backed up to Drive.** The zone list and every doorway off the hallway are finalized and committed. Remaining rooms are captured on an ongoing basis after this date; **Oct 16 is the hard stop** for any capture. | Re-shoot window stays open through Oct 16, but scope drops to whatever is captured by then. If the hallway itself is what missed, it takes priority over every room — nothing else can be aligned until it exists. |
 | **G3 — Every zone exists (breadth)** | Fri Oct 9 | **Every expected zone is *primitive*:** captured (≥ 70% registration), trained, exported at the chosen SH band, placed in `zones.json`, aligned to the hallway, reachable from it through a working transition, and carrying a rough collision box. **No NPCs, no cleanup, and no compression target required** — this gate is about coverage, not finish. Plus: live on a public URL, loaded on a machine that isn't Johnny's, which catches the "works on the training laptop" failures (absolute paths, missing files, hosting config) while there is still time to fix them. | **Any zone not primitive on Oct 9 is cut, not chased** — that is the gate's purpose, not its failure mode, so removing a zone here is a pass, not a miss. Take the cut at the review and update §7's ladder to match; do not carry a half-done zone into G4 hoping for time that does not exist.<br><br>**If the public URL leg is what failed** → it is on §7's never-cut list and is not descopable. It becomes the only work happening that week. Usually hosting config or a missing file: hours, not weeks. Fix it before Monday rather than moving the gate. |
 | **G4 — Every zone finished (depth)** | Fri Nov 6 | **Every surviving zone reachable from the hallway.** Every zone has **at least one NPC with real dialogue**. The first user-testing round is complete, scored against the four criteria from the project report (navigability, reconstruction completeness, visual quality, overall performance), with a **ranked fix list** produced. **No new features after this date.** | Descope per the ladder in §7 — but note that zone cuts were already taken at G3, so what remains to cut here is polish: audio overlay, then branching dialogue. If a surviving zone still has no NPC, that zone is the priority; NPC dialogue text is on the never-cut list. |
 | **G5 — Final lock** | Fri Nov 20 | **Top three fixes from testing merged.** The deployed URL **cold-loads on a non-team machine**. The demo has been **rehearsed twice end to end, once on venue wifi**. A **backup video** is recorded and stored off-repo. | — |
@@ -74,17 +74,16 @@ the date and hope.
 Breadth is gated first because capture and training run on an external clock — daylight and a
 single training machine — while polish does not.
 
-**G2 status as of 2026-09-22, two days before the Sep 25 date — not yet passed.**
+**G2 passed 2026-09-29, four days after the Sep 25 date.**
 - ✅ Hallway captured: 11:25 video, 684/735 registered (93.06%, above the ≥80% floor)
 - ✅ Backed up to Drive
 - ✅ Trained (30k iterations)
-- ❌ Zone list and every doorway off the hallway finalized and committed — #28 still open, no
-  floor plan has been committed to the repo
-- *(Not a G2 condition, but the next gate-critical step: hallway alignment to the world frame,
-  #27, has not started.)*
-
-The uncaptured/unregistered legs are done; the paperwork leg is not. #28 is what stands between
-here and a passed G2.
+- ✅ Zone list and every doorway off the hallway finalized and committed — `docs/ZONES.md` and
+  `docs/img/first-floor-zones.svg` (#28). Five zones: `hallway`, `printing-room`, `machine-shop`,
+  `project-studio`, and `computer-lab` (the optional fifth zone, first on the §7 cut ladder).
+  Exact doorway z ranges are measured at G3 wiring.
+- The four prep issues filed under G2 were not gate conditions: #17, #23, and #30 moved to G3;
+  #31 closed.
 
 ---
 
@@ -101,7 +100,7 @@ file keeps only what doesn't change week to week: why the order is what it is (�
 | Milestone on the board | Gate | Date |
 |---|---|---|
 | *(none — closed)* | **G1** Training works | ✅ passed Sep 9 |
-| `G2 — Hallway captured, scope fixed` | **G2** | Fri Sep 25 |
+| *(closed)* `G2 — Hallway captured, scope fixed` | **G2** | ✅ passed Sep 29 |
 | `G3 — Every zone exists (breadth)` | **G3** | Fri Oct 9 |
 | `G4 — Every zone finished (depth)` | **G4** | Fri Nov 6 |
 | `G5 — Final lock` | **G5** | Fri Nov 20 |
