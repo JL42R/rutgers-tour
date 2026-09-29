@@ -89,7 +89,7 @@
   </style>
 </head>
 <body>
-  <div id="app"></div>
+  <div id="app" role="region" aria-label="Rutgers CORE interactive 3D virtual tour" tabindex="-1"></div>
 
   <div id="loading" aria-live="polite">
     <div>Loading tour…</div>
@@ -103,7 +103,7 @@
 
   <div id="interact-prompt">Press <kbd>E</kbd> to talk</div>
 
-  <div id="dialogue" role="dialog" aria-modal="true" aria-labelledby="dlg-name">
+  <div id="dialogue" role="dialog" aria-modal="true" aria-labelledby="dlg-name" aria-describedby="dlg-text">
     <div id="dlg-portrait"></div>
     <div>
       <div id="dlg-header">
@@ -113,7 +113,7 @@
           <span id="dlg-narration-state">Off</span>
         </div>
       </div>
-      <div id="dlg-text" aria-live="polite"></div>
+      <div id="dlg-text" aria-live="polite" aria-atomic="true"></div>
       <div id="dlg-choices"></div>
     </div>
   </div>

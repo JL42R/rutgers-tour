@@ -21,6 +21,7 @@ export class Dialogue {
     this.cache = new Map(); // dialogue files fetched once, reused after
     this.data = null;
     this.isOpen = false;
+    this.previouslyFocused = null;
     this.onOpen = null;   // main.js hooks these to pause/resume movement
     this.onClose = null;
 
@@ -39,10 +40,67 @@ export class Dialogue {
 
     document.addEventListener('keydown', (e) => {
       if (!this.isOpen) return;
-      if (e.code === 'Escape') this.close();
+      if (e.code === 'Escape') {
+        e.preventDefault();
+        this.close();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const controls = this.getFocusableControls();
+        if (!controls.length) {
+          e.preventDefault();
+          return;
+        }
+
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        const activeIndex = controls.indexOf(document.activeElement);
+        if (activeIndex === -1) {
+          e.preventDefault();
+          (e.shiftKey ? last : first).focus();
+          return;
+        }
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+          return;
+        }
+        if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+          return;
+        }
+      }
       const n = parseInt(e.key, 10);
       if (n >= 1 && n <= 9) this.choicesEl.children[n - 1]?.click();
     });
+  }
+
+  getFocusableControls() {
+    const candidates = this.el.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    return [...candidates].filter((element) => {
+      if (!(element instanceof HTMLElement) || element.matches(':disabled')) return false;
+      if (element.hidden || element.getAttribute('aria-hidden') === 'true') return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== 'none' && style.visibility !== 'hidden' && element.getClientRects().length > 0;
+    });
+  }
+
+  isAppropriateFocusTarget(element) {
+    if (!(element instanceof HTMLElement) || !element.isConnected) return false;
+    if (element === document.body || element === document.documentElement) return false;
+    if (this.el.contains(element) || element.matches(':disabled')) return false;
+    if (element.hidden || element.getAttribute('aria-hidden') === 'true') return false;
+
+    const style = window.getComputedStyle(element);
+    if (style.display === 'none' || style.visibility === 'hidden') return false;
+
+    const nativeFocusable = element.matches(
+      'button, input, select, textarea, a[href], area[href], iframe, object, embed'
+    );
+    return nativeFocusable || element.isContentEditable || element.hasAttribute('tabindex');
   }
 
   async start(npc) {
@@ -67,6 +125,9 @@ export class Dialogue {
       this.portraitEl.textContent = (this.nameEl.textContent)[0].toUpperCase();
     }
 
+    this.previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
     this.isOpen = true;
     this.el.classList.add('open');
     this.onOpen?.();
@@ -151,5 +212,12 @@ export class Dialogue {
     this.currentText = '';
     this.el.classList.remove('open');
     this.onClose?.();
+
+    const fallback = document.getElementById('app');
+    const focusTarget = this.isAppropriateFocusTarget(this.previouslyFocused)
+      ? this.previouslyFocused
+      : fallback;
+    this.previouslyFocused = null;
+    focusTarget?.focus({ preventScroll: true });
   }
 }
