@@ -73,6 +73,17 @@
     #dlg-choices button:hover, #dlg-choices button:focus-visible {
       background: var(--scarlet); outline: none;
     }
+    #dlg-choices .dlg-ai-form { width: 100%; display: grid; gap: 10px; }
+    #dlg-ai-question {
+      width: 100%; box-sizing: border-box;
+      background: #17171c; color: var(--text);
+      border: 1px solid #666; border-radius: 8px;
+      padding: 10px 12px; font: inherit;
+    }
+    #dlg-ai-question:focus-visible {
+      border-color: var(--scarlet); outline: 2px solid #fff; outline-offset: 2px;
+    }
+    .dlg-ai-actions { display: flex; flex-wrap: wrap; gap: 8px; }
     #dlg-narration:hover, #dlg-narration:focus-visible { background: var(--scarlet); }
     button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 

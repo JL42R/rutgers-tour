@@ -21,6 +21,11 @@ export class Dialogue {
     this.cache = new Map(); // dialogue files fetched once, reused after
     this.data = null;
     this.isOpen = false;
+    this.currentNodeId = null;
+    this.aiReturnNodeId = null;
+    this.aiMode = false;
+    this.aiSubmitting = false;
+    this.choiceShortcutsEnabled = true;
     this.previouslyFocused = null;
     this.onOpen = null;   // main.js hooks these to pause/resume movement
     this.onClose = null;
@@ -72,7 +77,9 @@ export class Dialogue {
         }
       }
       const n = parseInt(e.key, 10);
-      if (n >= 1 && n <= 9) this.choicesEl.children[n - 1]?.click();
+      if (this.choiceShortcutsEnabled && n >= 1 && n <= 9) {
+        this.choicesEl.children[n - 1]?.click();
+      }
     });
   }
 
@@ -104,6 +111,8 @@ export class Dialogue {
   }
 
   async start(npc) {
+    this.resetAIState();
+    this.currentNodeId = null;
     if (!this.cache.has(npc.dialogueFile)) {
       const res = await fetch(npc.dialogueFile);
       if (!res.ok) {
@@ -138,6 +147,10 @@ export class Dialogue {
     const node = this.data.nodes[id];
     if (!node) { console.error(`Dialogue node "${id}" not found`); return this.close(); }
 
+    this.currentNodeId = id;
+    this.aiMode = false;
+    this.aiSubmitting = false;
+    this.choiceShortcutsEnabled = true;
     this.textEl.textContent = node.text;
     this.currentText = this.textEl.textContent;
     this.choicesEl.innerHTML = '';
@@ -152,7 +165,7 @@ export class Dialogue {
 
     if (node.choices?.length) {
       node.choices.forEach((choice, i) => {
-        addButton(`${i + 1}. ${choice.label}`, () => this.showNode(choice.next));
+        addButton(`${i + 1}. ${choice.label}`, () => this.handleChoice(choice));
       });
     } else if (node.next) {
       addButton('Continue', () => this.showNode(node.next));
@@ -161,6 +174,112 @@ export class Dialogue {
     }
     this.choicesEl.firstElementChild?.focus();
     this.speakCurrentText();
+  }
+
+  handleChoice(choice) {
+    if (choice.next) {
+      this.showNode(choice.next);
+      return;
+    }
+    if (choice.action === 'ask-ai') {
+      this.showAIQuestionForm();
+      return;
+    }
+    console.warn('Dialogue choice has no supported next node or action:', choice);
+  }
+
+  showAIQuestionForm() {
+    if (!this.aiReturnNodeId) this.aiReturnNodeId = this.currentNodeId;
+    this.aiMode = true;
+    this.aiSubmitting = false;
+    this.choiceShortcutsEnabled = false;
+    this.textEl.textContent = 'Sure! What would you like to know?';
+    this.currentText = this.textEl.textContent;
+    this.choicesEl.innerHTML = '';
+
+    const form = document.createElement('form');
+    form.className = 'dlg-ai-form';
+
+    const input = document.createElement('input');
+    input.id = 'dlg-ai-question';
+    input.type = 'text';
+    input.maxLength = 300;
+    input.required = true;
+    input.autocomplete = 'off';
+    input.placeholder = 'Type your question for Johnny';
+    input.setAttribute('aria-label', 'Question for Johnny');
+
+    const actions = document.createElement('div');
+    actions.className = 'dlg-ai-actions';
+
+    const askButton = document.createElement('button');
+    askButton.type = 'submit';
+    askButton.textContent = 'Ask';
+
+    const cancelButton = document.createElement('button');
+    cancelButton.type = 'button';
+    cancelButton.textContent = 'Cancel';
+    cancelButton.addEventListener('click', () => this.returnToScriptedDialogue());
+
+    actions.append(askButton, cancelButton);
+    form.append(input, actions);
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      this.submitAIQuestion(input, askButton, cancelButton);
+    });
+    this.choicesEl.appendChild(form);
+    input.focus();
+    this.speakCurrentText();
+  }
+
+  submitAIQuestion(input, askButton, cancelButton) {
+    if (this.aiSubmitting || !this.aiMode) return;
+    const question = input.value.trim();
+    if (!question) {
+      input.setCustomValidity('Enter a question for Johnny.');
+      input.reportValidity();
+      input.focus();
+      return;
+    }
+
+    input.setCustomValidity('');
+    this.aiSubmitting = true;
+    input.disabled = true;
+    askButton.disabled = true;
+    cancelButton.disabled = true;
+    this.showAIResponse(question);
+  }
+
+  showAIResponse(question) {
+    this.choiceShortcutsEnabled = true;
+    this.textEl.textContent = `AI TEST: Johnny received your question: ${question}`;
+    this.currentText = this.textEl.textContent;
+    this.choicesEl.innerHTML = '';
+
+    const addButton = (label, action) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = label;
+      button.addEventListener('click', action);
+      this.choicesEl.appendChild(button);
+    };
+    addButton('1. Ask another question', () => this.showAIQuestionForm());
+    addButton('2. Return to normal dialogue', () => this.returnToScriptedDialogue());
+    this.choicesEl.firstElementChild?.focus();
+    this.speakCurrentText();
+  }
+
+  returnToScriptedDialogue() {
+    const returnNodeId = this.aiReturnNodeId ?? 'start';
+    this.resetAIState();
+    this.showNode(returnNodeId);
+  }
+
+  resetAIState() {
+    this.aiReturnNodeId = null;
+    this.aiMode = false;
+    this.aiSubmitting = false;
+    this.choiceShortcutsEnabled = true;
   }
 
   stopNarration() {
@@ -208,6 +327,8 @@ export class Dialogue {
 
   close() {
     this.isOpen = false;
+    this.resetAIState();
+    this.currentNodeId = null;
     this.stopNarration();
     this.currentText = '';
     this.el.classList.remove('open');
