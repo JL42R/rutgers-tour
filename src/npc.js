@@ -5,6 +5,10 @@
 
 import * as THREE from 'three';
 
+const MIN_MARKER_SCALE = 0.32;
+const MAX_MARKER_SCALE = 0.65;
+const MARKER_SCALE_PER_METER = 0.04;
+
 function makeBadgeTexture(label) {
   const c = document.createElement('canvas');
   c.width = c.height = 256;
@@ -65,7 +69,7 @@ export class NPCManager {
           console.warn(`Could not load NPC marker image: ${data.markerImage}`, error);
         });
       }
-      sprite.scale.setScalar(0.45);
+      sprite.scale.setScalar(MIN_MARKER_SCALE);
       sprite.position.set(data.position[0], data.position[1] ?? 1.6, data.position[2]);
       this.group.add(sprite);
       return { data, sprite, baseY: sprite.position.y };
@@ -85,6 +89,13 @@ export class NPCManager {
       const dx = npc.sprite.position.x - playerPos.x;
       const dz = npc.sprite.position.z - playerPos.z;
       const dist = Math.hypot(dx, dz);
+      const markerScale = THREE.MathUtils.clamp(
+        MIN_MARKER_SCALE + dist * MARKER_SCALE_PER_METER,
+        MIN_MARKER_SCALE,
+        MAX_MARKER_SCALE
+      );
+      npc.sprite.scale.setScalar(markerScale);
+
       const radius = npc.data.radius ?? 2.0;
       if (dist < radius && dist < best) {
         best = dist;
