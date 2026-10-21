@@ -51,8 +51,8 @@ tracker must continue to calculate completion from the configured NPC list rathe
 5. **Tour completion.** When every NPC currently configured in `zones.json` has been completed, the
    tracker displays the approved closing message. Visitors remain free to explore and replay dialogue.
 
-This route describes the narrative order, not a navigation lock. Physical directions must be checked
-in the running tour after the new hallway spawn and camera direction from Issue #52 are finalized.
+This route describes the narrative order, not a navigation lock. The hallway starts at its origin,
+facing positive Z toward the 3D Printing Room doorway.
 
 ## Opening beat — hallway guide
 
@@ -60,11 +60,10 @@ The hallway guide from Issue #54 is the visitor's introduction. It is the same g
 for the typed-question work tracked separately in Issue #47. The scripted welcome should ship through
 the existing dialogue-node system and must not depend on question answering being available.
 
-The guide's Issue #54 position, `[0, 1.6, 3]`, is provisional for the current hallway spawn at
-`[0, 0, 0]`. With the current initial view facing negative Z, this keeps the physical information
-marker behind the visitor so it remains available for replay without distracting from the route ahead.
-Recheck its visibility, reachability, and relationship to the initial view after Issue #52 identifies
-the real entrance and sets the final spawn position and direction.
+The visitor starts at `[0, 0, 0]`, facing positive Z. The guide is centered behind the visitor at
+`[0, 1.6, -3]`, where it remains reachable for replay without distracting from the route toward the
+3D Printing Room. The middle-of-hallway spawn is intentional: it gives the current tour a clear first
+destination while preserving access to both ends of the hallway.
 
 The welcome must:
 
@@ -91,8 +90,8 @@ only reaching and closing the final node counts as completing the hallway guide.
 
 > Enjoy exploring Rutgers CORE! Feel free to come back if you need a reminder of how the tour works.
 
-The recommendation intentionally avoids a physical direction until Issue #52 finalizes the entrance,
-spawn position, and initial view direction.
+The recommendation stays independent of physical directions even though the initial view now faces
+toward the 3D Printing Room doorway.
 
 ## Guide responsibilities
 

@@ -29,6 +29,22 @@ can replace it later without changing anything else in this file.
 Ids are short, lowercase, hyphenated, and must match the `id` in `public/zones.json` and the splat
 filename prefix. The splat must end in `.compressed.ply` or Git silently ignores it.
 
+## Hallway starting experience
+
+The visitor starts at the hallway origin with `spawn: [0, 0, 0]`. The team retained this
+middle-of-hallway position because it gives the clearest route into the current tour content instead
+of placing the visitor at the physical entrance. `spawnYaw: 180` turns the initial view toward
+positive Z, with the 3D Printing Room doorway ahead at z 4.80–6.55.
+
+`spawnYaw` is an optional per-zone angle in degrees. `src/main.js` converts it to radians and assigns
+it to `controls.yaw` when the initial zone loads; zones without the field keep the controls' default
+yaw of 0 degrees, which faces negative Z. The setting changes horizontal direction only and preserves
+the existing camera pitch and mouse-look behavior.
+
+The CORE Guide marker is at `[0, 1.6, -3]`, behind the initial view. Its automatic welcome still
+opens when the hallway first loads. After closing it, visitors face the printing room and can turn
+around and approach the marker to replay the guide with E.
+
 ## Doorways off the hallway
 
 Every doorway listed here is a transition that must be filmed through **from both directions**
