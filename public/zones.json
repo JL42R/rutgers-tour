@@ -155,7 +155,17 @@
           "size": [1.20, 0.42]
         }
       ],
-      "npcs": []
+      "npcs": [
+        {
+          "id": "hallway-guide",
+          "name": "CORE Guide",
+          "trackerLabel": "Hallway Orientation",
+          "markerLabel": "i",
+          "position": [0, 1.6, 3],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/hallway-guide.json"
+        }
+      ]
     }
   ]
 }

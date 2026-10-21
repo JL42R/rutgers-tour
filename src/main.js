@@ -58,6 +58,27 @@ dialogue.onComplete = (npcId) => {
 };
 tracker.onReset = () => dialogue.completedNpcIds.clear();
 
+let initialWelcomeStarted = false;
+
+async function startInitialWelcome(startZone) {
+  if (initialWelcomeStarted || startZone.id !== 'hallway' || dialogue.isOpen) return;
+
+  const hallwayGuide = (startZone.npcs ?? []).find(npc => npc.id === 'hallway-guide');
+  if (!hallwayGuide) {
+    console.warn('The hallway loaded without the hallway guide; skipping the welcome.');
+    return;
+  }
+
+  // Set this before loading the dialogue so a slow or failed request cannot trigger a second attempt.
+  initialWelcomeStarted = true;
+  try {
+    await dialogue.start(hallwayGuide);
+    if (!dialogue.isOpen) console.warn('The hallway welcome could not be opened.');
+  } catch (err) {
+    console.error('Could not open the hallway welcome:', err);
+  }
+}
+
 // --- Load the world ---
 async function init() {
   const loadingEl = document.getElementById('loading');
@@ -71,6 +92,7 @@ async function init() {
     if (startZone.spawn) {
       camera.position.set(startZone.spawn[0], (startZone.spawn[1] ?? 0) + EYE_HEIGHT, startZone.spawn[2]);
     }
+    await startInitialWelcome(startZone);
   } catch (err) {
     console.error('World failed to load:', err);
     loadingEl.firstElementChild.textContent = 'Failed to load — check the console (F12).';

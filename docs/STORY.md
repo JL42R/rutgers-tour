@@ -18,7 +18,7 @@ as if visitors can already experience it.
 | Printing-room guides | **Implemented** | Four Johnny stations and Vishan have dialogue files and tracker entries. |
 | NPC completion reporting | **Implemented** | Dialogue completion is reported once per guide and can be reset. |
 | Tour Progress tracker | **Implemented** | The tracker reads every configured zone and NPC, preserves progress, and works in any visit order. |
-| Hallway welcome guide | **Future — Issue #54** | Script, placement, and one-time automatic welcome are not implemented yet. |
+| Hallway welcome guide | **Implemented on the Issue #54 branch** | The scripted welcome, one-time automatic opening, and tracker entry use the existing NPC systems. |
 | Machine-shop guide | **Future — Issue #55** | Facts, representative, script, and final placement still require work. |
 | Project-studio guide | **Future — Issue #56** | Facts, representative, script, and final placement still require work. |
 | Hand-off lines in this document | **Proposed** | Existing dialogue JSON is unchanged by Issue #57. |
@@ -56,9 +56,15 @@ in the running tour after the new hallway spawn and camera direction from Issue 
 
 ## Opening beat — hallway guide
 
-The future hallway guide from Issue #54 is the visitor's introduction. It is the same guide planned
+The hallway guide from Issue #54 is the visitor's introduction. It is the same guide planned
 for the typed-question work tracked separately in Issue #47. The scripted welcome should ship through
 the existing dialogue-node system and must not depend on question answering being available.
+
+The guide's Issue #54 position, `[0, 1.6, 3]`, is provisional for the current hallway spawn at
+`[0, 0, 0]`. With the current initial view facing negative Z, this keeps the physical information
+marker behind the visitor so it remains available for replay without distracting from the route ahead.
+Recheck its visibility, reachability, and relationship to the initial view after Issue #52 identifies
+the real entrance and sets the final spawn position and direction.
 
 The welcome must:
 
@@ -68,23 +74,25 @@ The welcome must:
 - recommend the 3D Printing Room as the first stop while making clear that exploration is free; and
 - leave the hallway guide available for normal replay and future questions after the automatic welcome.
 
-### Proposed welcome copy
+### Implemented linear welcome
 
-Keep these as separate short dialogue nodes rather than one long speech:
+The automatic introduction uses four short nodes in a fixed order. The first three display a Continue
+button, and the final node displays Close. Visitors can press Escape at any point to skip the welcome;
+only reaching and closing the final node counts as completing the hallway guide.
 
-> Welcome to Rutgers CORE! I'm here to help you explore some of the spaces students use to learn
-> engineering.
+> Welcome to the Rutgers CORE Building! I'm here to help you explore the spaces our Industrial &
+> Systems Engineering students use to learn, design, and work on projects.
 
-> You can move with WASD, look around with your mouse, and press E to talk to guides. The tracker in
-> the corner shows who you've met!
+> Use WASD or your arrow keys to move, your mouse to look around, and E to talk to guides. The tracker
+> in the corner shows who you've met and which guides you still have to visit!
 
-### Proposed hand-off to the printing room
+> I recommend starting with the 3D Printing Room, where you can see how students turn their designs
+> into real objects. But feel free to explore wherever you'd like!
 
-> Let's start with the 3D Printing Room. Head down the hallway and look for the room on your left!
+> Enjoy exploring Rutgers CORE! Feel free to come back if you need a reminder of how the tour works.
 
-The phrase “on your left” must be validated against the final Issue #52 spawn position and initial view
-direction. If it is not true from that viewpoint, replace it with a verified direction before Issue #54
-is finalized.
+The recommendation intentionally avoids a physical direction until Issue #52 finalizes the entrance,
+spawn position, and initial view direction.
 
 ## Guide responsibilities
 
@@ -93,7 +101,7 @@ take over another guide's main responsibility.
 
 | Stop | Status | Main responsibility | Avoid repeating |
 |---|---|---|---|
-| Hallway guide | Future — #54 | Welcome visitors, explain controls and the tracker, describe free exploration, and suggest the printing room. | Detailed room content or equipment explanations. |
+| Hallway guide | Implemented on the #54 branch | Welcome visitors, explain controls and the tracker, describe free exploration, and suggest the printing room. | Detailed room content or equipment explanations. |
 | Johnny — Bambu X1E | Implemented | Rapid prototyping, the AMS, the CAD-to-part workflow, and design iteration for student projects. | Detailed explanations of the other printers or the complete support-cleaning process. |
 | Johnny — Ultimaker | Implemented | Dual extrusion, the Air Manager, and using two compatible materials for different print needs. | Bambu-specific AMS details, Stratasys-specific material details, or a full cleaning-equipment explanation. |
 | Johnny — Stratasys | Implemented | FDM, ABSplus, durable or functional parts, and why soluble support material is used. | The full support-cleaning process, which belongs to the SCA station. |
@@ -172,6 +180,8 @@ documentation-only issue does not change JavaScript.
 
 Existing and future scripts should preserve the current JSON node-graph style:
 
+- keep the automatic hallway welcome linear so visitors can advance with Continue without choosing a
+  response;
 - keep each spoken node to approximately two short lines;
 - offer a positive continuation, a question, and an option to leave where practical;
 - let question branches return to the main conversation instead of trapping the visitor;
