@@ -105,6 +105,7 @@
       "scale": 18.90,
       "debugCollision": false,
       "spawn": [0, 0, 0],
+      "spawnYaw": 180,
       "collision": [
         {
           "min": [-1.15, 0, -20.2],
@@ -161,7 +162,7 @@
           "name": "CORE Guide",
           "trackerLabel": "Hallway Orientation",
           "markerLabel": "i",
-          "position": [0, 1.6, 3],
+          "position": [0, 1.6, -3],
           "radius": 2.0,
           "dialogueFile": "./dialogue/hallway-guide.json"
         }

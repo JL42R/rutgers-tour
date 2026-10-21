@@ -18,7 +18,7 @@ scene.background = new THREE.Color(0x101014);
 const camera = new THREE.PerspectiveCamera(
   70, window.innerWidth / window.innerHeight, 0.05, 200
 );
-camera.position.set(0, EYE_HEIGHT, 3); // start 3m back from zone origin, at eye height
+camera.position.set(0, EYE_HEIGHT, 0); // fallback until the configured start zone loads
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -91,6 +91,9 @@ async function init() {
     npcs.setNPCs(startZone.npcs ?? []);
     if (startZone.spawn) {
       camera.position.set(startZone.spawn[0], (startZone.spawn[1] ?? 0) + EYE_HEIGHT, startZone.spawn[2]);
+    }
+    if (Number.isFinite(startZone.spawnYaw)) {
+      controls.yaw = THREE.MathUtils.degToRad(startZone.spawnYaw);
     }
     await startInitialWelcome(startZone);
   } catch (err) {

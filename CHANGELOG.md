@@ -2,6 +2,15 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-10-21
+
+### Hallway start direction finalized (Issue #52)
+- Retained the hallway spawn at `[0, 0, 0]` and added `spawnYaw: 180`, which starts the visitor
+  facing positive Z toward the 3D Printing Room without changing camera pitch or other zones.
+- Moved the CORE Guide marker from `[0, 1.6, 3]` to `[0, 1.6, -3]`, behind the initial view but
+  centered and reachable in the hallway. The automatic welcome and normal E interaction are preserved.
+- Removed the temporary Stage A P-key camera snapshot tool and documented the final placement.
+
 ## 2026-09-29
 
 ### Zone list fixed; G2 passed (Issue #28)

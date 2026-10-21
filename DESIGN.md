@@ -58,6 +58,7 @@ Zones share a common web-scene coordinate convention: floor at y=0 and 1 unit = 
 - `rotation` `[x, y, z]` degrees — Euler angles correcting COLMAP's arbitrary orientation; default `[0, 0, 0]`
 - `scale` — uniform scale factor correcting COLMAP's arbitrary scale; default `1`
 - `spawn` `[x, y, z]` — player spawn position
+- `spawnYaw` — optional initial horizontal facing angle in degrees; default `0` faces negative Z
 - `collision` — array of hand-authored AABB `{min, max}` boxes; never derived from splat geometry
 
 **Printing room status (verified in browser 2026-09-14):** the splat is aligned using `origin: [-0.4239378102298068, 0.074344140921842, 3.17070150997874]`, `rotation: [180, 91.78889410373753, 0]`, and `scale: 2.881555849683783` in `public/zones.json`. Four collision boundary walls use the room's measured physical dimensions; temporary `debugCollision` wireframe support makes them visible over the splat.
