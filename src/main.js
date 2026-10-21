@@ -7,6 +7,7 @@ import { PlayerControls, EYE_HEIGHT } from './controls.js';
 import { ZoneManager } from './zones.js';
 import { NPCManager } from './npc.js';
 import { Dialogue } from './dialogue.js';
+import { InteractionTracker } from './interaction-tracker.js';
 
 const app = document.getElementById('app');
 
@@ -42,17 +43,28 @@ const dialogue = new Dialogue();
 const controls = new PlayerControls(camera, renderer.domElement);
 const zones = new ZoneManager(scene);
 const npcs = new NPCManager(scene, dialogue);
+const tracker = new InteractionTracker();
 
 // While a dialogue is open, freeze movement so buttons are usable.
-dialogue.onOpen = () => { controls.enabled = false; controls.unlock(); };
+dialogue.onOpen = () => {
+  controls.enabled = false;
+  controls.unlock();
+  tracker.collapse();
+};
 dialogue.onClose = () => { controls.enabled = true; };
-dialogue.onComplete = (npcId) => console.log('[NPC completed]', npcId);
+dialogue.onComplete = (npcId) => {
+  console.log('[NPC completed]', npcId);
+  tracker.complete(npcId);
+};
+tracker.onReset = () => dialogue.completedNpcIds.clear();
 
 // --- Load the world ---
 async function init() {
   const loadingEl = document.getElementById('loading');
   try {
     const config = await zones.loadConfig('./zones.json');
+    tracker.setConfig(config);
+    for (const npcId of tracker.completedNpcIds) dialogue.completedNpcIds.add(npcId);
     const startZone = config.zones.find(z => z.id === config.startZone) ?? config.zones[0];
     await zones.loadZone(startZone.id);
     npcs.setNPCs(startZone.npcs ?? []);
