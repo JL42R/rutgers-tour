@@ -46,6 +46,7 @@ const npcs = new NPCManager(scene, dialogue);
 // While a dialogue is open, freeze movement so buttons are usable.
 dialogue.onOpen = () => { controls.enabled = false; controls.unlock(); };
 dialogue.onClose = () => { controls.enabled = true; };
+dialogue.onComplete = (npcId) => console.log('[NPC completed]', npcId);
 
 // --- Load the world ---
 async function init() {
