@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "1.0",
+  "knowledgeVersion": "fictional-2026-10-22.1",
+  "contentClassification": "synthetic_fixture",
+  "sources": [
+    {
+      "id": "source-folded-machines-handbook",
+      "title": "Fictional Folded Machines Handbook",
+      "reference": "fixture://folded-machines-handbook",
+      "location": "Chapter 2",
+      "status": "approved",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-22",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-review-001",
+        "reviewedAt": "2026-10-22"
+      }
+    },
+    {
+      "id": "source-cloud-kite-notes",
+      "title": "Fictional Cloud Kite Draft Notes",
+      "reference": "fixture://cloud-kite-notes",
+      "location": null,
+      "status": "draft",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-22",
+      "approval": null
+    },
+    {
+      "id": "source-glass-garden-notes",
+      "title": "Fictional Glass Garden Review Notes",
+      "reference": "fixture://glass-garden-notes",
+      "location": "Section A",
+      "status": "in_review",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-22",
+      "approval": null
+    },
+    {
+      "id": "source-clockwork-coral-archive",
+      "title": "Fictional Clockwork Coral Archive",
+      "reference": "fixture://clockwork-coral-archive",
+      "location": "Archived page 4",
+      "status": "retired",
+      "recordVersion": 2,
+      "updatedAt": "2026-10-22",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-retirement-001",
+        "reviewedAt": "2026-10-22"
+      }
+    }
+  ],
+  "topics": [
+    {
+      "id": "folded-machines",
+      "category": "fictional-demonstrations",
+      "label": "Fictional folded machines",
+      "status": "approved",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-22",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-review-001",
+        "reviewedAt": "2026-10-22"
+      },
+      "factIds": ["fact-folded-machines-motion"],
+      "specialistIds": ["npc-folded-machines-guide"],
+      "destinationZoneIds": ["zone-imaginary-workshop"]
+    },
+    {
+      "id": "cloud-kites",
+      "category": "fictional-demonstrations",
+      "label": "Fictional cloud kites",
+      "status": "draft",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-22",
+      "approval": null,
+      "factIds": ["fact-cloud-kites-color"],
+      "specialistIds": [],
+      "destinationZoneIds": []
+    },
+    {
+      "id": "glass-gardens",
+      "category": "fictional-demonstrations",
+      "label": "Fictional glass gardens",
+      "status": "in_review",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-22",
+      "approval": null,
+      "factIds": ["fact-glass-gardens-light"],
+      "specialistIds": [],
+      "destinationZoneIds": []
+    },
+    {
+      "id": "clockwork-coral",
+      "category": "fictional-demonstrations",
+      "label": "Fictional clockwork coral",
+      "status": "retired",
+      "recordVersion": 2,
+      "updatedAt": "2026-10-22",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-retirement-001",
+        "reviewedAt": "2026-10-22"
+      },
+      "factIds": ["fact-clockwork-coral-motion"],
+      "specialistIds": [],
+      "destinationZoneIds": []
+    }
+  ],
+  "facts": [
+    {
+      "id": "fact-folded-machines-motion",
+      "topicId": "folded-machines",
+      "content": "In this fictional fixture, folded paper mechanisms demonstrate rotational motion.",
+      "sourceId": "source-folded-machines-handbook",
+      "sourceLocation": "Chapter 2, paragraph 1",
+      "status": "approved",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-22",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-review-001",
+        "reviewedAt": "2026-10-22"
+      },
+      "relatedSpecialistIds": ["npc-folded-machines-guide"],
+      "relatedDestinationZoneIds": ["zone-imaginary-workshop"]
+    },
+    {
+      "id": "fact-cloud-kites-color",
+      "topicId": "cloud-kites",
+      "content": "This unapproved fictional draft claims that cloud kites change color.",
+      "sourceId": "source-cloud-kite-notes",
+      "sourceLocation": null,
+      "status": "draft",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-22",
+      "approval": null,
+      "relatedSpecialistIds": [],
+      "relatedDestinationZoneIds": []
+    },
+    {
+      "id": "fact-glass-gardens-light",
+      "topicId": "glass-gardens",
+      "content": "This fictional claim about glass gardens remains under review.",
+      "sourceId": "source-glass-garden-notes",
+      "sourceLocation": "Section A",
+      "status": "in_review",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-22",
+      "approval": null,
+      "relatedSpecialistIds": [],
+      "relatedDestinationZoneIds": []
+    },
+    {
+      "id": "fact-clockwork-coral-motion",
+      "topicId": "clockwork-coral",
+      "content": "This retired fictional record described clockwork coral motion.",
+      "sourceId": "source-clockwork-coral-archive",
+      "sourceLocation": "Archived page 4",
+      "status": "retired",
+      "recordVersion": 2,
+      "updatedAt": "2026-10-22",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-retirement-001",
+        "reviewedAt": "2026-10-22"
+      },
+      "relatedSpecialistIds": [],
+      "relatedDestinationZoneIds": []
+    }
+  ],
+  "specialists": [
+    {
+      "id": "npc-folded-machines-guide",
+      "name": "Fictional Folded Machines Guide",
+      "status": "approved",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-22",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-review-001",
+        "reviewedAt": "2026-10-22"
+      },
+      "topicIds": ["folded-machines"],
+      "destinationZoneId": "zone-imaginary-workshop"
+    }
+  ],
+  "zones": [
+    {
+      "id": "zone-imaginary-workshop",
+      "name": "Fictional Imaginary Workshop",
+      "status": "approved",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-22",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-review-001",
+        "reviewedAt": "2026-10-22"
+      },
+      "canonicalDirections": "From the fictional guide marker, follow the silver paper arrows to the imaginary workshop."
+    }
+  ]
+}

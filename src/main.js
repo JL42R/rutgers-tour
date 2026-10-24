@@ -72,7 +72,7 @@ async function startInitialWelcome(startZone) {
   // Set this before loading the dialogue so a slow or failed request cannot trigger a second attempt.
   initialWelcomeStarted = true;
   try {
-    await dialogue.start(hallwayGuide);
+    await dialogue.start(hallwayGuide, { allowQuestionProvider: false });
     if (!dialogue.isOpen) console.warn('The hallway welcome could not be opened.');
   } catch (err) {
     console.error('Could not open the hallway welcome:', err);
@@ -84,6 +84,21 @@ async function init() {
   const loadingEl = document.getElementById('loading');
   try {
     const config = await zones.loadConfig('./zones.json');
+    if (import.meta.env.DEV) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('guideMock') === '1' && params.get('guideBackend') === 'local') {
+        const {
+          HALLWAY_GUIDE_ID,
+          createHallwayGuideQuestionProvider,
+          installGuideMockDisclosure
+        } = await import('./guide-hallway-mock.js');
+        dialogue.registerQuestionProvider(
+          HALLWAY_GUIDE_ID,
+          createHallwayGuideQuestionProvider({ search: window.location.search })
+        );
+        installGuideMockDisclosure();
+      }
+    }
     tracker.setConfig(config);
     for (const npcId of tracker.completedNpcIds) dialogue.completedNpcIds.add(npcId);
     const startZone = config.zones.find(z => z.id === config.startZone) ?? config.zones[0];
@@ -94,6 +109,22 @@ async function init() {
     }
     if (Number.isFinite(startZone.spawnYaw)) {
       controls.yaw = THREE.MathUtils.degToRad(startZone.spawnYaw);
+    }
+    if (import.meta.env.DEV &&
+        new URLSearchParams(window.location.search).get('guideTest') === '1') {
+      window.__tourGuideTest = Object.freeze({
+        approachNpc(npcId) {
+          const npc = npcs.npcs.find((entry) => entry.data.id === npcId);
+          if (!npc) return false;
+          camera.position.set(npc.sprite.position.x, EYE_HEIGHT, npc.sprite.position.z + 0.5);
+          npcs.update(camera.position);
+          return npcs.nearest?.data.id === npcId;
+        },
+        async switchZone(zoneId) {
+          await switchZone(zoneId);
+          return zones.current?.id ?? null;
+        }
+      });
     }
     await startInitialWelcome(startZone);
   } catch (err) {

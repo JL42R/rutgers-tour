@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "guide:local": "node dev/guide-local-server.js",
+    "test": "node --test --test-concurrency=1",
     "build": "vite build",
     "preview": "vite preview"
   },

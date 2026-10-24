@@ -19,6 +19,9 @@ export class Dialogue {
     this.currentText = '';
     this.currentUtterance = null;
     this.cache = new Map(); // dialogue files fetched once, reused after
+    this.questionProviders = new Map();
+    this.activeQuestionProvider = null;
+    this.aiRequestVersion = 0;
     this.data = null;
     this.isOpen = false;
     this.currentNodeId = null;
@@ -114,7 +117,20 @@ export class Dialogue {
     return nativeFocusable || element.isContentEditable || element.hasAttribute('tabindex');
   }
 
-  async start(npc) {
+  registerQuestionProvider(npcId, provider) {
+    if (typeof npcId !== 'string' || !npcId.trim()) {
+      throw new TypeError('Question providers require a nonempty NPC ID.');
+    }
+    if (!provider || provider.npcId !== npcId || typeof provider.ask !== 'function' ||
+        typeof provider.reset !== 'function') {
+      throw new TypeError(`Invalid question provider for NPC "${npcId}".`);
+    }
+    this.questionProviders.set(npcId, provider);
+  }
+
+  async start(npc, options = {}) {
+    this.activeQuestionProvider?.reset();
+    this.activeQuestionProvider = null;
     this.resetCompletionState();
     this.resetAIState();
     this.currentNodeId = null;
@@ -128,6 +144,10 @@ export class Dialogue {
     }
     this.data = this.cache.get(npc.dialogueFile);
     this.activeNpcId = npc.id ?? null;
+    if (options?.allowQuestionProvider !== false) {
+      this.activeQuestionProvider = this.questionProviders.get(this.activeNpcId) ?? null;
+      this.activeQuestionProvider?.reset();
+    }
 
     this.nameEl.textContent = this.data.name ?? npc.name ?? 'Guide';
     this.portraitEl.innerHTML = '';
@@ -154,6 +174,7 @@ export class Dialogue {
     if (!node) { console.error(`Dialogue node "${id}" not found`); return this.close(); }
 
     this.currentNodeId = id;
+    this.aiRequestVersion += 1;
     this.aiMode = false;
     this.aiSubmitting = false;
     this.choiceShortcutsEnabled = true;
@@ -177,7 +198,12 @@ export class Dialogue {
       addButton('Continue', () => this.showNode(node.next));
     } else {
       this.completionEligible = true;
-      addButton('Close', () => this.close());
+      if (this.activeQuestionProvider) {
+        addButton('1. Ask a question', () => this.showAIQuestionForm());
+        addButton('2. Close', () => this.close());
+      } else {
+        addButton('Close', () => this.close());
+      }
     }
     this.choicesEl.firstElementChild?.focus();
     this.speakCurrentText();
@@ -196,11 +222,14 @@ export class Dialogue {
   }
 
   showAIQuestionForm() {
+    const provider = this.activeQuestionProvider;
     if (!this.aiReturnNodeId) this.aiReturnNodeId = this.currentNodeId;
     this.aiMode = true;
     this.aiSubmitting = false;
     this.choiceShortcutsEnabled = false;
-    this.textEl.textContent = 'Sure! What would you like to know?';
+    this.textEl.textContent = provider
+      ? `${provider.disclosure} ${provider.prompt}`
+      : 'Sure! What would you like to know?';
     this.currentText = this.textEl.textContent;
     this.choicesEl.innerHTML = '';
 
@@ -213,8 +242,8 @@ export class Dialogue {
     input.maxLength = 300;
     input.required = true;
     input.autocomplete = 'off';
-    input.placeholder = 'Type your question for Johnny';
-    input.setAttribute('aria-label', 'Question for Johnny');
+    input.placeholder = provider?.inputPlaceholder ?? 'Type your question for Johnny';
+    input.setAttribute('aria-label', provider?.inputLabel ?? 'Question for Johnny');
 
     const actions = document.createElement('div');
     actions.className = 'dlg-ai-actions';
@@ -232,18 +261,19 @@ export class Dialogue {
     form.append(input, actions);
     form.addEventListener('submit', (event) => {
       event.preventDefault();
-      this.submitAIQuestion(input, askButton, cancelButton);
+      void this.submitAIQuestion(input, askButton, cancelButton);
     });
     this.choicesEl.appendChild(form);
     input.focus();
     this.speakCurrentText();
   }
 
-  submitAIQuestion(input, askButton, cancelButton) {
+  async submitAIQuestion(input, askButton, cancelButton) {
     if (this.aiSubmitting || !this.aiMode) return;
+    const provider = this.activeQuestionProvider;
     const question = input.value.trim();
     if (!question) {
-      input.setCustomValidity('Enter a question for Johnny.');
+      input.setCustomValidity(provider?.validationMessage ?? 'Enter a question for Johnny.');
       input.reportValidity();
       input.focus();
       return;
@@ -254,7 +284,37 @@ export class Dialogue {
     input.disabled = true;
     askButton.disabled = true;
     cancelButton.disabled = true;
-    this.showAIResponse(question);
+    if (!provider) {
+      this.showAIResponse(question);
+      return;
+    }
+
+    this.textEl.textContent = provider.pendingMessage;
+    this.currentText = this.textEl.textContent;
+    this.speakCurrentText();
+    const requestVersion = ++this.aiRequestVersion;
+    const npcId = this.activeNpcId;
+
+    try {
+      const outcome = await provider.ask(question);
+      if (!this.isOpen || this.activeNpcId !== npcId ||
+          this.activeQuestionProvider !== provider ||
+          requestVersion !== this.aiRequestVersion || outcome?.stale) {
+        return;
+      }
+      const response = typeof outcome?.response === 'string' && outcome.response.trim()
+        ? outcome.response.trim()
+        : provider.errorMessage;
+      this.showQuestionProviderResponse(response);
+    } catch (error) {
+      console.error('Development guide question failed:', error);
+      if (!this.isOpen || this.activeNpcId !== npcId ||
+          this.activeQuestionProvider !== provider ||
+          requestVersion !== this.aiRequestVersion) {
+        return;
+      }
+      this.showQuestionProviderResponse(provider.errorMessage);
+    }
   }
 
   showAIResponse(question) {
@@ -280,6 +340,25 @@ export class Dialogue {
     this.speakCurrentText();
   }
 
+  showQuestionProviderResponse(response) {
+    this.choiceShortcutsEnabled = true;
+    this.textEl.textContent = response;
+    this.currentText = this.textEl.textContent;
+    this.choicesEl.innerHTML = '';
+
+    const addButton = (label, action) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = label;
+      button.addEventListener('click', action);
+      this.choicesEl.appendChild(button);
+    };
+    addButton('1. Ask another question', () => this.showAIQuestionForm());
+    addButton('2. Return to normal dialogue', () => this.returnToScriptedDialogue());
+    this.choicesEl.firstElementChild?.focus();
+    this.speakCurrentText();
+  }
+
   returnToScriptedDialogue() {
     const returnNodeId = this.aiReturnNodeId ?? 'start';
     this.resetAIState();
@@ -287,6 +366,7 @@ export class Dialogue {
   }
 
   resetAIState() {
+    this.aiRequestVersion += 1;
     this.aiReturnNodeId = null;
     this.aiMode = false;
     this.aiSubmitting = false;
@@ -349,6 +429,8 @@ export class Dialogue {
     if (completedNpcId) this.completedNpcIds.add(completedNpcId);
 
     this.isOpen = false;
+    this.activeQuestionProvider?.reset();
+    this.activeQuestionProvider = null;
     this.resetCompletionState();
     this.resetAIState();
     this.currentNodeId = null;
