@@ -26,7 +26,13 @@ test('real localhost HTTP crosses browser client, Worker, and fake OpenAI adapte
     const session = createLocalGuideSession({ fetchImpl: browserFetch });
     const first = await session.ask('How do folded machines move?');
     const followUp = await session.ask('Where can I find them?');
+    const expertise = await session.ask('What do they specialize in?');
+    const glass = await session.ask('Tell me about glass gardens.');
+    const glassFollowUp = await session.ask('Where can I find that?');
     const unsupported = await session.ask('What is the weather tomorrow?');
+    const ambiguous = await session.ask(
+      'Compare fictional folded machines and fictional glass gardens.'
+    );
     const hallwayProvider = createHallwayGuideQuestionProvider({
       search: '?guideMock=1&guideBackend=local',
       fetchImpl: browserFetch
@@ -44,13 +50,32 @@ test('real localhost HTTP crosses browser client, Worker, and fake OpenAI adapte
     }]);
     assert.equal(first.result.specialistNpcId, undefined);
     assert.equal(first.result.destinationNpcId, 'npc-folded-machines-guide');
+    assert.equal(first.result.specialistName, 'Fictional Folded Machines Guide');
+    assert.equal(first.result.destinationZoneName, 'Fictional Imaginary Workshop');
     assert.equal(followUp.result.directions,
       'From the fictional guide marker, follow the silver paper arrows to the imaginary workshop.');
+    assert.match(expertise.result.response, /rotational motion/);
+    assert.equal(glass.result.topicId, 'glass-gardens');
+    assert.equal(glass.result.destinationNpcId, 'npc-glass-gardens-guide');
+    assert.equal(glass.result.destinationZoneId, 'zone-prism-conservatory');
+    assert.equal(glassFollowUp.result.destinationNpcId, 'npc-glass-gardens-guide');
+    assert.match(glassFollowUp.result.directions, /violet glass tiles/);
+    assert.deepEqual(session.getState(), {
+      topicIds: ['glass-gardens'],
+      specialistNpcIds: ['npc-glass-gardens-guide'],
+      destinationZoneIds: ['zone-prism-conservatory']
+    });
     assert.equal(unsupported.envelope.outcome, 'unsupported');
-    assert.match(uiOutcome.response, /npc-folded-machines-guide/);
-    assert.match(uiOutcome.response, /zone-imaginary-workshop/);
+    assert.equal(ambiguous.envelope.outcome, 'clarify');
+    assert.match(uiOutcome.response, /Fictional Folded Machines Guide/);
+    assert.match(uiOutcome.response, /Fictional Imaginary Workshop/);
+    assert.doesNotMatch(uiOutcome.response, /npc-folded-machines-guide/);
+    assert.doesNotMatch(uiOutcome.response, /zone-imaginary-workshop/);
     assert.match(uiOutcome.response, /silver paper arrows/);
     assert.deepEqual(providerRequests, [
+      { model: 'local-fixture-model', store: false, toolCount: 0 },
+      { model: 'local-fixture-model', store: false, toolCount: 0 },
+      { model: 'local-fixture-model', store: false, toolCount: 0 },
       { model: 'local-fixture-model', store: false, toolCount: 0 },
       { model: 'local-fixture-model', store: false, toolCount: 0 },
       { model: 'local-fixture-model', store: false, toolCount: 0 }
@@ -66,7 +91,7 @@ test('local server enforces CORS and turns fake-provider refusal into safe unava
   const address = await app.start(0);
   const endpoint = `http://127.0.0.1:${address.port}/guide`;
   const body = JSON.stringify({
-    schemaVersion: '1.0',
+    schemaVersion: '1.1',
     requestId: 'local-refusal-1',
     question: 'How do folded machines move?',
     temporaryContext: { topicIds: [], specialistNpcIds: [], destinationZoneIds: [] }

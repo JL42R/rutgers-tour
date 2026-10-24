@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "knowledgeVersion": "fictional-2026-10-22.1",
+  "knowledgeVersion": "fictional-2026-10-23.2",
   "contentClassification": "synthetic_fixture",
   "sources": [
     {
@@ -29,13 +29,17 @@
     },
     {
       "id": "source-glass-garden-notes",
-      "title": "Fictional Glass Garden Review Notes",
+      "title": "Fictional Glass Gardens Field Guide",
       "reference": "fixture://glass-garden-notes",
-      "location": "Section A",
-      "status": "in_review",
-      "recordVersion": 1,
-      "updatedAt": "2026-10-22",
-      "approval": null
+      "location": "Section A: Light Paths",
+      "status": "approved",
+      "recordVersion": 2,
+      "updatedAt": "2026-10-23",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-review-002",
+        "reviewedAt": "2026-10-23"
+      }
     },
     {
       "id": "source-clockwork-coral-archive",
@@ -85,13 +89,20 @@
       "id": "glass-gardens",
       "category": "fictional-demonstrations",
       "label": "Fictional glass gardens",
-      "status": "in_review",
-      "recordVersion": 1,
-      "updatedAt": "2026-10-22",
-      "approval": null,
-      "factIds": ["fact-glass-gardens-light"],
-      "specialistIds": [],
-      "destinationZoneIds": []
+      "status": "approved",
+      "recordVersion": 2,
+      "updatedAt": "2026-10-23",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-review-002",
+        "reviewedAt": "2026-10-23"
+      },
+      "factIds": [
+        "fact-glass-gardens-light",
+        "fact-glass-gardens-patterns"
+      ],
+      "specialistIds": ["npc-glass-gardens-guide"],
+      "destinationZoneIds": ["zone-prism-conservatory"]
     },
     {
       "id": "clockwork-coral",
@@ -144,15 +155,36 @@
     {
       "id": "fact-glass-gardens-light",
       "topicId": "glass-gardens",
-      "content": "This fictional claim about glass gardens remains under review.",
+      "content": "In this fictional fixture, glass gardens bend colored light through suspended prism leaves.",
       "sourceId": "source-glass-garden-notes",
-      "sourceLocation": "Section A",
-      "status": "in_review",
+      "sourceLocation": "Section A, paragraph 1",
+      "status": "approved",
+      "recordVersion": 2,
+      "updatedAt": "2026-10-23",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-review-002",
+        "reviewedAt": "2026-10-23"
+      },
+      "relatedSpecialistIds": ["npc-glass-gardens-guide"],
+      "relatedDestinationZoneIds": ["zone-prism-conservatory"]
+    },
+    {
+      "id": "fact-glass-gardens-patterns",
+      "topicId": "glass-gardens",
+      "content": "In this fictional fixture, glass-garden guides arrange prism leaves to create changing light patterns.",
+      "sourceId": "source-glass-garden-notes",
+      "sourceLocation": "Section A, paragraph 2",
+      "status": "approved",
       "recordVersion": 1,
-      "updatedAt": "2026-10-22",
-      "approval": null,
-      "relatedSpecialistIds": [],
-      "relatedDestinationZoneIds": []
+      "updatedAt": "2026-10-23",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-review-002",
+        "reviewedAt": "2026-10-23"
+      },
+      "relatedSpecialistIds": ["npc-glass-gardens-guide"],
+      "relatedDestinationZoneIds": ["zone-prism-conservatory"]
     },
     {
       "id": "fact-clockwork-coral-motion",
@@ -186,6 +218,20 @@
       },
       "topicIds": ["folded-machines"],
       "destinationZoneId": "zone-imaginary-workshop"
+    },
+    {
+      "id": "npc-glass-gardens-guide",
+      "name": "Fictional Glass Gardens Guide",
+      "status": "approved",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-23",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-review-002",
+        "reviewedAt": "2026-10-23"
+      },
+      "topicIds": ["glass-gardens"],
+      "destinationZoneId": "zone-prism-conservatory"
     }
   ],
   "zones": [
@@ -201,6 +247,19 @@
         "reviewedAt": "2026-10-22"
       },
       "canonicalDirections": "From the fictional guide marker, follow the silver paper arrows to the imaginary workshop."
+    },
+    {
+      "id": "zone-prism-conservatory",
+      "name": "Fictional Prism Conservatory",
+      "status": "approved",
+      "recordVersion": 1,
+      "updatedAt": "2026-10-23",
+      "approval": {
+        "reviewedBy": "synthetic-fixture-reviewer",
+        "reference": "fixture-review-002",
+        "reviewedAt": "2026-10-23"
+      },
+      "canonicalDirections": "From the fictional guide marker, follow the violet glass tiles to the prism conservatory."
     }
   ]
 }

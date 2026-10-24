@@ -20,7 +20,7 @@ function fixture() {
 
 function requestBody(overrides = {}) {
   return {
-    schemaVersion: '1.0',
+    schemaVersion: '1.1',
     requestId: 'worker-request-001',
     question: 'How do folded machines move?',
     temporaryContext: {
@@ -75,17 +75,38 @@ test('valid POST returns a validated grounded response', async () => {
   assert.equal(response.status, 200);
   assert.equal(response.body.outcome, 'answered');
   assert.equal(response.body.requestId, 'worker-request-001');
-  assert.equal(response.body.knowledgeVersion, 'fictional-2026-10-22.1');
+  assert.equal(response.body.knowledgeVersion, 'fictional-2026-10-23.2');
   assert.deepEqual(response.body.factReferences, [{
     factId: 'fact-folded-machines-motion',
     sourceId: 'source-folded-machines-handbook'
   }]);
   assert.equal(response.body.specialistNpcId, 'npc-folded-machines-guide');
+  assert.equal(response.body.specialistName, 'Fictional Folded Machines Guide');
   assert.equal(response.body.destinationZoneId, 'zone-imaginary-workshop');
+  assert.equal(response.body.destinationZoneName, 'Fictional Imaginary Workshop');
   assert.equal(
     response.body.canonicalDirections,
     'From the fictional guide marker, follow the silver paper arrows to the imaginary workshop.'
   );
+  assert.equal(validateGuideResponse(response.body, {
+    catalog: prepared.catalog,
+    expectedRequestId: 'worker-request-001'
+  }).valid, true);
+});
+
+test('legacy v1.0 clients receive the unchanged response shape', async () => {
+  const rawKnowledge = fixture();
+  const prepared = prepareApprovedKnowledge(rawKnowledge);
+  const response = await readResponse(await handlerFor(rawKnowledge)(guideRequest(
+    requestBody({ schemaVersion: '1.0' })
+  )));
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.schemaVersion, '1.0');
+  assert.equal(response.body.specialistNpcId, 'npc-folded-machines-guide');
+  assert.equal(response.body.destinationZoneId, 'zone-imaginary-workshop');
+  assert.equal(Object.hasOwn(response.body, 'specialistName'), false);
+  assert.equal(Object.hasOwn(response.body, 'destinationZoneName'), false);
   assert.equal(validateGuideResponse(response.body, {
     catalog: prepared.catalog,
     expectedRequestId: 'worker-request-001'
@@ -222,6 +243,28 @@ test('returns unsupported without invoking the model for draft-only knowledge', 
   assert.equal(modelCalls, 0);
 });
 
+test('the second approved topic returns its own facts, friendly route, and directions', async () => {
+  const response = await readResponse(await handlerFor()(guideRequest(
+    requestBody({ question: 'Tell me about glass gardens.' })
+  )));
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.outcome, 'answered');
+  assert.equal(response.body.topicId, 'glass-gardens');
+  assert.deepEqual(response.body.factReferences.map((entry) => entry.factId), [
+    'fact-glass-gardens-light',
+    'fact-glass-gardens-patterns'
+  ]);
+  assert.equal(response.body.specialistNpcId, 'npc-glass-gardens-guide');
+  assert.equal(response.body.specialistName, 'Fictional Glass Gardens Guide');
+  assert.equal(response.body.destinationZoneId, 'zone-prism-conservatory');
+  assert.equal(response.body.destinationZoneName, 'Fictional Prism Conservatory');
+  assert.equal(
+    response.body.canonicalDirections,
+    'From the fictional guide marker, follow the violet glass tiles to the prism conservatory.'
+  );
+});
+
 test('retired facts and topics cannot be retrieved', async () => {
   const response = await readResponse(await handlerFor()(guideRequest(
     requestBody({ question: 'Explain clockwork coral.' })
@@ -333,6 +376,29 @@ test('provider failures return a validated unavailable response', async () => {
   }).valid, true);
 });
 
+test('provider failure during a follow-up fails closed without exposing the remembered route', async () => {
+  const body = requestBody({
+    question: 'Where can I find them?',
+    temporaryContext: {
+      topicIds: ['folded-machines'],
+      specialistNpcIds: ['npc-folded-machines-guide'],
+      destinationZoneIds: ['zone-imaginary-workshop']
+    }
+  });
+  const response = await readResponse(await handlerFor(fixture(), {
+    model: createMockGuideModel({ mode: 'error' })
+  })(guideRequest(body)));
+
+  assert.equal(response.status, 503);
+  assert.equal(response.body.outcome, 'unavailable');
+  assert.equal(response.body.error.code, 'provider_unavailable');
+  assert.equal(response.body.specialistNpcId, null);
+  assert.equal(response.body.specialistName, null);
+  assert.equal(response.body.destinationZoneId, null);
+  assert.equal(response.body.destinationZoneName, null);
+  assert.equal(response.body.canonicalDirections, null);
+});
+
 test('timeouts abort the signal supplied to the model', async () => {
   let observedSignal;
   const model = {
@@ -377,6 +443,8 @@ test('model output cannot add fabricated specialist IDs or directions', async ()
         topicId: request.topicId,
         usedFactIds: [request.facts[0].id],
         specialistNpcId: 'npc-invented',
+        specialistName: 'Model Invented Expert',
+        destinationZoneName: 'Model Invented Room',
         directions: 'Follow invented directions.'
       };
     }

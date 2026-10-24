@@ -1,4 +1,5 @@
 import {
+  GUIDE_API_LEGACY_SCHEMA_VERSION,
   GUIDE_API_SCHEMA_VERSION,
   MAX_GUIDE_ANSWER_LENGTH,
   MAX_GUIDE_QUESTION_LENGTH,
@@ -200,7 +201,13 @@ function canonicalRoute(result, knowledge) {
   const specialistId = result.destinationNpcId ?? null;
   const zoneId = result.destinationZoneId ?? null;
   if (specialistId === null && zoneId === null) {
-    return { specialistNpcId: null, destinationZoneId: null, canonicalDirections: null };
+    return {
+      specialistNpcId: null,
+      specialistName: null,
+      destinationZoneId: null,
+      destinationZoneName: null,
+      canonicalDirections: null
+    };
   }
   if (specialistId === null || zoneId === null) return null;
 
@@ -214,14 +221,16 @@ function canonicalRoute(result, knowledge) {
 
   return Object.freeze({
     specialistNpcId: specialist.id,
+    specialistName: specialist.name,
     destinationZoneId: zone.id,
+    destinationZoneName: zone.name,
     canonicalDirections: zone.canonicalDirections
   });
 }
 
-function baseEnvelope(requestId, knowledgeVersion, overrides) {
-  return {
-    schemaVersion: GUIDE_API_SCHEMA_VERSION,
+function baseEnvelope(requestId, knowledgeVersion, overrides, schemaVersion) {
+  const envelope = {
+    schemaVersion,
     requestId,
     outcome: overrides.outcome,
     answerText: overrides.answerText,
@@ -233,6 +242,11 @@ function baseEnvelope(requestId, knowledgeVersion, overrides) {
     knowledgeVersion,
     error: overrides.error ?? null
   };
+  if (schemaVersion !== GUIDE_API_LEGACY_SCHEMA_VERSION) {
+    envelope.specialistName = overrides.specialistName ?? null;
+    envelope.destinationZoneName = overrides.destinationZoneName ?? null;
+  }
+  return envelope;
 }
 
 function validatedGuideResponse(envelope, status, requestId, knowledge, origin) {
@@ -253,12 +267,20 @@ function validatedGuideResponse(envelope, status, requestId, knowledge, origin) 
   return jsonResponse(envelope, status, origin, true);
 }
 
-function unavailableResponse(requestId, knowledge, code, answerText, status, origin) {
+function unavailableResponse(
+  requestId,
+  knowledge,
+  code,
+  answerText,
+  status,
+  origin,
+  schemaVersion
+) {
   return validatedGuideResponse(baseEnvelope(requestId, knowledge.knowledgeVersion, {
     outcome: 'unavailable',
     answerText,
     error: { code }
-  }), status, requestId, knowledge, origin);
+  }, schemaVersion), status, requestId, knowledge, origin);
 }
 
 export function createGuideHandler(options = {}) {
@@ -343,6 +365,7 @@ export function createGuideHandler(options = {}) {
     }
 
     const requestId = parsed.value.requestId;
+    const schemaVersion = parsed.value.schemaVersion;
     const context = createConversationContext(parsed.value.temporaryContext, knowledge);
     if (!context) {
       safeLog(settings.logger, 'request_context_rejected', { requestId, status: 400 });
@@ -358,7 +381,8 @@ export function createGuideHandler(options = {}) {
         'rate_limited',
         'The guide is receiving too many requests. Please try again shortly.',
         429,
-        origin.origin
+        origin.origin,
+        schemaVersion
       );
     }
     if (!await controlAllows(settings.budgetGuard, controlDetails)) {
@@ -369,7 +393,8 @@ export function createGuideHandler(options = {}) {
         'provider_unavailable',
         'The guide has reached its current usage limit. Please try again later.',
         503,
-        origin.origin
+        origin.origin,
+        schemaVersion
       );
     }
 
@@ -386,7 +411,7 @@ export function createGuideHandler(options = {}) {
       const envelope = baseEnvelope(requestId, knowledge.knowledgeVersion, {
         outcome,
         answerText: deterministic.response
-      });
+      }, schemaVersion);
       safeLog(settings.logger, 'guide_response', { requestId, outcome, status: 200 });
       return validatedGuideResponse(envelope, 200, requestId, knowledge, origin.origin);
     }
@@ -407,7 +432,8 @@ export function createGuideHandler(options = {}) {
         'internal_error',
         'The guide could not safely resolve that answer.',
         503,
-        origin.origin
+        origin.origin,
+        schemaVersion
       );
     }
 
@@ -428,7 +454,8 @@ export function createGuideHandler(options = {}) {
         code,
         'The guide is temporarily unavailable. Please try again.',
         503,
-        origin.origin
+        origin.origin,
+        schemaVersion
       );
     }
 
@@ -446,7 +473,8 @@ export function createGuideHandler(options = {}) {
         'internal_error',
         'The guide could not validate the generated answer.',
         503,
-        origin.origin
+        origin.origin,
+        schemaVersion
       );
     }
 
@@ -458,7 +486,8 @@ export function createGuideHandler(options = {}) {
         'internal_error',
         'The guide could not validate the answer references.',
         503,
-        origin.origin
+        origin.origin,
+        schemaVersion
       );
     }
 
@@ -468,7 +497,7 @@ export function createGuideHandler(options = {}) {
       factReferences,
       topicId: deterministic.topicId,
       ...route
-    });
+    }, schemaVersion);
     safeLog(settings.logger, 'guide_response', { requestId, outcome: 'answered', status: 200 });
     return validatedGuideResponse(envelope, 200, requestId, knowledge, origin.origin);
   };

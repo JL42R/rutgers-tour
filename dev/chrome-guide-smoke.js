@@ -91,8 +91,26 @@ async function finishScriptedDialogue(client) {
 }
 
 async function press(client, key, code, modifiers = 0) {
-  await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key, code, modifiers });
-  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', key, code, modifiers });
+  const virtualKeyCode = key === 'Enter' ? 13 : key === 'Tab' ? 9 : undefined;
+  const parameters = {
+    key,
+    code,
+    modifiers,
+    ...(virtualKeyCode === undefined ? {} : {
+      nativeVirtualKeyCode: virtualKeyCode,
+      windowsVirtualKeyCode: virtualKeyCode
+    })
+  };
+  await client.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...parameters });
+  if (key === 'Enter') {
+    await client.send('Input.dispatchKeyEvent', {
+      type: 'char',
+      ...parameters,
+      text: '\r',
+      unmodifiedText: '\r'
+    });
+  }
+  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', ...parameters });
 }
 
 async function approachGuide(client) {
@@ -126,17 +144,27 @@ async function approachGuide(client) {
 }
 
 async function reopenGuide(client) {
-  await evaluate(client, "document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE' }))");
+  await press(client, 'e', 'KeyE');
   await waitFor(client, 'document.querySelector("#dialogue.open")', 'guide replay');
 }
 
 async function enterQuestion(client, question) {
-  await evaluate(client, `(() => {
+  const focused = await evaluate(client, `(() => {
     const input = document.querySelector('#dlg-ai-question');
-    input.value = ${JSON.stringify(question)};
-    input.dispatchEvent(new Event('input', { bubbles: true }));
+    if (!input) return false;
+    input.value = '';
+    input.focus();
+    return document.activeElement === input;
   })()`);
-  await click(client, '.dlg-ai-actions button[type="submit"]');
+  if (!focused) throw new Error('Question input could not receive physical keyboard input.');
+  await client.send('Input.insertText', { text: question });
+  await press(client, 'Enter', 'Enter');
+  await waitFor(
+    client,
+    '!document.querySelector("#dlg-ai-question") || document.querySelector("#dlg-ai-question").disabled === true',
+    'physical Enter form submission',
+    2000
+  );
 }
 
 async function verifyNpcReplay(client, npcId, expectedName) {
@@ -184,6 +212,7 @@ async function successPhase(client) {
   }
   await click(client, '#dlg-choices button');
   await approachGuide(client);
+  await evaluate(client, 'document.querySelector("#tour-progress-toggle").focus()');
   await reopenGuide(client);
   await click(client, '#tour-progress-reset');
   if (!await evaluate(client, 'document.querySelector("#dialogue.open") !== null')) {
@@ -197,12 +226,30 @@ async function successPhase(client) {
 
   const initialFocus = await evaluate(client, 'document.activeElement.id');
   if (initialFocus !== 'dlg-ai-question') throw new Error('Question input did not receive focus.');
+  await evaluate(client, 'document.querySelector(".dlg-ai-actions button:last-child").focus()');
   await press(client, 'Tab', 'Tab');
-  const tabInside = await evaluate(client, 'document.querySelector("#dialogue").contains(document.activeElement)');
-  if (!tabInside) throw new Error('Tab escaped the dialogue.');
+  const wrappedForward = await evaluate(client, 'document.activeElement.id');
+  if (wrappedForward !== 'dlg-narration') throw new Error('Tab did not wrap to the first control.');
   await press(client, 'Tab', 'Tab', 8);
-  const shiftTabInside = await evaluate(client, 'document.querySelector("#dialogue").contains(document.activeElement)');
-  if (!shiftTabInside) throw new Error('Shift+Tab escaped the dialogue.');
+  const wrappedBackward = await evaluate(client, 'document.activeElement.textContent');
+  if (wrappedBackward !== 'Cancel') throw new Error('Shift+Tab did not wrap to the last control.');
+
+  const liveRegion = await evaluate(client, `(() => {
+    const text = document.querySelector('#dlg-text');
+    const narration = document.querySelector('#dlg-narration');
+    return {
+      live: text.getAttribute('aria-live'),
+      atomic: text.getAttribute('aria-atomic'),
+      narrationDescription: narration.getAttribute('aria-describedby'),
+      narrationState: document.querySelector('#dlg-narration-state').textContent
+    };
+  })()`);
+  if (liveRegion.live !== 'polite' || liveRegion.atomic !== 'true') {
+    throw new Error('Dialogue updates are not exposed through the expected atomic live region.');
+  }
+  if (liveRegion.narrationDescription !== 'dlg-narration-state' || !liveRegion.narrationState) {
+    throw new Error('Narration controls are missing accessible state text.');
+  }
 
   const narration = await evaluate(client, `(() => {
     const button = document.querySelector('#dlg-narration');
@@ -213,8 +260,37 @@ async function successPhase(client) {
   if (!narration.disabled && narration.after !== 'true') throw new Error('Narration toggle did not activate.');
 
   await enterQuestion(client, 'How do folded machines move?');
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("Contacting the localhost Worker")',
+    'loading announcement'
+  );
+  await press(client, 'Escape', 'Escape');
+  await waitFor(client, '!document.querySelector("#dialogue.open")', 'pending request cancellation');
+  const restoredAfterPendingEscape = await evaluate(client, 'document.activeElement.id');
+  if (restoredAfterPendingEscape !== 'tour-progress-toggle') {
+    throw new Error(`Pending Escape restored focus to ${restoredAfterPendingEscape || 'nothing'}.`);
+  }
+  await delay(250);
+  if (await evaluate(client, 'Boolean(document.querySelector("#dialogue.open"))')) {
+    throw new Error('A late pending response reopened the closed dialogue.');
+  }
+
+  await reopenGuide(client);
+  await finishScriptedDialogue(client);
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'How do folded machines move?');
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("Contacting the localhost Worker")',
+    'loading announcement before answer'
+  );
   await waitFor(client, 'document.querySelector("#dlg-text").textContent.includes("rotational motion")', 'grounded answer');
   const firstAnswer = await evaluate(client, 'document.querySelector("#dlg-text").textContent');
+  if (!firstAnswer.includes('Fictional Folded Machines Guide') ||
+      !firstAnswer.includes('Fictional Imaginary Workshop')) {
+    throw new Error('The first answer did not use authoritative friendly route names.');
+  }
   await click(client, '#dlg-choices button');
   await enterQuestion(client, 'Where can I find them?');
   await waitFor(client, 'document.querySelector("#dlg-text").textContent.includes("silver paper arrows")', 'canonical directions');
@@ -222,6 +298,24 @@ async function successPhase(client) {
   await click(client, '#dlg-choices button');
   await enterQuestion(client, 'What do they specialize in?');
   await waitFor(client, 'document.querySelector("#dlg-text").textContent.includes("rotational motion")', 'expertise follow-up');
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'Tell me about glass gardens.');
+  await waitFor(client, 'document.querySelector("#dlg-text").textContent.includes("suspended prism leaves")', 'second grounded topic');
+  const secondAnswer = await evaluate(client, 'document.querySelector("#dlg-text").textContent');
+  if (!secondAnswer.includes('Fictional Glass Gardens Guide') ||
+      !secondAnswer.includes('Fictional Prism Conservatory')) {
+    throw new Error('The second answer did not use authoritative friendly route names.');
+  }
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'Where can I find that?');
+  await waitFor(client, 'document.querySelector("#dlg-text").textContent.includes("violet glass tiles")', 'new-topic directions');
+  const secondDirections = await evaluate(client, 'document.querySelector("#dlg-text").textContent');
+  if (secondDirections.includes('silver paper arrows')) {
+    throw new Error('The second-topic follow-up reused the old route.');
+  }
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'Compare fictional folded machines and fictional glass gardens.');
+  await waitFor(client, 'document.querySelector("#dlg-text").textContent.includes("clarify")', 'ambiguous-topic clarification');
   await click(client, '#dlg-choices button');
   await enterQuestion(client, 'What is the weather tomorrow?');
   await waitFor(client, 'document.querySelector("#dlg-text").textContent.includes("verified answer")', 'unsupported fallback');
@@ -257,31 +351,43 @@ async function successPhase(client) {
   await finishScriptedDialogue(client);
   await click(client, '#dlg-choices button');
 
-  return { firstAnswer, directionsAnswer, narration };
+  return {
+    firstAnswer,
+    directionsAnswer,
+    secondAnswer,
+    secondDirections,
+    restoredAfterPendingEscape,
+    liveRegion,
+    narration
+  };
 }
 
 async function failurePhase(client) {
-  const alreadyFailed = await evaluate(client,
-    'document.querySelector("#dlg-text").textContent.includes("could not process")');
-  if (!alreadyFailed) {
-    const hasInput = await evaluate(client, 'Boolean(document.querySelector("#dlg-ai-question"))');
-    if (!hasInput) {
-      const firstButton = await evaluate(client,
-        'document.querySelector("#dlg-choices button")?.textContent ?? ""');
-      if (!firstButton.includes('Ask another')) {
-        const text = await evaluate(client, 'document.querySelector("#dlg-text").textContent');
-        throw new Error(`Backend failure setup is not at the question form: ${text}`);
-      }
-      await click(client, '#dlg-choices button');
-    }
-    await enterQuestion(client, 'How do folded machines move?');
-  }
+  await navigate(client, 'http://127.0.0.1:4179/?guideMock=1&guideBackend=local&guideTest=1');
+  await finishScriptedDialogue(client);
+  await click(client, '#dlg-choices button');
+  await approachGuide(client);
+  await reopenGuide(client);
+  await finishScriptedDialogue(client);
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'How do folded machines move?');
   await waitFor(
     client,
     'document.querySelector("#dlg-text").textContent.includes("could not process")',
     'safe backend failure'
   );
-  return { message: await evaluate(client, 'document.querySelector("#dlg-text").textContent') };
+  const announcement = await evaluate(client, `(() => {
+    const text = document.querySelector('#dlg-text');
+    return {
+      message: text.textContent,
+      live: text.getAttribute('aria-live'),
+      atomic: text.getAttribute('aria-atomic')
+    };
+  })()`);
+  if (announcement.live !== 'polite' || announcement.atomic !== 'true') {
+    throw new Error('Backend error was not shown in the dialogue live region.');
+  }
+  return announcement;
 }
 
 async function productionPhase(client) {
@@ -326,6 +432,9 @@ try {
   }
   if (phase === 'success' && !requests.some((url) => url === 'http://127.0.0.1:4188/guide')) {
     throw new Error('Chrome did not observe the localhost guide request.');
+  }
+  if (phase === 'failure' && !requests.some((url) => url === 'http://127.0.0.1:4188/guide')) {
+    throw new Error('Chrome did not observe the unavailable localhost guide request.');
   }
   if (phase === 'production' && requests.some((url) => url.includes(':4188/guide'))) {
     throw new Error('Production build attempted a localhost guide request.');

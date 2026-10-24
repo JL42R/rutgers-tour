@@ -23,6 +23,12 @@ const catalog = Object.freeze({
       canonicalDirections: 'Follow the fictional silver paper arrows.'
     }
   },
+  specialistNames: {
+    'npc-folded-machines-guide': 'Fictional Folded Machines Guide'
+  },
+  zoneNames: {
+    'zone-imaginary-workshop': 'Fictional Imaginary Workshop'
+  },
   zoneDirections: {
     'zone-imaginary-workshop': 'Follow the fictional silver paper arrows.'
   }
@@ -53,7 +59,9 @@ function validResponse() {
     }],
     topicId: 'folded-machines',
     specialistNpcId: 'npc-folded-machines-guide',
+    specialistName: 'Fictional Folded Machines Guide',
     destinationZoneId: 'zone-imaginary-workshop',
+    destinationZoneName: 'Fictional Imaginary Workshop',
     canonicalDirections: 'Follow the fictional silver paper arrows.',
     knowledgeVersion: 'fictional-2026-10-22.1',
     error: null
@@ -79,6 +87,42 @@ test('accepts a valid grounded response with canonical routing', () => {
     valid: true,
     errors: []
   });
+});
+
+test('v1.0 remains unchanged while v1.1 requires authoritative display names', () => {
+  const legacyResponse = { ...validResponse(), schemaVersion: '1.0' };
+  delete legacyResponse.specialistName;
+  delete legacyResponse.destinationZoneName;
+  const enrichedResponse = validResponse();
+
+  assert.equal(validateGuideResponse(legacyResponse, { catalog }).valid, true);
+  assert.equal(validateGuideResponse(enrichedResponse, { catalog }).valid, true);
+
+  const missingV11Name = validResponse();
+  delete missingV11Name.specialistName;
+  assert.ok(errorCodes(validateGuideResponse(missingV11Name, { catalog })).includes(
+    'missing_property'
+  ));
+});
+
+test('rejects model- or browser-invented display names', () => {
+  const inventedSpecialist = {
+    ...validResponse(),
+    specialistName: 'Visitor Invented Expert',
+    destinationZoneName: 'Fictional Imaginary Workshop'
+  };
+  const inventedZone = {
+    ...validResponse(),
+    specialistName: 'Fictional Folded Machines Guide',
+    destinationZoneName: 'Model Invented Room'
+  };
+
+  assert.ok(errorCodes(validateGuideResponse(inventedSpecialist, { catalog })).includes(
+    'noncanonical_display_name'
+  ));
+  assert.ok(errorCodes(validateGuideResponse(inventedZone, { catalog })).includes(
+    'noncanonical_display_name'
+  ));
 });
 
 test('rejects a response belonging to a different request', () => {
@@ -308,7 +352,9 @@ test('clarify and unsupported responses cannot assert facts or routing', () => {
       factReferences: [],
       topicId: null,
       specialistNpcId: null,
+      specialistName: null,
       destinationZoneId: null,
+      destinationZoneName: null,
       canonicalDirections: null,
       error: null
     };
@@ -327,7 +373,9 @@ test('unavailable responses require a structured error and no factual assertions
     factReferences: [],
     topicId: null,
     specialistNpcId: null,
+    specialistName: null,
     destinationZoneId: null,
+    destinationZoneName: null,
     canonicalDirections: null,
     error: { code: 'provider_timeout' }
   };

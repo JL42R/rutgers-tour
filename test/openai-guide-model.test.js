@@ -107,7 +107,7 @@ function guideRequest(question = 'How do folded machines move?') {
       'Origin': allowedOrigin
     },
     body: JSON.stringify({
-      schemaVersion: '1.0',
+      schemaVersion: '1.1',
       requestId: 'openai-e2e-request-001',
       question,
       temporaryContext: {
@@ -497,13 +497,15 @@ test('runs HTTP request through Worker, approved knowledge, adapter, and canonic
   assert.equal(response.status, 200);
   assert.equal(body.outcome, 'answered');
   assert.equal(body.requestId, 'openai-e2e-request-001');
-  assert.equal(body.knowledgeVersion, 'fictional-2026-10-22.1');
+  assert.equal(body.knowledgeVersion, 'fictional-2026-10-23.2');
   assert.deepEqual(body.factReferences, [{
     factId: 'fact-folded-machines-motion',
     sourceId: 'source-folded-machines-handbook'
   }]);
   assert.equal(body.specialistNpcId, 'npc-folded-machines-guide');
+  assert.equal(body.specialistName, 'Fictional Folded Machines Guide');
   assert.equal(body.destinationZoneId, 'zone-imaginary-workshop');
+  assert.equal(body.destinationZoneName, 'Fictional Imaginary Workshop');
   assert.equal(
     body.canonicalDirections,
     'From the fictional guide marker, follow the silver paper arrows to the imaginary workshop.'

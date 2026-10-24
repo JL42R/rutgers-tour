@@ -5,6 +5,7 @@ import {
   createApprovedKnowledgeView,
   createKnowledgeCatalog,
   GUIDE_KNOWLEDGE_SCHEMA_VERSION,
+  isKnowledgeLifecycleTransitionAllowed,
   KNOWLEDGE_LIFECYCLE_STATUSES,
   validateGuideKnowledge
 } from '../src/guide-knowledge-schema.js';
@@ -48,7 +49,9 @@ test('authoritative view includes only approved records', () => {
     assert.ok(approved.knowledge[collection].every((record) => record.status === 'approved'));
   }
   assert.deepEqual(approved.knowledge.facts.map((record) => record.id), [
-    'fact-folded-machines-motion'
+    'fact-folded-machines-motion',
+    'fact-glass-gardens-light',
+    'fact-glass-gardens-patterns'
   ]);
 });
 
@@ -59,9 +62,18 @@ test('draft records are excluded from authoritative knowledge', () => {
 });
 
 test('in-review records are excluded from authoritative knowledge', () => {
-  const approved = createApprovedKnowledgeView(fixture()).knowledge;
-  assert.equal(approved.topics.some((record) => record.id === 'glass-gardens'), false);
-  assert.equal(approved.facts.some((record) => record.id === 'fact-glass-gardens-light'), false);
+  const knowledge = fixture();
+  const source = knowledge.sources.find((record) => record.id === 'source-cloud-kite-notes');
+  const topic = knowledge.topics.find((record) => record.id === 'cloud-kites');
+  const fact = knowledge.facts.find((record) => record.id === 'fact-cloud-kites-color');
+  for (const record of [source, topic, fact]) {
+    record.status = 'in_review';
+    record.recordVersion += 1;
+  }
+
+  const approved = createApprovedKnowledgeView(knowledge).knowledge;
+  assert.equal(approved.topics.some((record) => record.id === 'cloud-kites'), false);
+  assert.equal(approved.facts.some((record) => record.id === 'fact-cloud-kites-color'), false);
 });
 
 test('retired records are excluded from authoritative knowledge', () => {
@@ -75,25 +87,119 @@ test('creates an API catalog from approved records only', () => {
 
   assert.equal(result.valid, true);
   assert.deepEqual(result.catalog, {
-    topicIds: ['folded-machines'],
-    specialistNpcIds: ['npc-folded-machines-guide'],
-    zoneIds: ['zone-imaginary-workshop'],
-    factIds: ['fact-folded-machines-motion'],
-    sourceIds: ['source-folded-machines-handbook'],
-    knowledgeVersions: ['fictional-2026-10-22.1'],
+    topicIds: ['folded-machines', 'glass-gardens'],
+    specialistNpcIds: ['npc-folded-machines-guide', 'npc-glass-gardens-guide'],
+    zoneIds: ['zone-imaginary-workshop', 'zone-prism-conservatory'],
+    factIds: [
+      'fact-folded-machines-motion',
+      'fact-glass-gardens-light',
+      'fact-glass-gardens-patterns'
+    ],
+    sourceIds: ['source-folded-machines-handbook', 'source-glass-garden-notes'],
+    knowledgeVersions: ['fictional-2026-10-23.2'],
     factSourceIds: {
-      'fact-folded-machines-motion': 'source-folded-machines-handbook'
+      'fact-folded-machines-motion': 'source-folded-machines-handbook',
+      'fact-glass-gardens-light': 'source-glass-garden-notes',
+      'fact-glass-gardens-patterns': 'source-glass-garden-notes'
     },
     specialistRoutes: {
       'npc-folded-machines-guide': {
         destinationZoneId: 'zone-imaginary-workshop',
+        specialistName: 'Fictional Folded Machines Guide',
+        destinationZoneName: 'Fictional Imaginary Workshop',
         canonicalDirections: 'From the fictional guide marker, follow the silver paper arrows to the imaginary workshop.'
+      },
+      'npc-glass-gardens-guide': {
+        destinationZoneId: 'zone-prism-conservatory',
+        specialistName: 'Fictional Glass Gardens Guide',
+        destinationZoneName: 'Fictional Prism Conservatory',
+        canonicalDirections: 'From the fictional guide marker, follow the violet glass tiles to the prism conservatory.'
       }
     },
+    specialistNames: {
+      'npc-folded-machines-guide': 'Fictional Folded Machines Guide',
+      'npc-glass-gardens-guide': 'Fictional Glass Gardens Guide'
+    },
+    zoneNames: {
+      'zone-imaginary-workshop': 'Fictional Imaginary Workshop',
+      'zone-prism-conservatory': 'Fictional Prism Conservatory'
+    },
     zoneDirections: {
-      'zone-imaginary-workshop': 'From the fictional guide marker, follow the silver paper arrows to the imaginary workshop.'
+      'zone-imaginary-workshop': 'From the fictional guide marker, follow the silver paper arrows to the imaginary workshop.',
+      'zone-prism-conservatory': 'From the fictional guide marker, follow the violet glass tiles to the prism conservatory.'
     }
   });
+});
+
+test('a fact becomes retrievable only after the reviewed lifecycle and disappears when retired', () => {
+  const knowledge = fixture();
+  const factId = 'fact-folded-machines-fold-count';
+  const topic = knowledge.topics.find((record) => record.id === 'folded-machines');
+  const fact = {
+    ...structuredClone(knowledge.facts[0]),
+    id: factId,
+    content: 'In this fictional fixture, a fold counter records each paper hinge movement.',
+    status: 'draft',
+    recordVersion: 1,
+    updatedAt: '2026-10-24',
+    approval: null
+  };
+  knowledge.facts.push(fact);
+
+  assert.equal(validateGuideKnowledge(knowledge).valid, true);
+  assert.equal(createApprovedKnowledgeView(knowledge).knowledge.facts.some(
+    (record) => record.id === factId
+  ), false);
+
+  assert.equal(isKnowledgeLifecycleTransitionAllowed('draft', 'in_review'), true);
+  fact.status = 'in_review';
+  fact.recordVersion = 2;
+  assert.equal(validateGuideKnowledge(knowledge).valid, true);
+  assert.equal(createApprovedKnowledgeView(knowledge).knowledge.facts.some(
+    (record) => record.id === factId
+  ), false);
+
+  fact.approval = {
+    reviewedBy: 'synthetic-fixture-reviewer',
+    reference: 'fixture-review-lifecycle-001',
+    reviewedAt: '2026-10-24'
+  };
+  assert.equal(validateGuideKnowledge(knowledge).valid, true);
+
+  assert.equal(isKnowledgeLifecycleTransitionAllowed('in_review', 'approved'), true);
+  fact.status = 'approved';
+  fact.recordVersion = 3;
+  topic.factIds.push(factId);
+  knowledge.knowledgeVersion = 'fictional-lifecycle-2';
+  assert.equal(validateGuideKnowledge(knowledge).valid, true);
+  assert.ok(createApprovedKnowledgeView(knowledge).knowledge.facts.some(
+    (record) => record.id === factId
+  ));
+  assert.deepEqual(createKnowledgeCatalog(knowledge).catalog.knowledgeVersions, [
+    'fictional-lifecycle-2'
+  ]);
+
+  assert.equal(isKnowledgeLifecycleTransitionAllowed('approved', 'retired'), true);
+  fact.status = 'retired';
+  fact.recordVersion = 4;
+  fact.approval = {
+    reviewedBy: 'synthetic-fixture-reviewer',
+    reference: 'fixture-retirement-lifecycle-001',
+    reviewedAt: '2026-10-24'
+  };
+  topic.factIds = topic.factIds.filter((id) => id !== factId);
+  knowledge.knowledgeVersion = 'fictional-lifecycle-3';
+  assert.equal(validateGuideKnowledge(knowledge).valid, true);
+  assert.equal(createApprovedKnowledgeView(knowledge).knowledge.facts.some(
+    (record) => record.id === factId
+  ), false);
+});
+
+test('rejects skipped or reversed lifecycle transitions', () => {
+  assert.equal(isKnowledgeLifecycleTransitionAllowed('draft', 'approved'), false);
+  assert.equal(isKnowledgeLifecycleTransitionAllowed('approved', 'in_review'), false);
+  assert.equal(isKnowledgeLifecycleTransitionAllowed('retired', 'approved'), false);
+  assert.equal(isKnowledgeLifecycleTransitionAllowed('visitor_claimed', 'approved'), false);
 });
 
 test('rejects duplicate topic IDs', () => {

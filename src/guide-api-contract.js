@@ -1,4 +1,10 @@
-export const GUIDE_API_SCHEMA_VERSION = '1.0';
+export const GUIDE_API_SCHEMA_VERSION = '1.1';
+export const GUIDE_API_LEGACY_SCHEMA_VERSION = '1.0';
+
+const SUPPORTED_GUIDE_API_SCHEMA_VERSIONS = Object.freeze([
+  GUIDE_API_LEGACY_SCHEMA_VERSION,
+  GUIDE_API_SCHEMA_VERSION
+]);
 
 export const GUIDE_RESPONSE_OUTCOMES = Object.freeze([
   'answered',
@@ -44,6 +50,10 @@ const RESPONSE_FIELDS = Object.freeze([
   'canonicalDirections',
   'knowledgeVersion',
   'error'
+]);
+const RESPONSE_DISPLAY_FIELDS = Object.freeze([
+  'specialistName',
+  'destinationZoneName'
 ]);
 
 const FACT_REFERENCE_FIELDS = Object.freeze(['factId', 'sourceId']);
@@ -149,6 +159,8 @@ function readCatalog(options) {
     knowledgeVersions: toAllowedSet(catalog.knowledgeVersions),
     factSourceIds: toLookupMap(catalog.factSourceIds),
     specialistRoutes: toLookupMap(catalog.specialistRoutes),
+    specialistNames: toLookupMap(catalog.specialistNames),
+    zoneNames: toLookupMap(catalog.zoneNames),
     zoneDirections: toLookupMap(catalog.zoneDirections)
   };
 }
@@ -219,12 +231,12 @@ function validateTemporaryContext(value, errors, catalog) {
 }
 
 function validateSchemaVersion(value, errors) {
-  if (value !== GUIDE_API_SCHEMA_VERSION) {
+  if (!SUPPORTED_GUIDE_API_SCHEMA_VERSIONS.includes(value)) {
     addError(
       errors,
       '$.schemaVersion',
       'unsupported_schema_version',
-      `Only schema version ${GUIDE_API_SCHEMA_VERSION} is supported.`
+      `Supported schema versions: ${SUPPORTED_GUIDE_API_SCHEMA_VERSIONS.join(', ')}.`
     );
   }
 }
@@ -399,11 +411,40 @@ function validateCanonicalData(value, errors, catalog) {
   }
 }
 
+function validateOptionalDisplayName(value, field, identifier, names, errors) {
+  if (!Object.hasOwn(value, field)) return;
+  const path = `$.${field}`;
+  const displayName = value[field];
+
+  if (displayName === null) {
+    if (identifier !== null) {
+      addError(errors, path, 'invalid_combination', 'A display name cannot be null when its ID is present.');
+    }
+    return;
+  }
+  if (!validateBoundedString(displayName, path, errors, { maximum: 160 })) return;
+  if (identifier === null) {
+    addError(errors, path, 'invalid_combination', 'A display name requires its canonical ID.');
+    return;
+  }
+  if (!names?.has(identifier) || names.get(identifier) !== displayName) {
+    addError(
+      errors,
+      path,
+      'noncanonical_display_name',
+      'Display name does not match the authoritative catalog.'
+    );
+  }
+}
+
 export function validateGuideResponse(value, options = {}) {
   const errors = [];
 
   try {
-    if (!validateExactFields(value, RESPONSE_FIELDS, '$', errors)) return result(errors);
+    const responseFields = value?.schemaVersion === GUIDE_API_LEGACY_SCHEMA_VERSION
+      ? RESPONSE_FIELDS
+      : [...RESPONSE_FIELDS, ...RESPONSE_DISPLAY_FIELDS];
+    if (!validateExactFields(value, responseFields, '$', errors)) return result(errors);
     const catalog = readCatalog(options);
 
     validateSchemaVersion(value.schemaVersion, errors);
@@ -431,6 +472,20 @@ export function validateGuideResponse(value, options = {}) {
       '$.destinationZoneId',
       errors,
       catalog.zoneIds
+    );
+    validateOptionalDisplayName(
+      value,
+      'specialistName',
+      value.specialistNpcId,
+      catalog.specialistNames,
+      errors
+    );
+    validateOptionalDisplayName(
+      value,
+      'destinationZoneName',
+      value.destinationZoneId,
+      catalog.zoneNames,
+      errors
     );
 
     if (value.canonicalDirections !== null) {

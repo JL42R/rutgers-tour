@@ -6,7 +6,8 @@ is deliberately fictional.
 
 ## API boundary
 
-`src/guide-api-contract.js` defines version `1.0` request and response envelopes. The browser sends
+`src/guide-api-contract.js` defines the current version `1.1` and legacy-compatible version `1.0`
+request and response envelopes. The browser sends
 only a request ID, a visitor question, and bounded temporary topic/specialist/zone IDs. It cannot
 submit facts, approval state, canonical routes, transcripts, visitor identifiers, or provider
 payloads.
@@ -19,9 +20,11 @@ knowledge. It returns one of four outcomes:
 - `unsupported` — no approved answer is available;
 - `unavailable` — a structured provider, rate-limit, or internal failure plus safe fallback text.
 
-Canonical specialist IDs, destination zone IDs, and directions are response-only fields. The server
-constructs them from approved records; model output and browser state never become authoritative.
-Schema versions allow a future endpoint to support old and new clients during a controlled upgrade.
+Canonical specialist IDs, destination zone IDs, directions, and optional friendly display names are
+response-only fields. The server constructs them from approved records; model output and browser
+state never become authoritative. Schema v1.1 adds required `specialistName` and
+`destinationZoneName` fields while the endpoint continues to accept v1.0 requests and returns the
+unchanged v1.0 response shape to those clients. This avoids breaking v1.0's exact-field validator.
 
 ## Knowledge records
 
@@ -32,8 +35,10 @@ may reference only approved topics and sources. Approved specialist routes may r
 approved topics and destination zones with canonical directions.
 
 `createApprovedKnowledgeView` removes every non-approved record. `createKnowledgeCatalog` derives
-the identifier lists used by the API validators. These functions should run in the future Worker;
-the browser is not a security boundary.
+the identifier and friendly-name maps used by the API validators. The focused
+`isKnowledgeLifecycleTransitionAllowed` helper checks the reviewed draft → in-review → approved →
+retired publication path separately from snapshot validation. These functions should run in the
+future Worker; the browser is not a security boundary.
 
 The first production knowledge file should be bundled with the Worker from a repository-controlled
 location rather than trusted from visitor input or a public URL.
@@ -89,6 +94,9 @@ constrained structured generation, model-output validation, fixed evaluations, r
 human review of the source knowledge.
 
 ## Next integration boundary
+
+The practical process for replacing fictional records with verified facility information is in
+`docs/GUIDE_KNOWLEDGE_INTAKE.md`.
 
 The next isolated stage should implement a Worker-compatible request handler with a mocked model:
 

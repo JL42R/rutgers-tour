@@ -27,6 +27,24 @@ function fakeProviderResponse(result) {
   });
 }
 
+function waitForFakeProviderDelay(delayMs, signal) {
+  if (delayMs <= 0) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, delayMs);
+    const onAbort = () => {
+      clearTimeout(timer);
+      const error = new Error('Fake provider request was cancelled.');
+      error.name = 'AbortError';
+      reject(error);
+    };
+    signal?.addEventListener('abort', onAbort, { once: true });
+    if (signal?.aborted) onAbort();
+  });
+}
+
 /** Deterministic fetch double for the OpenAI adapter. It never performs I/O. */
 export function createFakeOpenAIFetch(options = {}) {
   const mode = options.mode ?? 'success';
@@ -43,6 +61,7 @@ export function createFakeOpenAIFetch(options = {}) {
       store: providerBody.store,
       toolCount: Array.isArray(providerBody.tools) ? providerBody.tools.length : -1
     }));
+    await waitForFakeProviderDelay(options.delayMs ?? 0, init.signal);
 
     if (mode === 'http_error') return new Response('{}', { status: 503 });
     if (mode === 'refusal') {
@@ -108,6 +127,7 @@ export async function createLocalGuideServer(options = {}) {
   const loadKnowledge = options.loadKnowledge ?? await defaultKnowledgeLoader();
   const providerFetch = options.providerFetch ?? createFakeOpenAIFetch({
     mode: options.providerMode,
+    delayMs: options.providerDelayMs,
     onRequest: options.onProviderRequest
   });
   const model = createOpenAIGuideModel({
@@ -175,7 +195,7 @@ export async function createLocalGuideServer(options = {}) {
 }
 
 async function runFromCommandLine() {
-  const app = await createLocalGuideServer();
+  const app = await createLocalGuideServer({ providerDelayMs: 500 });
   await app.start();
   console.log(`Local fictional guide listening at http://${LOCAL_GUIDE_HOST}:${LOCAL_GUIDE_PORT}/guide`);
   console.log(`Allowed browser origin: ${LOCAL_TOUR_ORIGIN}`);

@@ -7,6 +7,21 @@ export const KNOWLEDGE_LIFECYCLE_STATUSES = Object.freeze([
   'retired'
 ]);
 
+const KNOWLEDGE_LIFECYCLE_TRANSITIONS = Object.freeze({
+  draft: Object.freeze(['in_review']),
+  in_review: Object.freeze(['draft', 'approved']),
+  approved: Object.freeze(['retired']),
+  retired: Object.freeze([])
+});
+
+/**
+ * Check an intentional publication-state change. Snapshot validation remains
+ * separate because a valid record does not prove that its transition was valid.
+ */
+export function isKnowledgeLifecycleTransitionAllowed(previousStatus, nextStatus) {
+  return KNOWLEDGE_LIFECYCLE_TRANSITIONS[previousStatus]?.includes(nextStatus) ?? false;
+}
+
 const CLASSIFICATIONS = Object.freeze(['production', 'synthetic_fixture']);
 const TOP_LEVEL_FIELDS = Object.freeze([
   'schemaVersion',
@@ -539,6 +554,12 @@ export function createKnowledgeCatalog(value) {
   const zoneDirections = Object.freeze(Object.fromEntries(
     knowledge.zones.map((record) => [record.id, record.canonicalDirections])
   ));
+  const specialistNames = Object.freeze(Object.fromEntries(
+    knowledge.specialists.map((record) => [record.id, record.name])
+  ));
+  const zoneNames = Object.freeze(Object.fromEntries(
+    knowledge.zones.map((record) => [record.id, record.name])
+  ));
   return Object.freeze({
     valid: true,
     errors: Object.freeze([]),
@@ -555,11 +576,17 @@ export function createKnowledgeCatalog(value) {
       specialistRoutes: Object.freeze(Object.fromEntries(
         knowledge.specialists.map((record) => [record.id, Object.freeze({
           destinationZoneId: record.destinationZoneId,
+          specialistName: record.name,
+          destinationZoneName: record.destinationZoneId === null
+            ? null
+            : zoneNames[record.destinationZoneId],
           canonicalDirections: record.destinationZoneId === null
             ? null
             : zoneDirections[record.destinationZoneId]
         })])
       )),
+      specialistNames,
+      zoneNames,
       zoneDirections
     })
   });

@@ -7,25 +7,52 @@ import {
 export const LOCAL_GUIDE_ENDPOINT = 'http://127.0.0.1:4188/guide';
 
 export const LOCAL_GUIDE_CATALOG = Object.freeze({
-  topicIds: Object.freeze(['folded-machines']),
-  specialistNpcIds: Object.freeze(['npc-folded-machines-guide']),
-  zoneIds: Object.freeze(['zone-imaginary-workshop']),
-  factIds: Object.freeze(['fact-folded-machines-motion']),
-  sourceIds: Object.freeze(['source-folded-machines-handbook']),
-  knowledgeVersions: Object.freeze(['fictional-2026-10-22.1']),
+  topicIds: Object.freeze(['folded-machines', 'glass-gardens']),
+  specialistNpcIds: Object.freeze([
+    'npc-folded-machines-guide',
+    'npc-glass-gardens-guide'
+  ]),
+  zoneIds: Object.freeze(['zone-imaginary-workshop', 'zone-prism-conservatory']),
+  factIds: Object.freeze([
+    'fact-folded-machines-motion',
+    'fact-glass-gardens-light',
+    'fact-glass-gardens-patterns'
+  ]),
+  sourceIds: Object.freeze([
+    'source-folded-machines-handbook',
+    'source-glass-garden-notes'
+  ]),
+  knowledgeVersions: Object.freeze(['fictional-2026-10-23.2']),
   factSourceIds: Object.freeze({
-    'fact-folded-machines-motion': 'source-folded-machines-handbook'
+    'fact-folded-machines-motion': 'source-folded-machines-handbook',
+    'fact-glass-gardens-light': 'source-glass-garden-notes',
+    'fact-glass-gardens-patterns': 'source-glass-garden-notes'
   }),
   specialistRoutes: Object.freeze({
     'npc-folded-machines-guide': Object.freeze({
       destinationZoneId: 'zone-imaginary-workshop',
       canonicalDirections:
         'From the fictional guide marker, follow the silver paper arrows to the imaginary workshop.'
+    }),
+    'npc-glass-gardens-guide': Object.freeze({
+      destinationZoneId: 'zone-prism-conservatory',
+      canonicalDirections:
+        'From the fictional guide marker, follow the violet glass tiles to the prism conservatory.'
     })
+  }),
+  specialistNames: Object.freeze({
+    'npc-folded-machines-guide': 'Fictional Folded Machines Guide',
+    'npc-glass-gardens-guide': 'Fictional Glass Gardens Guide'
+  }),
+  zoneNames: Object.freeze({
+    'zone-imaginary-workshop': 'Fictional Imaginary Workshop',
+    'zone-prism-conservatory': 'Fictional Prism Conservatory'
   }),
   zoneDirections: Object.freeze({
     'zone-imaginary-workshop':
-      'From the fictional guide marker, follow the silver paper arrows to the imaginary workshop.'
+      'From the fictional guide marker, follow the silver paper arrows to the imaginary workshop.',
+    'zone-prism-conservatory':
+      'From the fictional guide marker, follow the violet glass tiles to the prism conservatory.'
   })
 });
 
@@ -79,7 +106,9 @@ function resultFromEnvelope(envelope) {
     topicId: envelope.topicId,
     response: envelope.answerText,
     destinationNpcId: envelope.specialistNpcId,
+    specialistName: envelope.specialistName ?? null,
     destinationZoneId: envelope.destinationZoneId,
+    destinationZoneName: envelope.destinationZoneName ?? null,
     directions: envelope.canonicalDirections,
     score: 0
   });

@@ -16,6 +16,7 @@ const DESTINATION_FOLLOW_UPS = new Set([
   'where are they',
   'where can i find her',
   'where can i find him',
+  'where can i find that',
   'where can i find them',
   'where is that',
   'where is the specialist'

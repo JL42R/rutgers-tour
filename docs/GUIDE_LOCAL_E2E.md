@@ -34,6 +34,10 @@ existing hallway-guide + Dialogue
   -> browser validation and existing Dialogue UI
 ```
 
+The local browser uses API schema v1.1 so approved friendly specialist and destination names cross
+the Worker boundary. The handler still supports v1.0 callers and omits the v1.1-only name fields in
+their responses.
+
 The fake provider returns only answer text, the selected topic, and allowed fact IDs. The Worker
 reconstructs citations, specialist IDs, destination IDs, and canonical directions from its
 server-owned approved fixture. Unsupported questions bypass the provider. Provider errors,
@@ -65,6 +69,8 @@ finish its scripted branch, and select **Ask a question**. Try:
 - `How do folded machines move?`
 - `Where can I find them?`
 - `What do they specialize in?`
+- `Tell me about glass gardens.`
+- `Where can I find that?`
 - `What is the weather tomorrow?` (safe unsupported fallback)
 
 To simulate browser-visible backend failure, stop only the backend window with `Ctrl+C`, leave Vite
@@ -79,16 +85,18 @@ npm.cmd test
 npm.cmd run build
 ```
 
-The local E2E test binds the shim, makes a real loopback request, and closes it in `finally`. The
-browser adapter tests cover validation, wrong request IDs, invalid JSON, connection failure,
-superseding requests, abort, reset, and ID-only context. Worker and OpenAI adapter suites cover
-unknown IDs, ambiguity, timeout, refusal, malformed output, rate denial, budget denial, prompt
-injection, canonical routing, and logging privacy.
+The local E2E test binds the shim, makes real loopback requests for both approved topics, and closes
+it in `finally`. The browser adapter tests cover validation, authoritative friendly names, wrong
+request IDs, invalid JSON, connection failure, superseding requests, late responses, abort, reset,
+and ID-only context. Worker and OpenAI adapter suites cover unknown IDs, ambiguity, timeout,
+refusal, malformed output, rate denial, budget denial, prompt injection, canonical routing, and
+logging privacy. The Chrome runner uses physical Enter/Escape/Tab key events and checks the live
+region and exact focus restoration; this is automated browser coverage, not a manual NVDA claim.
 
 ## Known local-preview limits
 
-The authoritative fixture currently contains one approved supported topic (`folded-machines`) and
-one specialist route. Draft, in-review, and retired topics intentionally remain unavailable, so a
-second approved-topic context switch cannot be demonstrated without a separately reviewed fixture
-version. Rate and budget controls are injected test interfaces, not durable distributed controls.
-No NVDA claim is made; an actual NVDA session remains required.
+The authoritative fixture contains two approved synthetic topics (`folded-machines` and
+`glass-gardens`) with separate specialists, destinations, friendly names, and canonical routes.
+Draft and retired fixture records remain unavailable. Rate and budget controls are injected test
+interfaces, not durable distributed controls. No NVDA claim is made; an actual NVDA session remains
+required.

@@ -9,7 +9,7 @@ import {
 
 function envelope(request, overrides = {}) {
   return {
-    schemaVersion: '1.0',
+    schemaVersion: '1.1',
     requestId: request.requestId,
     outcome: 'answered',
     answerText: 'Approved fictional answer.',
@@ -19,10 +19,12 @@ function envelope(request, overrides = {}) {
     }],
     topicId: 'folded-machines',
     specialistNpcId: 'npc-folded-machines-guide',
+    specialistName: 'Fictional Folded Machines Guide',
     destinationZoneId: 'zone-imaginary-workshop',
+    destinationZoneName: 'Fictional Imaginary Workshop',
     canonicalDirections:
       'From the fictional guide marker, follow the silver paper arrows to the imaginary workshop.',
-    knowledgeVersion: 'fictional-2026-10-22.1',
+    knowledgeVersion: 'fictional-2026-10-23.2',
     error: null,
     ...overrides
   };
@@ -49,6 +51,8 @@ test('local browser client sends a validated envelope and keeps bounded ID-only 
 
   assert.equal(first.result.type, 'route');
   assert.equal(first.result.destinationNpcId, 'npc-folded-machines-guide');
+  assert.equal(first.result.specialistName, 'Fictional Folded Machines Guide');
+  assert.equal(first.result.destinationZoneName, 'Fictional Imaginary Workshop');
   assert.deepEqual(requests[0].temporaryContext, {
     topicIds: [], specialistNpcIds: [], destinationZoneIds: []
   });
@@ -132,6 +136,60 @@ test('a newer question aborts and invalidates the older browser request', async 
   assert.equal((await first).stale, true);
   assert.equal(firstSignal.aborted, true);
   assert.equal((await second).stale, false);
+});
+
+test('an older response arriving after a newer answer stays stale and cannot restore old context', async () => {
+  let resolveFirst;
+  let calls = 0;
+  const session = createLocalGuideSession({
+    fetchImpl(url, init) {
+      calls += 1;
+      const request = JSON.parse(init.body);
+      if (calls === 1) {
+        return new Promise((resolve) => {
+          resolveFirst = () => resolve(new Response(JSON.stringify(envelope(request))));
+        });
+      }
+      return Promise.resolve(new Response(JSON.stringify(envelope(request, {
+        topicId: 'glass-gardens',
+        factReferences: [{
+          factId: 'fact-glass-gardens-light',
+          sourceId: 'source-glass-garden-notes'
+        }],
+        specialistNpcId: 'npc-glass-gardens-guide',
+        specialistName: 'Fictional Glass Gardens Guide',
+        destinationZoneId: 'zone-prism-conservatory',
+        destinationZoneName: 'Fictional Prism Conservatory',
+        canonicalDirections:
+          'From the fictional guide marker, follow the violet glass tiles to the prism conservatory.'
+      }))));
+    }
+  });
+  const first = session.ask('How do folded machines move?');
+  while (!resolveFirst) await new Promise((resolve) => setImmediate(resolve));
+  const second = await session.ask('Tell me about glass gardens.');
+  resolveFirst();
+
+  assert.equal((await first).stale, true);
+  assert.equal(second.result.topicId, 'glass-gardens');
+  assert.deepEqual(session.getState(), {
+    topicIds: ['glass-gardens'],
+    specialistNpcIds: ['npc-glass-gardens-guide'],
+    destinationZoneIds: ['zone-prism-conservatory']
+  });
+});
+
+test('browser response validation rejects invented friendly names', async () => {
+  const session = createLocalGuideSession({
+    fetchImpl: async (url, init) => {
+      const request = JSON.parse(init.body);
+      return new Response(JSON.stringify(envelope(request, {
+        specialistName: 'Invented Browser Specialist'
+      })));
+    }
+  });
+
+  await assert.rejects(session.ask('How do folded machines move?'), /invalid response/);
 });
 
 test('network failure becomes a safe local-backend error without storing the question', async () => {

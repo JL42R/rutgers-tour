@@ -24,11 +24,11 @@ export function formatGuideMockResult(result, knowledge = PREVIEW_KNOWLEDGE) {
   const pieces = [result?.response || 'The simulated guide could not answer safely.'];
   const specialist = knowledge.specialists.find((item) => item.id === result?.destinationNpcId);
   const zone = knowledge.zones.find((item) => item.id === result?.destinationZoneId);
+  const specialistName = result?.specialistName ?? specialist?.displayName ?? null;
+  const destinationZoneName = result?.destinationZoneName ?? zone?.label ?? null;
 
-  if (specialist) pieces.push(`Specialist: ${specialist.displayName}.`);
-  else if (result?.destinationNpcId) pieces.push(`Specialist: ${result.destinationNpcId}.`);
-  if (zone) pieces.push(`Destination: ${zone.label}.`);
-  else if (result?.destinationZoneId) pieces.push(`Destination: ${result.destinationZoneId}.`);
+  if (specialistName) pieces.push(`Specialist: ${specialistName}.`);
+  if (destinationZoneName) pieces.push(`Destination: ${destinationZoneName}.`);
   if (result?.directions && result.directions !== result.response) {
     pieces.push(`Directions: ${result.directions}`);
   }

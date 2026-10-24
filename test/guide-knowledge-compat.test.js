@@ -29,15 +29,22 @@ function frozenClone(value) {
 test('converts only an approved view into the Stage 2–4 knowledge shape', () => {
   const legacy = createLegacyGuideKnowledge(approvedFixture());
 
-  assert.equal(legacy.knowledgeVersion, 'fictional-2026-10-22.1');
-  assert.deepEqual(legacy.topics.map((topic) => topic.id), ['folded-machines']);
+  assert.equal(legacy.knowledgeVersion, 'fictional-2026-10-23.2');
+  assert.deepEqual(legacy.topics.map((topic) => topic.id), [
+    'folded-machines',
+    'glass-gardens'
+  ]);
   assert.equal(legacy.topics[0].status, 'verified');
   assert.equal(legacy.topics[0].facts[0].status, 'approved');
   assert.equal(legacy.topics[0].facts[0].text.includes('fictional fixture'), true);
   assert.deepEqual(legacy.specialists.map((record) => record.id), [
-    'npc-folded-machines-guide'
+    'npc-folded-machines-guide',
+    'npc-glass-gardens-guide'
   ]);
-  assert.deepEqual(legacy.zones.map((record) => record.id), ['zone-imaginary-workshop']);
+  assert.deepEqual(legacy.zones.map((record) => record.id), [
+    'zone-imaginary-workshop',
+    'zone-prism-conservatory'
+  ]);
 });
 
 test('rejects the raw knowledge document instead of silently filtering it', () => {
@@ -105,13 +112,32 @@ test('existing Stage 4 request and response validators accept converted facts', 
   assert.equal(validation.valid, true);
 });
 
-test('draft, in-review, and retired topics never enter converted knowledge', () => {
+test('draft and retired topics never enter converted knowledge', () => {
   const legacy = createLegacyGuideKnowledge(approvedFixture());
   const ids = legacy.topics.map((topic) => topic.id);
 
   assert.equal(ids.includes('cloud-kites'), false);
-  assert.equal(ids.includes('glass-gardens'), false);
+  assert.equal(ids.includes('glass-gardens'), true);
   assert.equal(ids.includes('clockwork-coral'), false);
+});
+
+test('the second approved topic keeps its own facts and canonical route', () => {
+  const legacy = createLegacyGuideKnowledge(approvedFixture());
+  const topic = legacy.topics.find((record) => record.id === 'glass-gardens');
+  const specialist = legacy.specialists.find(
+    (record) => record.id === 'npc-glass-gardens-guide'
+  );
+
+  assert.deepEqual(topic.facts.map((fact) => fact.id), [
+    'fact-glass-gardens-light',
+    'fact-glass-gardens-patterns'
+  ]);
+  assert.equal(topic.destinationNpcId, 'npc-glass-gardens-guide');
+  assert.equal(topic.destinationZoneId, 'zone-prism-conservatory');
+  assert.equal(
+    specialist.directions,
+    'From the fictional guide marker, follow the violet glass tiles to the prism conservatory.'
+  );
 });
 
 test('rejects an orphan approved fact', () => {

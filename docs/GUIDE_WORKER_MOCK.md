@@ -5,7 +5,8 @@ All knowledge is fictional, all model behavior is local, and no visitor question
 
 ## Request path
 
-The future browser adapter sends a version `1.0` JSON request to one configured HTTPS endpoint. The
+The browser adapter sends a version `1.1` JSON request to one configured HTTPS endpoint; the
+handler also accepts legacy `1.0` callers and preserves their original response shape. The
 Worker applies origin, method, content-type, byte-size, schema, question-length, and context-ID
 checks before matching the question. CORS limits which browser origins can read responses; it is not
 authentication and does not prevent direct calls to a public endpoint.
@@ -90,7 +91,8 @@ identifiers are not logged or stored by this implementation.
 Provider errors, invalid model output, unknown fact references, timeout, rate denial, and budget
 denial return validated `unavailable` envelopes. Unsupported and ambiguous questions bypass the
 model and return `unsupported` or `clarify`. Canonical specialist, zone, and direction values are
-always rebuilt from server-owned approved records.
+always rebuilt from server-owned approved records. Version `1.1` also returns friendly specialist
+and destination names from those same authoritative records; the model cannot submit them.
 
 ## Decisions required before a live connection
 
