@@ -3,6 +3,7 @@ import {
   createKnowledgeCatalog
 } from '../../src/guide-knowledge-schema.js';
 import { createLegacyGuideKnowledge } from '../../src/guide-knowledge-compat.js';
+import { createApprovedKnowledgeRetriever } from '../../src/guide-knowledge-retrieval.js';
 
 export class ApprovedKnowledgeError extends Error {
   constructor(message, validationErrors = []) {
@@ -35,6 +36,7 @@ export function prepareApprovedKnowledge(rawKnowledge) {
 
   const approved = approvedResult.knowledge;
   const legacy = createLegacyGuideKnowledge(approved);
+  const retriever = createApprovedKnowledgeRetriever(approved);
   const facts = indexById(approved.facts);
   const topics = indexById(approved.topics);
   const specialists = indexById(approved.specialists);
@@ -45,6 +47,9 @@ export function prepareApprovedKnowledge(rawKnowledge) {
     approved,
     catalog: catalogResult.catalog,
     legacy,
+    retrieve(question, options) {
+      return retriever.search(question, options);
+    },
     getFact(factId) {
       return facts.get(factId) ?? null;
     },

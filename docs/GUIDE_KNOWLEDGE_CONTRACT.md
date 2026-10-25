@@ -76,15 +76,17 @@ Adding records changes data, not the matching or conversation engine. If the app
 outgrows deterministic lookup, the same record IDs, lifecycle, approval, version, and source fields
 can feed a retrieval index. Indexing approved documents is retrieval, not model fine-tuning.
 
-## Future knowledge-gap workflow
+## Minimized knowledge-gap boundary
 
-A future, separately privacy-approved system may count minimized outcome categories such as
+The offline synthetic demonstration may aggregate minimized outcome categories such as
 unsupported topic, missing source coverage, or ambiguous classification. It should aggregate these
 signals without storing raw questions, answers, IP addresses, transcripts, or visitor profiles.
 Authenticated team members may review recurring gaps and begin the publication workflow above.
 Visitor statements and AI-generated text never become approved facts automatically.
 
-No feedback collection, database, persistence, or visitor logging is implemented by this work.
+`src/guide-knowledge-gaps.js` validates only knowledge version, general category, outcome code, and
+aggregate count. No live feedback collection, database, persistence, or visitor logging is
+implemented by this work.
 
 ## Grounding limitation
 
@@ -93,19 +95,18 @@ natural-language prose. A real release still requires server-side approved-fact 
 constrained structured generation, model-output validation, fixed evaluations, refusal testing, and
 human review of the source knowledge.
 
-## Next integration boundary
+## Document retrieval integration
 
-The practical process for replacing fictional records with verified facility information is in
-`docs/GUIDE_KNOWLEDGE_INTAKE.md`.
-
-The next isolated stage should implement a Worker-compatible request handler with a mocked model:
+The practical process for replacing fictional records with verified facility information remains in
+`docs/GUIDE_KNOWLEDGE_INTAKE.md`. The offline document milestone is detailed in
+`docs/GUIDE_DOCUMENT_RETRIEVAL.md` and now exercises this local path:
 
 ```text
-CORE Guide dialogue -> validated request -> Worker handler -> approved knowledge retrieval
+fixed evaluation -> validated request -> Worker handler -> approved passage retrieval
                     -> mocked model -> server validation -> validated response -> dialogue
 ```
 
-That handler should add method/content-type/body limits, cancellation, timeouts, canonical route
-resolution, rate-limit and budget interfaces, and privacy-safe operational outcomes. Real provider
-credentials, API calls, public deployment, billing, and data collection remain separately approved
-work.
+Ingestion creates only draft candidates. A separate simulated trusted administrative operation is
+required for review, approval, knowledge-version changes, and retirement. Real provider credentials,
+API calls, public deployment, authentication, billing, and data collection remain separately
+approved work.

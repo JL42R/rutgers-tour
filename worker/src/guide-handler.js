@@ -228,6 +228,48 @@ function canonicalRoute(result, knowledge) {
   });
 }
 
+function matchedRetrievalResult(retrieval, knowledge) {
+  if (retrieval?.outcome === 'ambiguous') {
+    return {
+      type: 'clarify',
+      topicId: null,
+      response: 'Could you clarify which approved topic you mean?',
+      score: 0
+    };
+  }
+  if (retrieval?.outcome !== 'matched' || !retrieval.topicId || !retrieval.results?.length) {
+    return null;
+  }
+
+  const topic = knowledge.legacy.topics.find((entry) => entry.id === retrieval.topicId);
+  if (!topic) return null;
+  const score = retrieval.results[0].score;
+  if (topic.type === 'route') {
+    return {
+      type: 'route',
+      topicId: topic.id,
+      response: topic.response,
+      destinationNpcId: topic.destinationNpcId,
+      destinationZoneId: topic.destinationZoneId,
+      score
+    };
+  }
+  return {
+    type: 'answer',
+    topicId: topic.id,
+    response: topic.response,
+    score
+  };
+}
+
+function retrievalTopicProjection(topic, retrieval) {
+  if (!topic || retrieval?.outcome !== 'matched' || retrieval.topicId !== topic.id) return topic;
+  const selected = new Set(retrieval.results.map((entry) => entry.factId));
+  const facts = topic.facts.filter((fact) => selected.has(fact.id));
+  if (!facts.length) return null;
+  return Object.freeze({ ...topic, facts: Object.freeze(facts) });
+}
+
 function baseEnvelope(requestId, knowledgeVersion, overrides, schemaVersion) {
   const envelope = {
     schemaVersion,
@@ -398,11 +440,19 @@ export function createGuideHandler(options = {}) {
       );
     }
 
+    let retrieval = null;
+    const approvedRetrievalMatcher = (question, topics, matcherOptions) => {
+      retrieval = typeof knowledge.retrieve === 'function'
+        ? knowledge.retrieve(question, { limit: 4 })
+        : null;
+      const retrieved = matchedRetrievalResult(retrieval, knowledge);
+      return retrieved ?? matchQuestion(question, topics, matcherOptions);
+    };
     const resolution = handleGuideQuestion(
       parsed.value.question,
       knowledge.legacy,
       context,
-      { matchQuestion }
+      { matchQuestion: approvedRetrievalMatcher }
     );
     const deterministic = resolution.result;
 
@@ -416,7 +466,10 @@ export function createGuideHandler(options = {}) {
       return validatedGuideResponse(envelope, 200, requestId, knowledge, origin.origin);
     }
 
-    const topic = knowledge.legacy.topics.find((entry) => entry.id === deterministic.topicId);
+    const topic = retrievalTopicProjection(
+      knowledge.legacy.topics.find((entry) => entry.id === deterministic.topicId),
+      retrieval
+    );
     const modelRequest = createModelRequest(
       parsed.value.question,
       topic,

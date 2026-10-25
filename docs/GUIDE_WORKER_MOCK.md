@@ -12,8 +12,9 @@ checks before matching the question. CORS limits which browser origins can read 
 authentication and does not prevent direct calls to a public endpoint.
 
 For valid requests, the handler loads a server-owned knowledge version, removes every non-approved
-record, converts the approved view for the existing Stage 2–4 modules, matches the question, and
-retrieves the approved facts for that topic. The browser never supplies facts, approval state,
+record, builds the deterministic approved-only lexical index, and retrieves ranked passages before
+converting the approved view for the existing Stage 2–4 modules. The original deterministic matcher
+remains a fallback. The browser never supplies facts, approval state,
 specialist mappings, destination mappings, or directions.
 
 ## Approved knowledge loading
@@ -26,6 +27,10 @@ reviewed JSON with the Worker so a public browser asset cannot become the author
 Publishing new information remains a source-control operation: draft, review, approval metadata,
 fixed-question tests, merge approval, and deployment under a new `knowledgeVersion`. Rollback means
 redeploying the last reviewed version or reverting the knowledge change.
+
+The offline document milestone is described in `GUIDE_DOCUMENT_RETRIEVAL.md`. Passage section and
+line locations are retained internally by retrieval. Public API versions 1.0 and 1.1 remain
+unchanged and continue to expose stable fact/source references only.
 
 ## Model interface
 

@@ -124,3 +124,12 @@ If inaccurate information is published:
 
 Visitor questions and AI-generated prose never become facts automatically. This phase adds no
 public editor, analytics store, transcript storage, or persistent visitor profile.
+
+## Offline document-ingestion prototype
+
+The fictional document workflow in `docs/GUIDE_DOCUMENT_RETRIEVAL.md` automates only mechanical
+preparation: format and metadata validation, safe text normalization, bounded passage splitting,
+stable IDs, and draft candidate creation. It does not decide whether a passage is true, useful, or
+approved. A domain reviewer must still verify every candidate and source location through the
+publication workflow above. The local trusted transition helper is a test capability, not real
+authentication or authorization.

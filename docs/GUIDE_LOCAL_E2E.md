@@ -100,3 +100,8 @@ The authoritative fixture contains two approved synthetic topics (`folded-machin
 Draft and retired fixture records remain unavailable. Rate and budget controls are injected test
 interfaces, not durable distributed controls. No NVDA claim is made; an actual NVDA session remains
 required.
+
+The document-ingestion fixtures are intentionally not loaded into this browser preview. Their
+draft/review/approval/retirement sequence is exercised through the actual Worker handler in Node
+tests, which keeps synthetic documents out of the Vite production graph and leaves this established
+two-topic Chrome path stable.
