@@ -159,6 +159,37 @@ test('actual Worker path gates cloud-kite retrieval through trusted approval and
   assert.equal(trainingCalls, 0);
 });
 
+test('retirement and a new knowledge version reject stale approved conversation context', async () => {
+  const snapshots = lifecycleSnapshots();
+  const handlerFor = (knowledge) => createGuideHandler({
+    loadKnowledge: createStaticApprovedKnowledgeLoader(knowledge),
+    model: createMockGuideModel(),
+    allowedOrigins: [allowedOrigin]
+  });
+
+  const approved = await responseBody(
+    handlerFor(snapshots.approved),
+    'How do cloud kites maintain their shape?'
+  );
+  assert.equal(approved.outcome, 'answered');
+
+  const staleResponse = await handlerFor(snapshots.retired)(requestFor(
+    'Where is that guide?',
+    contextFrom(approved)
+  ));
+  const staleBody = await staleResponse.json();
+
+  assert.equal(staleResponse.status, 400);
+  assert.deepEqual(staleBody, {
+    schemaVersion: '1.1',
+    error: {
+      code: 'invalid_request',
+      message: 'Request schema is invalid.'
+    }
+  });
+  assert.equal(snapshots.retired.knowledgeVersion, 'fictional-worker-cloud-retired-1');
+});
+
 test('fixed synthetic knowledge evaluation passes through the actual Worker retrieval path', async (t) => {
   const snapshots = lifecycleSnapshots();
   const baseModel = createMockGuideModel();

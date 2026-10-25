@@ -1,17 +1,38 @@
 import { normalizeQuestion } from './guide-qa.js';
+import { prepareGuideRetrievalProfile } from './guide-retrieval-profile.js';
 import { validateGuideKnowledge } from './guide-knowledge-schema.js';
 
 const DEFAULT_OPTIONS = Object.freeze({
   maximumQuestionLength: 300,
   maximumResults: 4,
-  minimumScore: 2,
-  ambiguityMargin: 0
+  minimumScore: 2.5,
+  ambiguityMargin: 1.5,
+  minimumSpecificCoverage: 0.6
 });
 
 const STOP_WORDS = new Set([
-  'a', 'about', 'an', 'and', 'are', 'can', 'do', 'does', 'for', 'how', 'i', 'in',
-  'is', 'it', 'me', 'of', 'on', 'please', 'tell', 'that', 'the', 'their', 'them',
-  'they', 'this', 'to', 'what', 'where', 'which', 'who', 'why', 'with', 'fictional'
+  'a', 'about', 'an', 'and', 'are', 'as', 'at', 'be', 'can', 'could', 'do', 'does',
+  'explain', 'for', 'from', 'how', 'i', 'in', 'is', 'it', 'me', 'of', 'on', 'please',
+  'tell', 'that', 'the', 'their', 'them', 'they', 'this', 'to', 'what', 'when', 'where',
+  'which', 'who', 'why', 'with', 'fictional'
+]);
+
+const GENERIC_QUERY_WORDS = new Set([
+  'after', 'all', 'any', 'away', 'details', 'display', 'instead', 'know', 'many',
+  'its', 'long', 'makes', 'need', 'only', 'picnic', 'skip', 'someone', 'talk',
+  'thing', 'those', 'travel', 'unrelated', 'visitor', 'visitors', 'want', 'whether'
+]);
+
+const MORPHOLOGY = new Map([
+  ['anchors', 'anchor'], ['bends', 'bend'], ['bent', 'bend'], ['bridges', 'bridge'],
+  ['cast', 'cast'], ['colors', 'color'], ['colored', 'color'], ['creases', 'crease'],
+  ['crossings', 'crossing'], ['devices', 'device'], ['folds', 'fold'], ['fountains', 'fountain'],
+  ['gardens', 'garden'], ['gusts', 'gust'], ['hinges', 'hinge'], ['joints', 'joint'],
+  ['kites', 'kite'], ['leaves', 'leaf'], ['loops', 'loop'], ['machines', 'machine'],
+  ['markers', 'marker'], ['moves', 'move'], ['moving', 'move'], ['orchards', 'orchard'],
+  ['patterns', 'pattern'], ['plants', 'plant'], ['powers', 'power'], ['ribs', 'rib'],
+  ['repeats', 'repeat'], ['rods', 'rod'], ['sails', 'sail'], ['spans', 'span'], ['stars', 'star'], ['tabs', 'tab'],
+  ['tokens', 'token'], ['turning', 'turn'], ['turns', 'turn'], ['watts', 'watt']
 ]);
 
 function isRecord(value) {
@@ -22,16 +43,39 @@ function configuredInteger(value, fallback, minimum, maximum) {
   return Number.isInteger(value) && value >= minimum && value <= maximum ? value : fallback;
 }
 
-function configuredNumber(value, fallback, minimum) {
-  return Number.isFinite(value) && value >= minimum ? value : fallback;
+function configuredNumber(value, fallback, minimum, maximum = Number.POSITIVE_INFINITY) {
+  return Number.isFinite(value) && value >= minimum && value <= maximum ? value : fallback;
 }
 
-function terms(value) {
+function normalizedToken(token) {
+  return MORPHOLOGY.get(token) ?? token;
+}
+
+function tokens(value, { includeStopWords = false } = {}) {
   const normalized = normalizeQuestion(value);
   if (!normalized) return [];
-  return [...new Set(normalized.split(' ').filter((term) => (
-    term.length >= 2 && !STOP_WORDS.has(term)
-  )))];
+  return normalized
+    .split(' ')
+    .map(normalizedToken)
+    .filter((term) => term.length >= 2 && (includeStopWords || !STOP_WORDS.has(term)));
+}
+
+function uniqueTerms(value) {
+  return Object.freeze([...new Set(tokens(value))]);
+}
+
+function normalizedPhrase(value) {
+  return tokens(value, { includeStopWords: true }).join(' ');
+}
+
+function containsPhrase(questionPhrase, phrase) {
+  return Boolean(phrase) && ` ${questionPhrase} `.includes(` ${phrase} `);
+}
+
+function countTerms(values) {
+  const counts = new Map();
+  for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1);
+  return counts;
 }
 
 function indexById(records) {
@@ -65,7 +109,7 @@ function validateApprovedKnowledge(knowledge) {
   }
 }
 
-function createEntries(knowledge) {
+function createEntries(knowledge, profile) {
   const sources = indexById(knowledge.sources);
   const topics = indexById(knowledge.topics);
   const entries = [];
@@ -73,96 +117,264 @@ function createEntries(knowledge) {
   for (const fact of knowledge.facts) {
     const topic = topics.get(fact.topicId);
     const source = sources.get(fact.sourceId);
-    if (!topic || !source || !topic.factIds.includes(fact.id)) {
+    const binding = profile.bindingForFact(fact.id);
+    if (!topic || !source || !topic.factIds.includes(fact.id) || !binding ||
+        binding.sourceId !== fact.sourceId || binding.sourceLocation !== fact.sourceLocation) {
       throw new TypeError('Approved retrieval references are inconsistent.');
     }
-    const topicTerms = terms(`${topic.label} ${topic.id.replaceAll('-', ' ')}`);
-    const contentTerms = terms(fact.content);
-    const sourceTerms = terms(`${source.title} ${fact.sourceLocation ?? ''}`);
+    const topicPhrases = [
+      normalizedPhrase(topic.label),
+      normalizedPhrase(topic.id.replaceAll('-', ' ')),
+      ...profile.aliasesForTopic(topic.id).map(normalizedPhrase)
+    ].filter(Boolean);
+    const factPhrases = profile.aliasesForFact(fact.id).map(normalizedPhrase).filter(Boolean);
+    const contentTokens = tokens(fact.content);
+    const sourceTokens = tokens(source.title);
     entries.push(Object.freeze({
       factId: fact.id,
       sourceId: source.id,
       topicId: topic.id,
-      sourceLocation: fact.sourceLocation,
+      sourceLocation: binding.sourceLocation,
       content: fact.content,
-      topicTerms: Object.freeze(topicTerms),
-      contentTerms: Object.freeze(contentTerms),
-      sourceTerms: Object.freeze(sourceTerms)
+      topicPhrases: Object.freeze([...new Set(topicPhrases)]),
+      factPhrases: Object.freeze([...new Set(factPhrases)]),
+      topicTerms: uniqueTerms(topicPhrases.join(' ')),
+      factAliasTerms: uniqueTerms(factPhrases.join(' ')),
+      contentTerms: Object.freeze(contentTokens),
+      contentTermCounts: countTerms(contentTokens),
+      sourceTerms: Object.freeze(sourceTokens),
+      claim: profile.claimForFact(fact.id)
     }));
   }
   return Object.freeze(entries);
 }
 
-function scoreEntry(entry, questionTerms) {
-  const query = new Set(questionTerms);
-  const topicScore = entry.topicTerms.reduce(
-    (score, term) => score + (query.has(term) ? 3 : 0),
+function inverseDocumentFrequency(entries) {
+  const frequencies = new Map();
+  for (const entry of entries) {
+    const terms = new Set([...entry.contentTerms, ...entry.factAliasTerms]);
+    for (const term of terms) frequencies.set(term, (frequencies.get(term) ?? 0) + 1);
+  }
+  const count = entries.length;
+  return (term) => {
+    const frequency = frequencies.get(term) ?? 0;
+    return Math.log(1 + ((count - frequency + 0.5) / (frequency + 0.5)));
+  };
+}
+
+function bm25(entry, questionTerms, idf, averageLength) {
+  const k1 = 1.2;
+  const b = 0.75;
+  const length = Math.max(1, entry.contentTerms.length);
+  let score = 0;
+  for (const term of questionTerms) {
+    const frequency = entry.contentTermCounts.get(term) ?? 0;
+    if (frequency === 0) continue;
+    const numerator = frequency * (k1 + 1);
+    const denominator = frequency + k1 * (1 - b + b * (length / averageLength));
+    score += idf(term) * (numerator / denominator);
+  }
+  return score;
+}
+
+function scoreEntry(entry, query, idf, averageLength, hasReviewedProfile) {
+  const querySet = new Set(query.terms);
+  const contentScore = bm25(entry, query.terms, idf, averageLength);
+  const topicTokenScore = entry.topicTerms.reduce(
+    (score, term) => score + (querySet.has(term) ? (hasReviewedProfile ? idf(term) * 0.85 : 3) : 0),
     0
   );
-  const contentScore = entry.contentTerms.reduce(
-    (score, term) => score + (query.has(term) ? 1 : 0),
+  const aliasTokenScore = entry.factAliasTerms.reduce(
+    (score, term) => score + (querySet.has(term) ? idf(term) * 1.25 : 0),
     0
   );
   const sourceScore = entry.sourceTerms.reduce(
-    (score, term) => score + (query.has(term) ? 0.5 : 0),
+    (score, term) => score + (querySet.has(term) ? idf(term) * 0.15 : 0),
     0
   );
+  const topicPhraseMatches = entry.topicPhrases.filter((phrase) => containsPhrase(query.phrase, phrase));
+  const factPhraseMatches = entry.factPhrases.filter((phrase) => containsPhrase(query.phrase, phrase));
+  const phraseScore = topicPhraseMatches.length * 4 + factPhraseMatches.length * 6;
   return Object.freeze({
-    total: topicScore + contentScore + sourceScore,
-    topic: topicScore
+    total: contentScore + topicTokenScore + aliasTokenScore + sourceScore + phraseScore,
+    contentScore,
+    topicPhraseMatches: Object.freeze(topicPhraseMatches),
+    factPhraseMatches: Object.freeze(factPhraseMatches)
   });
+}
+
+function topicEvidence(scored, query) {
+  const grouped = new Map();
+  for (const item of scored) {
+    const current = grouped.get(item.entry.topicId) ?? {
+      topicId: item.entry.topicId,
+      score: 0,
+      entries: [],
+      topicTerms: new Set(),
+      evidenceTerms: new Set(),
+      exactTopicPhrase: false,
+      exactFactPhrase: false,
+      mentionedTopicTerms: new Set()
+    };
+    current.score = Math.max(current.score, item.score);
+    current.entries.push(item);
+    for (const term of item.entry.topicTerms) current.topicTerms.add(term);
+    for (const term of item.entry.contentTerms) current.evidenceTerms.add(term);
+    for (const term of item.entry.factAliasTerms) current.evidenceTerms.add(term);
+    current.exactTopicPhrase ||= item.detail.topicPhraseMatches.length > 0;
+    current.exactFactPhrase ||= item.detail.factPhraseMatches.length > 0;
+    grouped.set(item.entry.topicId, current);
+  }
+
+  return [...grouped.values()].map((topic) => {
+    const specificTerms = query.terms.filter((term) => (
+      !topic.topicTerms.has(term) && !GENERIC_QUERY_WORDS.has(term)
+    ));
+    const matchedSpecific = specificTerms.filter((term) => topic.evidenceTerms.has(term));
+    for (const term of query.terms) {
+      if (topic.topicTerms.has(term)) topic.mentionedTopicTerms.add(term);
+    }
+    return {
+      ...topic,
+      specificTerms,
+      matchedSpecific,
+      coverage: specificTerms.length === 0 ? 1 : matchedSpecific.length / specificTerms.length
+    };
+  }).sort((left, right) => right.score - left.score || left.topicId.localeCompare(right.topicId));
+}
+
+function hasRouteIntent(normalizedQuestion) {
+  return /\b(where|find|located|location|directions|get there)\b/.test(normalizedQuestion);
+}
+
+function topicHasRoute(topicId, knowledge) {
+  const topic = knowledge.topics.find((record) => record.id === topicId);
+  return Boolean(topic?.specialistIds?.length && topic?.destinationZoneIds?.length);
+}
+
+function supportedEvidence(topic, settings) {
+  if (topic.exactFactPhrase) return true;
+  if (!settings.hasReviewedProfile && topic.exactTopicPhrase) return true;
+  if (topic.specificTerms.length === 0 && topic.exactTopicPhrase) return true;
+  return topic.matchedSpecific.length > 0 && topic.coverage >= settings.minimumSpecificCoverage;
+}
+
+function competingTopicEvidence(best, runner, settings) {
+  if (!runner || best.exactFactPhrase && !runner.exactFactPhrase) return false;
+  if (!settings.hasReviewedProfile && best.mentionedTopicTerms.size > 0 &&
+      runner.mentionedTopicTerms.size > 0) return true;
+  if (best.exactTopicPhrase && !runner.exactTopicPhrase) return false;
+  if (best.exactTopicPhrase && runner.exactTopicPhrase) return true;
+  const close = best.score - runner.score <= settings.ambiguityMargin;
+  if (close && supportedEvidence(best, settings) && supportedEvidence(runner, settings)) return true;
+
+  const bestSignals = new Set([...best.mentionedTopicTerms, ...best.matchedSpecific]);
+  const runnerSignals = new Set([...runner.mentionedTopicTerms, ...runner.matchedSpecific]);
+  const bestUnique = [...bestSignals].some((term) => !runnerSignals.has(term));
+  const runnerUnique = [...runnerSignals].some((term) => !bestSignals.has(term));
+  const relevantTerms = new Set([
+    ...best.specificTerms,
+    ...best.mentionedTopicTerms,
+    ...runner.specificTerms,
+    ...runner.mentionedTopicTerms
+  ]);
+  const combinedSignals = new Set([...bestSignals, ...runnerSignals]);
+  const combinedCoverage = [...relevantTerms].every((term) => combinedSignals.has(term));
+  return bestUnique && runnerUnique && combinedCoverage && runner.score >= best.score * 0.2;
+}
+
+function selectedResults(topic, settings, limit) {
+  const bestScore = topic.entries[0].score;
+  const relevanceFloor = Math.max(settings.minimumScore, bestScore - 2.25);
+  const selected = topic.entries.filter((item) => item.score >= relevanceFloor);
+  if (topic.specificTerms.length === 0 && topic.exactTopicPhrase && !topic.exactFactPhrase) {
+    selected.splice(0, selected.length, ...topic.entries);
+  }
+
+  const selectedIds = new Set(selected.map((item) => item.entry.factId));
+  for (const item of [...selected]) {
+    if (item.entry.claim?.resolution !== 'reinforcing') continue;
+    for (const factId of item.entry.claim.factIds) {
+      if (selectedIds.has(factId)) continue;
+      const companion = topic.entries.find((candidate) => candidate.entry.factId === factId);
+      if (companion) {
+        selected.push(companion);
+        selectedIds.add(factId);
+      }
+    }
+  }
+
+  return selected
+    .sort((left, right) => right.score - left.score || left.entry.factId.localeCompare(right.entry.factId))
+    .slice(0, limit);
 }
 
 /**
  * Build a provider-neutral, deterministic index over approved facts only.
- * Draft, in-review, and retired data must already have been filtered out.
+ * Optional retrieval metadata is separately reviewed and version-bound.
  */
 export function createApprovedKnowledgeRetriever(approvedKnowledge, options = {}) {
   validateApprovedKnowledge(approvedKnowledge);
+  const profile = prepareGuideRetrievalProfile(approvedKnowledge, options.retrievalProfile);
   const settings = Object.freeze({
-    maximumQuestionLength: configuredInteger(
-      options.maximumQuestionLength,
-      DEFAULT_OPTIONS.maximumQuestionLength,
-      1,
-      1000
+    hasReviewedProfile: profile.profileVersion !== null,
+    maximumQuestionLength: configuredInteger(options.maximumQuestionLength, DEFAULT_OPTIONS.maximumQuestionLength, 1, 1000),
+    maximumResults: configuredInteger(options.maximumResults, DEFAULT_OPTIONS.maximumResults, 1, 10),
+    minimumScore: configuredNumber(
+      options.minimumScore,
+      profile.profileVersion === null ? 2 : DEFAULT_OPTIONS.minimumScore,
+      0.5
     ),
-    maximumResults: configuredInteger(
-      options.maximumResults,
-      DEFAULT_OPTIONS.maximumResults,
-      1,
-      10
-    ),
-    minimumScore: configuredNumber(options.minimumScore, DEFAULT_OPTIONS.minimumScore, 0.5),
-    ambiguityMargin: configuredNumber(
-      options.ambiguityMargin,
-      DEFAULT_OPTIONS.ambiguityMargin,
-      0
+    ambiguityMargin: configuredNumber(options.ambiguityMargin, DEFAULT_OPTIONS.ambiguityMargin, 0, 20),
+    minimumSpecificCoverage: configuredNumber(
+      options.minimumSpecificCoverage,
+      DEFAULT_OPTIONS.minimumSpecificCoverage,
+      0,
+      1
     )
   });
-  const entries = createEntries(approvedKnowledge);
+  const entries = createEntries(approvedKnowledge, profile);
+  const idf = inverseDocumentFrequency(entries);
+  const averageLength = entries.reduce((total, entry) => total + entry.contentTerms.length, 0) /
+    Math.max(1, entries.length);
 
   return Object.freeze({
     knowledgeVersion: approvedKnowledge.knowledgeVersion,
+    profileVersion: profile.profileVersion,
 
     search(question, searchOptions = {}) {
       if (typeof question !== 'string' || !question.trim() ||
           question.length > settings.maximumQuestionLength) {
         return unsupported(approvedKnowledge.knowledgeVersion, 'invalid', 'malformed_question');
       }
-      const questionTerms = terms(question);
-      if (questionTerms.length === 0) {
+      const normalized = normalizeQuestion(question);
+      const excluded = profile.excludedMatch(normalized);
+      if (excluded) {
+        return unsupported(
+          approvedKnowledge.knowledgeVersion,
+          'unsupported',
+          `${excluded.lifecycleStatus}_evidence_excluded`
+        );
+      }
+      if (profile.ambiguityMatch(normalized)) {
+        return unsupported(
+          approvedKnowledge.knowledgeVersion,
+          'ambiguous',
+          'reviewed_ambiguous_terminology'
+        );
+      }
+      const query = Object.freeze({
+        phrase: normalizedPhrase(question),
+        terms: Object.freeze([...new Set(tokens(question))])
+      });
+      if (query.terms.length === 0) {
         return unsupported(approvedKnowledge.knowledgeVersion, 'unsupported', 'no_search_terms');
       }
-      const limit = configuredInteger(
-        searchOptions.limit,
-        settings.maximumResults,
-        1,
-        settings.maximumResults
-      );
+      const limit = configuredInteger(searchOptions.limit, settings.maximumResults, 1, settings.maximumResults);
       const scored = entries
         .map((entry) => {
-          const score = scoreEntry(entry, questionTerms);
-          return { entry, score: score.total, topicScore: score.topic };
+          const detail = scoreEntry(entry, query, idf, averageLength, settings.hasReviewedProfile);
+          return { entry, score: detail.total, detail };
         })
         .filter((item) => item.score >= settings.minimumScore)
         .sort((left, right) => (
@@ -174,58 +386,40 @@ export function createApprovedKnowledgeRetriever(approvedKnowledge, options = {}
         return unsupported(approvedKnowledge.knowledgeVersion, 'unsupported', 'no_approved_match');
       }
 
-      // If the visitor explicitly names terms from two topic labels equally,
-      // passage wording must not arbitrarily break that topic-level tie.
-      const explicitTopicScores = new Map();
-      for (const item of scored) {
-        explicitTopicScores.set(item.entry.topicId, Math.max(
-          explicitTopicScores.get(item.entry.topicId) ?? 0,
-          item.topicScore
-        ));
-      }
-      const explicitTopics = [...explicitTopicScores.entries()]
-        .filter(([, score]) => score > 0)
-        .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
-      if (explicitTopics[1] &&
-          explicitTopics[0][1] - explicitTopics[1][1] <= settings.ambiguityMargin) {
+      const rankedTopics = topicEvidence(scored, query);
+      const best = rankedTopics[0];
+      const runnerUp = rankedTopics[1];
+      if (competingTopicEvidence(best, runnerUp, settings)) {
         return unsupported(approvedKnowledge.knowledgeVersion, 'ambiguous', 'multiple_approved_topics');
       }
-
-      const topicScores = new Map();
-      for (const item of scored) {
-        topicScores.set(item.entry.topicId, Math.max(
-          topicScores.get(item.entry.topicId) ?? 0,
-          item.score
-        ));
+      if (!supportedEvidence(best, settings)) {
+        return unsupported(approvedKnowledge.knowledgeVersion, 'unsupported', 'insufficient_specific_evidence');
       }
-      const rankedTopics = [...topicScores.entries()].sort((left, right) => (
-        right[1] - left[1] || left[0].localeCompare(right[0])
-      ));
-      if (rankedTopics[1] && rankedTopics[0][1] - rankedTopics[1][1] <= settings.ambiguityMargin) {
-        return unsupported(approvedKnowledge.knowledgeVersion, 'ambiguous', 'multiple_approved_topics');
+      if (hasRouteIntent(normalized) && !topicHasRoute(best.topicId, approvedKnowledge)) {
+        return unsupported(approvedKnowledge.knowledgeVersion, 'unsupported', 'no_approved_route');
       }
 
-      const topicId = rankedTopics[0][0];
-      const topicMatches = scored.filter((item) => item.entry.topicId === topicId);
-      const bestFactScore = topicMatches[0].score;
-      const relevanceFloor = Math.max(settings.minimumScore, bestFactScore - 1);
-      const results = topicMatches
-        .filter((item) => item.score >= relevanceFloor)
-        .slice(0, limit)
-        .map(({ entry, score }) => ({
-          factId: entry.factId,
-          sourceId: entry.sourceId,
-          topicId: entry.topicId,
-          sourceLocation: entry.sourceLocation,
-          content: entry.content,
-          score
-        }));
+      const selected = selectedResults(best, settings, limit);
+      if (selected.some((item) => item.entry.claim?.resolution === 'unresolved_conflict')) {
+        return unsupported(approvedKnowledge.knowledgeVersion, 'conflict', 'unresolved_approved_conflict');
+      }
+      const results = selected.map(({ entry, score }) => ({
+        factId: entry.factId,
+        sourceId: entry.sourceId,
+        topicId: entry.topicId,
+        sourceLocation: entry.sourceLocation,
+        content: entry.content,
+        score: Number(score.toFixed(6))
+      }));
+      if (results.length === 0) {
+        return unsupported(approvedKnowledge.knowledgeVersion, 'unsupported', 'no_relevant_passage');
+      }
 
       return immutableResult({
         outcome: 'matched',
         reason: null,
         knowledgeVersion: approvedKnowledge.knowledgeVersion,
-        topicId,
+        topicId: best.topicId,
         results
       });
     }

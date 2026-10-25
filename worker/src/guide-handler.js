@@ -229,11 +229,13 @@ function canonicalRoute(result, knowledge) {
 }
 
 function matchedRetrievalResult(retrieval, knowledge) {
-  if (retrieval?.outcome === 'ambiguous') {
+  if (retrieval?.outcome === 'ambiguous' || retrieval?.outcome === 'conflict') {
     return {
       type: 'clarify',
       topicId: null,
-      response: 'Could you clarify which approved topic you mean?',
+      response: retrieval.outcome === 'conflict'
+        ? 'The approved sources conflict, so I cannot provide that answer yet.'
+        : 'Could you clarify which approved topic you mean?',
       score: 0
     };
   }
@@ -442,11 +444,22 @@ export function createGuideHandler(options = {}) {
 
     let retrieval = null;
     const approvedRetrievalMatcher = (question, topics, matcherOptions) => {
-      retrieval = typeof knowledge.retrieve === 'function'
-        ? knowledge.retrieve(question, { limit: 4 })
-        : null;
+      if (typeof knowledge.retrieve !== 'function') {
+        return matchQuestion(question, topics, matcherOptions);
+      }
+      retrieval = knowledge.retrieve(question, { limit: 4 });
       const retrieved = matchedRetrievalResult(retrieval, knowledge);
-      return retrieved ?? matchQuestion(question, topics, matcherOptions);
+      if (retrieved) return retrieved;
+      if (knowledge.retrievalProfileVersion &&
+          (retrieval?.outcome === 'unsupported' || retrieval?.outcome === 'invalid')) {
+        return {
+          type: 'fallback',
+          topicId: null,
+          response: "I don't have a verified answer for that question.",
+          score: 0
+        };
+      }
+      return matchQuestion(question, topics, matcherOptions);
     };
     const resolution = handleGuideQuestion(
       parsed.value.question,
@@ -532,7 +545,10 @@ export function createGuideHandler(options = {}) {
     }
 
     const factReferences = knowledge.createFactReferences(modelValidation.value.usedFactIds);
-    if (!factReferences) {
+    const evidenceBoundAnswer = knowledge.createEvidenceBoundAnswer(
+      modelValidation.value.usedFactIds
+    );
+    if (!factReferences || !evidenceBoundAnswer) {
       return unavailableResponse(
         requestId,
         knowledge,
@@ -546,7 +562,7 @@ export function createGuideHandler(options = {}) {
 
     const envelope = baseEnvelope(requestId, knowledge.knowledgeVersion, {
       outcome: 'answered',
-      answerText: modelValidation.value.answerText,
+      answerText: evidenceBoundAnswer,
       factReferences,
       topicId: deterministic.topicId,
       ...route

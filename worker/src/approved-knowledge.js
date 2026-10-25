@@ -17,7 +17,7 @@ function indexById(records) {
   return new Map(records.map((record) => [record.id, record]));
 }
 
-export function prepareApprovedKnowledge(rawKnowledge) {
+export function prepareApprovedKnowledge(rawKnowledge, options = {}) {
   const approvedResult = createApprovedKnowledgeView(rawKnowledge);
   if (!approvedResult.valid) {
     throw new ApprovedKnowledgeError(
@@ -36,7 +36,9 @@ export function prepareApprovedKnowledge(rawKnowledge) {
 
   const approved = approvedResult.knowledge;
   const legacy = createLegacyGuideKnowledge(approved);
-  const retriever = createApprovedKnowledgeRetriever(approved);
+  const retriever = createApprovedKnowledgeRetriever(approved, {
+    retrievalProfile: options.retrievalProfile
+  });
   const facts = indexById(approved.facts);
   const topics = indexById(approved.topics);
   const specialists = indexById(approved.specialists);
@@ -44,6 +46,7 @@ export function prepareApprovedKnowledge(rawKnowledge) {
 
   return Object.freeze({
     knowledgeVersion: approved.knowledgeVersion,
+    retrievalProfileVersion: retriever.profileVersion,
     approved,
     catalog: catalogResult.catalog,
     legacy,
@@ -73,12 +76,24 @@ export function prepareApprovedKnowledge(rawKnowledge) {
         references.push(Object.freeze({ factId: fact.id, sourceId: fact.sourceId }));
       }
       return Object.freeze(references);
+    },
+    createEvidenceBoundAnswer(factIds) {
+      if (!Array.isArray(factIds) || factIds.length === 0) return null;
+      const selected = [];
+      const seen = new Set();
+      for (const factId of factIds) {
+        const fact = facts.get(factId);
+        if (!fact || seen.has(factId)) return null;
+        seen.add(factId);
+        selected.push(fact.content);
+      }
+      return selected.join(' ');
     }
   });
 }
 
-export function createStaticApprovedKnowledgeLoader(rawKnowledge) {
-  const prepared = prepareApprovedKnowledge(rawKnowledge);
+export function createStaticApprovedKnowledgeLoader(rawKnowledge, options = {}) {
+  const prepared = prepareApprovedKnowledge(rawKnowledge, options);
   return async function loadApprovedKnowledge() {
     return prepared;
   };

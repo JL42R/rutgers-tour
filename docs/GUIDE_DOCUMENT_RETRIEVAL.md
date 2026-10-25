@@ -73,18 +73,39 @@ that still contains draft, in-review, or retired records. Search:
 - returns `ambiguous` for equal top-topic evidence; and
 - returns `unsupported` or `invalid` without citations when evidence is unavailable.
 
-This is lexical matching, not semantic proof. It can miss synonyms and nuanced paraphrases, and a
-valid source ID does not prove generated prose is accurate. The fixed evaluation measures the cases
-we specified; it does not establish general semantic accuracy.
+For the retrieval-quality fixture, `src/guide-retrieval-profile.js` additionally validates a
+reviewed, version-bound profile of topic aliases, fact aliases, excluded phrases, ambiguity rules,
+claim relationships, and exact fact/source locations. The profile cannot name an unknown record,
+change a source location, or attach itself to a different knowledge version. Its aliases and rules
+are reviewed knowledge configuration, never visitor- or model-supplied input.
+
+Profiled retrieval adds deterministic morphology normalization, BM25-style content scoring,
+inverse-document-frequency weights, phrase weights, conservative specific-term coverage, and
+explicit competing-topic checks. Reinforcing claims may return passages from multiple approved
+sources. An unresolved conflict between approved claims returns `conflict` internally and becomes
+a citation-free clarification response at the Worker boundary.
+
+This remains lexical matching, not semantic proof. The manually reviewed profile is maintenance
+work, can miss unlisted synonyms and nuanced paraphrases, and does not establish that source content
+is true. Unprofiled legacy fixtures preserve their earlier deterministic matching behavior; the
+stricter exclusion and conflict rules require a reviewed profile.
 
 ## Worker connection
 
 `worker/src/approved-knowledge.js` constructs the approved retriever with the existing catalog and
 legacy adapter. `worker/src/guide-handler.js` asks retrieval first, projects only the ranked facts
 into the existing provider-neutral model request, and reconstructs citations, friendly names, and
-canonical routing from server-owned knowledge. If retrieval finds no approved match, the existing
-deterministic Stage 2 matcher remains available as a fallback. Follow-up context still uses the
-existing bounded ID-only conversation state.
+canonical routing from server-owned knowledge. For a reviewed retrieval profile, an unsupported,
+ambiguous, conflicting, or invalid retrieval result cannot be overridden by the legacy matcher.
+The fallback remains only for unprofiled legacy knowledge. Follow-up context still uses the existing
+bounded ID-only conversation state, and a version whose retirement removes those IDs rejects stale
+context before generation.
+
+The model may select only retrieved fact IDs and may decline for insufficient evidence. Its prose
+is not authoritative: after validating the structured result, the Worker builds `answerText` from
+the canonical content of the selected approved facts. Unknown, duplicate, or unoffered fact IDs,
+model-declared insufficient evidence, provider failure, and malformed output fail closed without
+citations.
 
 The public v1.0 and v1.1 envelopes are unchanged. Passage location remains internal; public answers
 continue to return the already-supported stable `{ factId, sourceId }` references. The fake model
@@ -107,7 +128,34 @@ The exact same injected fake model object is used before and after publication. 
 would fail the test if called; the recorded training-call count remains zero. Adding knowledge is
 data publication and index reconstruction, not model fine-tuning or retraining.
 
-## Fixed evaluation
+## Retrieval-quality evaluation
+
+`knowledge/guide-retrieval-quality-evaluation.fixture.v1.json` is a frozen synthetic evaluation of
+57 questions: 52 direct queries and five contextual follow-ups. It covers exact wording, natural
+paraphrases, approved synonyms, short and long questions, irrelevant terms, multiple sources,
+ambiguous topics, unresolved conflicts, unsupported lookalikes, adversarial text, draft and retired
+claims, missing routes, topic switches, and empty context. It uses 18 approved passages across seven
+fictional topics plus three non-approved passages; no Rutgers CORE facts are present.
+
+The untouched retriever baseline and exact failure IDs are recorded in
+`knowledge/guide-retrieval-quality-baseline.v1.json`. On the same fixed direct-query set, before and
+after results are:
+
+| Measure | Baseline | Profiled retrieval |
+| --- | ---: | ---: |
+| Top-1 supported-topic/fact accuracy | 16/29 (55.17%) | 29/29 (100%) |
+| Recall@4 for expected facts | 20/41 (48.78%) | 41/41 (100%) |
+| False support on unsupported cases | 11/16 (68.75%) | 0/16 (0%) |
+| Ambiguity/conflict handling | 2/7 (28.57%) | 7/7 (100%) |
+| Citation correctness | 15/29 (51.72%) | 29/29 (100%) |
+
+These are exact results for this intentionally bounded synthetic dataset, not a claim of production
+accuracy or generalization. The Worker-path test runs every case, verifies canonical evidence text,
+citations, routes, topic switching, and follow-up context, and proves that no training method is
+called. A separate lifecycle test proves stale approved context is rejected after retirement under
+a new knowledge version.
+
+## Earlier lifecycle evaluation
 
 `knowledge/guide-evaluation.fixture.v1.json` contains 15 fixed cases covering approved folded
 machines, approved glass gardens, cloud kites before/during/after approval, retirement, overlapping

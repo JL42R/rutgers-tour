@@ -43,7 +43,10 @@ model.generateResponse(modelRequest, { signal })
 `modelRequest` contains the question, canonical topic ID, retrieved approved facts, allowed fact
 IDs, and bounded temporary context. `worker/src/mock-guide-model.js` implements this interface using
 fact text only and performs no network calls. The handler propagates an `AbortSignal`, enforces its
-own timeout, and validates the returned Stage 4 structure and fact IDs.
+own timeout, and validates the returned Stage 4 structure and fact IDs. The model's `answerText` is
+discarded after validation; visitor-facing answer text is reconstructed from the canonical content
+of the approved fact IDs selected from that request. The model therefore cannot turn invented prose
+into an authoritative answer even when it returns an otherwise valid structure.
 
 A future OpenAI adapter should implement the same interface. It should call the Responses API from
 the Worker, request a strict structured result matching the existing four Stage 4 fields, disable
@@ -53,9 +56,10 @@ browser/Worker contract. Official references: [Responses API quickstart](https:/
 [production best practices](https://developers.openai.com/api/docs/guides/production-best-practices),
 and [API data controls](https://developers.openai.com/api/docs/guides/your-data).
 
-Declaring valid fact IDs does not prove that arbitrary model prose is true. A live adapter still
-requires constrained prompts, strict structured output, fixed grounding evaluations, refusal tests,
-and ongoing review. The current mock avoids that uncertainty by returning approved fixture text.
+Valid fact IDs and canonical reconstruction bind the response to reviewed evidence, but they do not
+prove that the reviewed source itself is true or that retrieval selected the best evidence. A live
+adapter still requires constrained prompts, strict structured output, fixed grounding evaluations,
+refusal tests, source review, and ongoing monitoring.
 
 ## Credentials and deployment
 
