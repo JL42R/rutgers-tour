@@ -2,11 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  LOCAL_GUIDE_ADVANCE_PATH,
   LOCAL_GUIDE_PORT,
+  LOCAL_GUIDE_RETRIEVAL_PROFILE,
   LOCAL_TOUR_ORIGIN,
   createLocalGuideServer
 } from '../dev/guide-local-server.js';
 import { createLocalGuideSession } from '../src/guide-local-api.js';
+import { LOCAL_GUIDE_RETRIEVAL_QUALITY_CATALOG } from '../src/guide-local-profiles.js';
 import { createHallwayGuideQuestionProvider } from '../src/guide-hallway-mock.js';
 
 function browserFetch(url, init) {
@@ -118,4 +121,101 @@ test('local server enforces CORS and turns fake-provider refusal into safe unava
   } finally {
     await app.close();
   }
+});
+
+test('allowlisted advanced profile crosses localhost with aliases, grounding, conflict safety, and routing', async () => {
+  const providerRequests = [];
+  const app = await createLocalGuideServer({
+    profile: LOCAL_GUIDE_RETRIEVAL_PROFILE,
+    enableTestControls: true,
+    onProviderRequest: (metadata) => providerRequests.push(metadata)
+  });
+  await app.start(LOCAL_GUIDE_PORT);
+  try {
+    const session = createLocalGuideSession({
+      fetchImpl: browserFetch,
+      catalog: LOCAL_GUIDE_RETRIEVAL_QUALITY_CATALOG
+    });
+    const paraphrase = await session.ask(
+      'Could you explain why articulated paper devices rotate after a gentle tug?'
+    );
+    const followUp = await session.ask('Where can I find them?');
+    const switched = await session.ask('Why do crystal plants cast colors across the display?');
+    const ambiguous = await session.ask('How do paper light patterns work?');
+    const conflict = await session.ask('How long does the echo fountain repeat its note?');
+    const draft = await session.ask('Do rigid gold rods hold cloud kites in shape?');
+    const retired = await session.ask(
+      'Does the retired glass garden frame spin as the old guide claimed?'
+    );
+    const unsupported = await session.ask('What is the weather tomorrow?');
+
+    assert.equal(paraphrase.envelope.outcome, 'answered');
+    assert.equal(paraphrase.envelope.knowledgeVersion,
+      'fictional-retrieval-quality-2026-10-25.1');
+    assert.equal(paraphrase.envelope.answerText,
+      'Layered paper hinges convert a gentle pull into rotational motion. ' +
+      'A separate fictional demonstration log confirms that linked paper joints turn when the pull tab moves.');
+    assert.doesNotMatch(paraphrase.envelope.answerText, /Untrusted simulated provider prose/);
+    assert.deepEqual(paraphrase.envelope.factReferences, [
+      { factId: 'fact-folded-motion-primary', sourceId: 'source-folded-handbook-v2' },
+      { factId: 'fact-folded-motion-confirmation', sourceId: 'source-folded-demonstration-log' }
+    ]);
+    assert.equal(paraphrase.result.specialistName, 'Fictional Folded Machines Guide');
+    assert.equal(paraphrase.result.destinationZoneName, 'Fictional Imaginary Workshop');
+    assert.match(followUp.result.directions, /silver paper arrows/);
+    assert.equal(switched.result.topicId, 'glass-gardens');
+    assert.equal(switched.result.specialistName, 'Fictional Glass Gardens Guide');
+    assert.equal(ambiguous.envelope.outcome, 'clarify');
+    assert.equal(conflict.envelope.outcome, 'clarify');
+    assert.match(conflict.response, /approved sources conflict/i);
+    for (const excluded of [draft, retired, unsupported]) {
+      assert.equal(excluded.envelope.outcome, 'unsupported');
+      assert.deepEqual(excluded.envelope.factReferences, []);
+      assert.equal(excluded.result.destinationNpcId, null);
+      assert.equal(excluded.result.destinationZoneId, null);
+    }
+    session.reset();
+    const cloud = await session.ask('Why do sky sails recover after a gust?');
+    assert.equal(cloud.envelope.outcome, 'answered');
+    assert.deepEqual(session.getState().topicIds, ['cloud-kites']);
+
+    const transition = await fetch(
+      `http://127.0.0.1:${LOCAL_GUIDE_PORT}${LOCAL_GUIDE_ADVANCE_PATH}`,
+      { method: 'POST', headers: { Origin: LOCAL_TOUR_ORIGIN } }
+    );
+    assert.equal(transition.status, 200);
+    assert.deepEqual(await transition.json(), {
+      knowledgeVersion: 'fictional-retrieval-quality-2026-10-25.2'
+    });
+
+    const recovery = await session.ask('Where is that?');
+    assert.equal(recovery.contextReset, true);
+    assert.match(recovery.response, /cleared the previous topic/i);
+    assert.deepEqual(session.getState(), {
+      topicIds: [], specialistNpcIds: [], destinationZoneIds: []
+    });
+
+    const fresh = await session.ask('Why do crystal plants cast colors across the display?');
+    assert.equal(fresh.envelope.outcome, 'answered');
+    assert.equal(fresh.envelope.knowledgeVersion,
+      'fictional-retrieval-quality-2026-10-25.2');
+    assert.equal(fresh.result.topicId, 'glass-gardens');
+    assert.equal(providerRequests.length, 5);
+    assert.ok(providerRequests.every((entry) => (
+      entry.model === 'local-fixture-model' && entry.store === false && entry.toolCount === 0
+    )));
+  } finally {
+    await app.close();
+  }
+});
+
+test('local server rejects arbitrary profiles and test controls outside the fixed advanced profile', async () => {
+  await assert.rejects(
+    createLocalGuideServer({ profile: '../../visitor-file.json' }),
+    /not allowlisted/
+  );
+  await assert.rejects(
+    createLocalGuideServer({ enableTestControls: true }),
+    /require the retrieval-quality profile/
+  );
 });

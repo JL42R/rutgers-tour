@@ -1,7 +1,9 @@
 const webSocketUrl = process.argv[2];
 const phase = process.argv[3];
-if (!webSocketUrl || !['success', 'failure', 'production'].includes(phase)) {
-  throw new Error('Usage: node dev/chrome-guide-smoke.js <cdp-websocket-url> <success|failure|production>');
+if (!webSocketUrl || !['success', 'advanced', 'failure', 'production'].includes(phase)) {
+  throw new Error(
+    'Usage: node dev/chrome-guide-smoke.js <cdp-websocket-url> <success|advanced|failure|production>'
+  );
 }
 
 class CdpClient {
@@ -362,6 +364,151 @@ async function successPhase(client) {
   };
 }
 
+async function advancedPhase(client) {
+  await navigate(
+    client,
+    'http://127.0.0.1:4179/?guideMock=1&guideBackend=local&guideProfile=retrieval-quality&guideTest=1'
+  );
+  await waitFor(client, 'document.querySelector("#guide-mock-banner")', 'development disclosure');
+  await finishScriptedDialogue(client);
+  await click(client, '#dlg-choices button');
+  await approachGuide(client);
+  await reopenGuide(client);
+  await finishScriptedDialogue(client);
+  await click(client, '#dlg-choices button');
+
+  await enterQuestion(
+    client,
+    'Could you explain why articulated paper devices rotate after a gentle tug?'
+  );
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("Layered paper hinges") && ' +
+      'document.querySelector("#dlg-text").textContent.includes("separate fictional demonstration log")',
+    'canonical reinforcing-source answer'
+  );
+  const groundedAnswer = await evaluate(client, 'document.querySelector("#dlg-text").textContent');
+  if (groundedAnswer.includes('Untrusted simulated provider prose')) {
+    throw new Error('The UI exposed non-authoritative fake-provider prose.');
+  }
+  if (!groundedAnswer.includes('Fictional Folded Machines Guide') ||
+      !groundedAnswer.includes('Fictional Imaginary Workshop')) {
+    throw new Error('The advanced answer omitted authoritative friendly route names.');
+  }
+
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'Where can I find them?');
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("silver paper arrows")',
+    'advanced canonical directions'
+  );
+
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'Why do crystal plants cast colors across the display?');
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("Suspended prism leaves")',
+    'reviewed synonym topic switch'
+  );
+  const switchedAnswer = await evaluate(client, 'document.querySelector("#dlg-text").textContent');
+  if (!switchedAnswer.includes('Fictional Glass Gardens Guide') ||
+      !switchedAnswer.includes('Fictional Prism Conservatory')) {
+    throw new Error('The advanced topic switch omitted canonical glass-garden routing.');
+  }
+
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'How do paper light patterns work?');
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("clarify which approved topic")',
+    'advanced ambiguity clarification'
+  );
+  const ambiguity = await evaluate(client, `(() => {
+    const text = document.querySelector('#dlg-text');
+    return { message: text.textContent, live: text.getAttribute('aria-live'), atomic: text.getAttribute('aria-atomic') };
+  })()`);
+
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'How long does the echo fountain repeat its note?');
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("approved sources conflict")',
+    'unresolved evidence conflict'
+  );
+  const conflict = await evaluate(client, 'document.querySelector("#dlg-text").textContent');
+  if (/Specialist:|Destination:|Directions:/.test(conflict)) {
+    throw new Error('The conflict response invented routing.');
+  }
+
+  for (const question of [
+    'What is the weather tomorrow?',
+    'Do rigid gold rods hold cloud kites in shape?',
+    'Does the retired glass garden frame spin as the old guide claimed?'
+  ]) {
+    await click(client, '#dlg-choices button');
+    await enterQuestion(client, question);
+    await waitFor(
+      client,
+      'document.querySelector("#dlg-text").textContent.includes("verified answer")',
+      `safe exclusion: ${question}`
+    );
+  }
+
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'Why do sky sails recover after a gust?');
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("Flexible silver ribs")',
+    'cloud context before retirement'
+  );
+  const transition = await fetch('http://127.0.0.1:4188/guide-test/advance-knowledge', {
+    method: 'POST',
+    headers: { Origin: 'http://127.0.0.1:4179' }
+  });
+  if (transition.status !== 200) {
+    throw new Error(`Fixed knowledge transition failed with HTTP ${transition.status}.`);
+  }
+  const transitionBody = await transition.json();
+  if (transitionBody.knowledgeVersion !== 'fictional-retrieval-quality-2026-10-25.2') {
+    throw new Error('Fixed knowledge transition returned the wrong version.');
+  }
+
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'Where is that?');
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("cleared the previous topic")',
+    'stale-context recovery'
+  );
+  const recovery = await evaluate(client, 'document.querySelector("#dlg-text").textContent');
+
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'Why do crystal plants cast colors across the display?');
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("Suspended prism leaves")',
+    'fresh answer after stale-context recovery'
+  );
+
+  await press(client, 'Escape', 'Escape');
+  await waitFor(client, '!document.querySelector("#dialogue.open")', 'advanced dialogue close');
+  await reopenGuide(client);
+  await finishScriptedDialogue(client);
+  await click(client, '#dlg-choices button');
+  await enterQuestion(client, 'Where can I find them?');
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("specialist first")',
+    'advanced close/reopen context reset'
+  );
+
+  if (ambiguity.live !== 'polite' || ambiguity.atomic !== 'true') {
+    throw new Error('Advanced clarification was not announced through the atomic live region.');
+  }
+  return { groundedAnswer, switchedAnswer, ambiguity, conflict, recovery, transitionBody };
+}
+
 async function failurePhase(client) {
   await navigate(client, 'http://127.0.0.1:4179/?guideMock=1&guideBackend=local&guideTest=1');
   await finishScriptedDialogue(client);
@@ -418,9 +565,11 @@ try {
   const startEvent = client.events.length;
   const result = phase === 'success'
     ? await successPhase(client)
-    : phase === 'failure'
-      ? await failurePhase(client)
-      : await productionPhase(client);
+    : phase === 'advanced'
+      ? await advancedPhase(client)
+      : phase === 'failure'
+        ? await failurePhase(client)
+        : await productionPhase(client);
   const events = client.events.slice(startEvent);
   const requests = events
     .filter((event) => event.method === 'Network.requestWillBeSent')
@@ -430,7 +579,8 @@ try {
   if (externalProviderRequests.length) {
     throw new Error(`Unexpected external provider request: ${externalProviderRequests[0]}`);
   }
-  if (phase === 'success' && !requests.some((url) => url === 'http://127.0.0.1:4188/guide')) {
+  if (['success', 'advanced'].includes(phase) &&
+      !requests.some((url) => url === 'http://127.0.0.1:4188/guide')) {
     throw new Error('Chrome did not observe the localhost guide request.');
   }
   if (phase === 'failure' && !requests.some((url) => url === 'http://127.0.0.1:4188/guide')) {

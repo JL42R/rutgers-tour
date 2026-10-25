@@ -2,13 +2,28 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
-import { createStaticApprovedKnowledgeLoader } from '../worker/src/approved-knowledge.js';
+import {
+  prepareApprovedKnowledge,
+  createStaticApprovedKnowledgeLoader
+} from '../worker/src/approved-knowledge.js';
 import { createGuideHandler } from '../worker/src/guide-handler.js';
 import { createOpenAIGuideModel } from '../worker/src/openai-guide-model.js';
+import {
+  retrievalQualityFixture,
+  retrievalQualityRetiredCloudFixture
+} from '../test-support/guide-retrieval-quality-fixture.js';
 
 export const LOCAL_GUIDE_HOST = '127.0.0.1';
 export const LOCAL_GUIDE_PORT = 4188;
 export const LOCAL_TOUR_ORIGIN = 'http://127.0.0.1:4179';
+export const LOCAL_GUIDE_DEFAULT_PROFILE = 'default';
+export const LOCAL_GUIDE_RETRIEVAL_PROFILE = 'retrieval-quality';
+export const LOCAL_GUIDE_ADVANCE_PATH = '/guide-test/advance-knowledge';
+
+const LOCAL_GUIDE_PROFILES = new Set([
+  LOCAL_GUIDE_DEFAULT_PROFILE,
+  LOCAL_GUIDE_RETRIEVAL_PROFILE
+]);
 
 const fixtureUrl = new URL('../knowledge/core-guide.fixture.v1.json', import.meta.url);
 const fakeProviderKey = 'local-fixture-key-not-a-secret';
@@ -82,7 +97,7 @@ export function createFakeOpenAIFetch(options = {}) {
     }
     const supplied = JSON.parse(inputText.slice(prefix.length));
     const result = {
-      answerText: supplied.approvedFacts.map((fact) => fact.text).join(' '),
+      answerText: options.answerText ?? supplied.approvedFacts.map((fact) => fact.text).join(' '),
       supported: true,
       topicId: supplied.topicId,
       usedFactIds: [...supplied.allowedFactIds]
@@ -95,6 +110,49 @@ export function createFakeOpenAIFetch(options = {}) {
 async function defaultKnowledgeLoader() {
   const raw = JSON.parse(await readFile(fixtureUrl, 'utf8'));
   return createStaticApprovedKnowledgeLoader(raw);
+}
+
+function retrievalQualityKnowledgeController() {
+  const initial = retrievalQualityFixture();
+  const retired = retrievalQualityRetiredCloudFixture();
+  let current = prepareApprovedKnowledge(initial.knowledge, {
+    retrievalProfile: initial.profile
+  });
+  const retiredPrepared = prepareApprovedKnowledge(retired.knowledge, {
+    retrievalProfile: retired.profile
+  });
+  let advanced = false;
+
+  return Object.freeze({
+    loadKnowledge: async () => current,
+    advance() {
+      if (advanced) return null;
+      advanced = true;
+      current = retiredPrepared;
+      return Object.freeze({ knowledgeVersion: current.knowledgeVersion });
+    }
+  });
+}
+
+async function knowledgeController(profile) {
+  if (!LOCAL_GUIDE_PROFILES.has(profile)) {
+    throw new TypeError('The local Guide profile is not allowlisted.');
+  }
+  if (profile === LOCAL_GUIDE_RETRIEVAL_PROFILE) {
+    return retrievalQualityKnowledgeController();
+  }
+  return Object.freeze({
+    loadKnowledge: await defaultKnowledgeLoader(),
+    advance: null
+  });
+}
+
+function jsonNodeResponse(response, status, value, headers = {}) {
+  response.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    ...headers
+  });
+  response.end(JSON.stringify(value));
 }
 
 function writeNodeResponse(nodeResponse, webResponse) {
@@ -124,11 +182,26 @@ function requestBody(nodeRequest, maximumBytes = 8192) {
 }
 
 export async function createLocalGuideServer(options = {}) {
-  const loadKnowledge = options.loadKnowledge ?? await defaultKnowledgeLoader();
+  const profile = options.profile ?? LOCAL_GUIDE_DEFAULT_PROFILE;
+  if (!LOCAL_GUIDE_PROFILES.has(profile)) {
+    throw new TypeError('The local Guide profile is not allowlisted.');
+  }
+  const controller = options.loadKnowledge
+    ? Object.freeze({ loadKnowledge: options.loadKnowledge, advance: null })
+    : await knowledgeController(profile);
+  if (options.enableTestControls && typeof controller.advance !== 'function') {
+    throw new TypeError('Knowledge test controls require the retrieval-quality profile.');
+  }
+  const loadKnowledge = controller.loadKnowledge;
   const providerFetch = options.providerFetch ?? createFakeOpenAIFetch({
     mode: options.providerMode,
     delayMs: options.providerDelayMs,
-    onRequest: options.onProviderRequest
+    onRequest: options.onProviderRequest,
+    answerText: options.providerAnswerText ?? (
+      profile === LOCAL_GUIDE_RETRIEVAL_PROFILE
+        ? 'Untrusted simulated provider prose that the Worker must discard.'
+        : undefined
+    )
   });
   const model = createOpenAIGuideModel({
     fetchImpl: providerFetch,
@@ -148,22 +221,39 @@ export async function createLocalGuideServer(options = {}) {
   const server = createServer(async (request, response) => {
     try {
       const url = new URL(request.url ?? '/', `http://${LOCAL_GUIDE_HOST}`);
+      if (url.pathname === LOCAL_GUIDE_ADVANCE_PATH && !url.search &&
+          options.enableTestControls) {
+        if (request.method !== 'POST' || request.headers.origin !== LOCAL_TOUR_ORIGIN) {
+          jsonNodeResponse(response, 403, { error: 'forbidden' });
+          return;
+        }
+        const transition = controller.advance();
+        if (!transition) {
+          jsonNodeResponse(response, 409, { error: 'already_advanced' });
+          return;
+        }
+        jsonNodeResponse(response, 200, transition, {
+          'Access-Control-Allow-Origin': LOCAL_TOUR_ORIGIN,
+          'Cache-Control': 'no-store'
+        });
+        return;
+      }
       if (url.pathname !== '/guide' || url.search) {
         response.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
         response.end(JSON.stringify({ error: 'not_found' }));
         return;
       }
-      const controller = new AbortController();
-      request.once('aborted', () => controller.abort('browser_disconnected'));
+      const requestController = new AbortController();
+      request.once('aborted', () => requestController.abort('browser_disconnected'));
       response.once('close', () => {
-        if (!response.writableEnded) controller.abort('browser_disconnected');
+        if (!response.writableEnded) requestController.abort('browser_disconnected');
       });
       const body = request.method === 'POST' ? await requestBody(request) : undefined;
       const webRequest = new Request(`http://${LOCAL_GUIDE_HOST}${request.url}`, {
         method: request.method,
         headers: request.headers,
         body,
-        signal: controller.signal
+        signal: requestController.signal
       });
       await writeNodeResponse(response, await handler(webRequest));
     } catch {
@@ -176,6 +266,7 @@ export async function createLocalGuideServer(options = {}) {
 
   return Object.freeze({
     server,
+    profile,
     start(port = LOCAL_GUIDE_PORT) {
       return new Promise((resolve, reject) => {
         server.once('error', reject);
@@ -194,11 +285,48 @@ export async function createLocalGuideServer(options = {}) {
   });
 }
 
+function commandLineOptions(args) {
+  let profile = LOCAL_GUIDE_DEFAULT_PROFILE;
+  let enableTestControls = false;
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index];
+    if (argument === '--profile') {
+      profile = args[index + 1];
+      index += 1;
+      continue;
+    }
+    if (argument.startsWith('--profile=')) {
+      profile = argument.slice('--profile='.length);
+      continue;
+    }
+    if (argument === '--test-controls') {
+      enableTestControls = true;
+      continue;
+    }
+    throw new TypeError(`Unknown local Guide option: ${argument}`);
+  }
+  if (!LOCAL_GUIDE_PROFILES.has(profile)) {
+    throw new TypeError('The local Guide profile is not allowlisted.');
+  }
+  if (enableTestControls && profile !== LOCAL_GUIDE_RETRIEVAL_PROFILE) {
+    throw new TypeError('Knowledge test controls require the retrieval-quality profile.');
+  }
+  return Object.freeze({ profile, enableTestControls });
+}
+
 async function runFromCommandLine() {
-  const app = await createLocalGuideServer({ providerDelayMs: 500 });
+  const settings = commandLineOptions(process.argv.slice(2));
+  const app = await createLocalGuideServer({
+    ...settings,
+    providerDelayMs: 500
+  });
   await app.start();
   console.log(`Local fictional guide listening at http://${LOCAL_GUIDE_HOST}:${LOCAL_GUIDE_PORT}/guide`);
   console.log(`Allowed browser origin: ${LOCAL_TOUR_ORIGIN}`);
+  console.log(`Knowledge profile: ${app.profile}`);
+  if (settings.enableTestControls) {
+    console.log(`Fixed knowledge transition: http://${LOCAL_GUIDE_HOST}:${LOCAL_GUIDE_PORT}${LOCAL_GUIDE_ADVANCE_PATH}`);
+  }
   const shutdown = async () => {
     await app.close();
     process.exit(0);

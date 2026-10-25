@@ -1,5 +1,6 @@
 import { createGuidePreviewSession } from './guide-preview-adapter.js';
 import { createLocalGuideSession } from './guide-local-api.js';
+import { localGuideCatalogForSearch } from './guide-local-profiles.js';
 import { PREVIEW_KNOWLEDGE } from './guide-preview-knowledge.js';
 
 export const HALLWAY_GUIDE_ID = 'hallway-guide';
@@ -48,7 +49,7 @@ export function createHallwayGuideQuestionProvider(options = {}) {
       ? createLocalGuideSession({
         endpoint: settings.endpoint,
         fetchImpl: settings.fetchImpl,
-        catalog: settings.catalog,
+        catalog: settings.catalog ?? localGuideCatalogForSearch(settings.search),
         requestTimeoutMs: settings.requestTimeoutMs
       })
       : createGuidePreviewSession({

@@ -70,15 +70,24 @@ Worker project, route, or deployment is outside this stage and requires separate
 
 ## Browser integration and temporary context
 
-The existing CORE Guide remains the only hallway guide. Its question provider will eventually send
-the visitor's typed question plus bounded arrays of approved topic, specialist, and destination IDs.
-The Worker converts the most recent compatible IDs into the existing temporary conversation state.
-It rejects unknown or inconsistent relationships instead of trusting browser memory.
+The existing CORE Guide remains the only hallway guide. The development-only localhost preview now
+sends the visitor's typed question plus bounded arrays of approved topic, specialist, and
+destination IDs through the v1.1 contract. The Worker converts the most recent compatible IDs into
+the existing temporary conversation state and rejects unknown or inconsistent relationships
+instead of trusting browser memory. The advanced preview profile is a fixed allowlisted synthetic
+configuration; it is not a production backend or an arbitrary fixture loader.
 
-The dialogue adapter should create an `AbortController` for each question, abort it when the dialogue
-closes or a newer question replaces the request, and retain the existing request-version check so a
-late response cannot update closed UI. Closing or reloading clears ordinary conversation context.
-No persistent identity or transcript is needed.
+The dialogue adapter creates an `AbortController` for each question, aborts it when the dialogue
+closes or a newer question replaces the request, and retains the request-version check so a late
+response cannot update closed UI. Closing or reloading clears ordinary conversation context. An
+exact v1.1 `invalid_context` response after a knowledge-version change also clears the IDs and asks
+the visitor for a fresh question. Other invalid responses continue to fail closed. No persistent
+identity or transcript is used.
+
+The advanced fake Responses transport deliberately emits non-authoritative prose. The Worker
+validates its selected fact IDs and reconstructs the displayed answer from approved canonical fact
+content. Actual Chrome coverage confirms the fake prose does not reach the Dialogue UI. This proves
+the boundary and canonical reconstruction, not real model quality or a live provider connection.
 
 ## Rate, budget, privacy, and failure behavior
 

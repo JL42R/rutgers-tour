@@ -155,6 +155,51 @@ citations, routes, topic switching, and follow-up context, and proves that no tr
 called. A separate lifecycle test proves stale approved context is rejected after retirement under
 a new knowledge version.
 
+### Separate first-run holdout
+
+`knowledge/guide-retrieval-quality-holdout.fixture.v1.json` contains 20 additional synthetic cases
+(17 direct and three contextual) with no exact question overlap with the 57-case evaluation. Its
+SHA-256 was frozen before the first run as
+`BB9C93C0524886E9AF5BEB4F57B069180A707BFB7870D39701D89DB0A54F6764`. The first result was recorded
+before reviewing holdout failures or tuning retrieval in
+`knowledge/guide-retrieval-quality-holdout-results.v1.json`:
+
+| Measure | First-run holdout result |
+| --- | ---: |
+| Top-1 supported-topic/fact accuracy | 7/8 (87.50%) |
+| Recall@4 for expected facts | 8/9 (88.89%) |
+| False support on unsupported cases | 4/5 (80.00%) |
+| Ambiguity/conflict handling | 4/4 (100%) |
+| Citation correctness | 6/8 (75.00%) |
+| Complete expected Worker outcomes | 14/20 (70.00%) |
+
+The six failing case IDs are `holdout-folded-amber-reset`, `holdout-orchard-token-food`,
+`holdout-unsupported-automata-speed`, `holdout-unsupported-prism-chemicals`,
+`holdout-unsupported-span-emergency-load`, and `holdout-unsupported-orchard-purchase`. The misses
+show two different limits: conservative coverage can reject a relevant query, while broad lexical
+evidence can still false-support a more specific unsupported claim. One answer also selected an
+extra same-topic fact. These results are intentionally retained rather than tuned away after seeing
+the holdout. They demonstrate that 100% on the original 57 cases is fixture-specific and does not
+establish general retrieval accuracy.
+
+`test/guide-retrieval-holdout.test.js` verifies the frozen input hash, recomputes the metrics through
+the Worker, rejects non-authoritative provider prose, and compares the run to the recorded result.
+
+## Development browser integration
+
+The fixed retrieval-quality fixture is available to the existing Dialogue UI only in Vite
+development mode through the allowlisted `retrieval-quality` localhost profile. The browser sends
+the same v1.1 request contract used by the default local preview. The loopback server prepares the
+reviewed approved view, runs retrieval and the fake Responses transport through the actual Worker
+handler, and returns only Worker-validated canonical evidence, citations, friendly specialist and
+destination names, and routes.
+
+The browser-side catalog contains only fixed IDs, relationships, versions, routes, and display
+names needed to validate responses and hold ID-only context. It contains no aliases, approval
+records, source text, or facts. An arbitrary profile, file path, URL, or knowledge payload is
+rejected. The constrained test-only retirement endpoint described in `GUIDE_LOCAL_E2E.md` exists
+only to verify stale-context recovery under an exact new knowledge version.
+
 ## Earlier lifecycle evaluation
 
 `knowledge/guide-evaluation.fixture.v1.json` contains 15 fixed cases covering approved folded

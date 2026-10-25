@@ -205,6 +205,46 @@ test('network failure becomes a safe local-backend error without storing the que
   });
 });
 
+test('stale approved context is cleared once and a fresh question can recover', async () => {
+  const requests = [];
+  let call = 0;
+  const session = createLocalGuideSession({
+    fetchImpl: async (url, init) => {
+      call += 1;
+      const request = JSON.parse(init.body);
+      requests.push(request);
+      if (call === 2) {
+        return new Response(JSON.stringify({
+          schemaVersion: '1.1',
+          error: {
+            code: 'invalid_request',
+            message: 'Request schema is invalid.'
+          }
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      return new Response(JSON.stringify(envelope(request)), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  });
+
+  await session.ask('How do folded machines move?');
+  const recovery = await session.ask('Where can I find them?');
+  const fresh = await session.ask('How do folded machines move?');
+
+  assert.equal(recovery.contextReset, true);
+  assert.match(recovery.response, /cleared the previous topic/i);
+  assert.equal(fresh.envelope.outcome, 'answered');
+  assert.deepEqual(requests[1].temporaryContext.topicIds, ['folded-machines']);
+  assert.deepEqual(requests[2].temporaryContext, {
+    topicIds: [], specialistNpcIds: [], destinationZoneIds: []
+  });
+});
+
 test('browser timeout aborts a stalled backend request and reports unavailability', async () => {
   let observedSignal;
   const session = createLocalGuideSession({

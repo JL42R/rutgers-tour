@@ -114,6 +114,47 @@ function resultFromEnvelope(envelope) {
   });
 }
 
+function hasTemporaryContext(context) {
+  return context.topicIds.length > 0 || context.specialistNpcIds.length > 0 ||
+    context.destinationZoneIds.length > 0;
+}
+
+function isRecoverableStaleContextResponse(response, value) {
+  if (response.status !== 400 || !value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  if (Object.keys(value).length !== 2 || value.schemaVersion !== GUIDE_API_SCHEMA_VERSION ||
+      !value.error || typeof value.error !== 'object' || Array.isArray(value.error) ||
+      Object.keys(value.error).length !== 2) {
+    return false;
+  }
+  return ['invalid_request', 'invalid_context'].includes(value.error.code) &&
+    typeof value.error.message === 'string';
+}
+
+function staleContextRecovery() {
+  const response =
+    'My approved information changed, so I cleared the previous topic. Please ask a new question.';
+  const result = Object.freeze({
+    type: 'fallback',
+    topicId: null,
+    response,
+    destinationNpcId: null,
+    specialistName: null,
+    destinationZoneId: null,
+    destinationZoneName: null,
+    directions: null,
+    score: 0
+  });
+  return Object.freeze({
+    stale: false,
+    contextReset: true,
+    envelope: null,
+    result,
+    response
+  });
+}
+
 /**
  * Browser-only development client for the localhost Worker shim. State is
  * memory-only and contains canonical IDs, never questions or transcripts.
@@ -180,6 +221,10 @@ export function createLocalGuideSession(options = {}) {
         } catch (error) {
           if (controller.signal.reason === 'local_backend_timeout') throw error;
           throw new Error('The local guide returned invalid JSON.', { cause: error });
+        }
+        if (hasTemporaryContext(context) && isRecoverableStaleContextResponse(response, envelope)) {
+          context = emptyContext();
+          return staleContextRecovery();
         }
         const responseValidation = validateGuideResponse(envelope, {
           catalog,

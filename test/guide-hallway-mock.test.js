@@ -13,6 +13,11 @@ import {
   isGuideMockModelFailureEnabled
 } from '../src/guide-hallway-mock.js';
 import { PREVIEW_KNOWLEDGE } from '../src/guide-preview-knowledge.js';
+import {
+  LOCAL_GUIDE_RETRIEVAL_PROFILE,
+  LOCAL_GUIDE_RETRIEVAL_QUALITY_CATALOG,
+  localGuideCatalogForSearch
+} from '../src/guide-local-profiles.js';
 
 test('mock mode requires development mode and the explicit URL flag', () => {
   const enabled = '?guideMock=1&guideBackend=local';
@@ -28,6 +33,20 @@ test('mock mode requires development mode and the explicit URL flag', () => {
 test('mock model failure is a separate opt-in mode', () => {
   assert.equal(isGuideMockModelFailureEnabled('?guideMock=1&guideMockFailure=1'), true);
   assert.equal(isGuideMockModelFailureEnabled('?guideMock=1'), false);
+});
+
+test('advanced browser catalog selection accepts only the fixed retrieval profile', () => {
+  const catalog = localGuideCatalogForSearch(
+    `?guideMock=1&guideBackend=local&guideProfile=${LOCAL_GUIDE_RETRIEVAL_PROFILE}`
+  );
+
+  assert.equal(catalog, LOCAL_GUIDE_RETRIEVAL_QUALITY_CATALOG);
+  assert.ok(catalog.topicIds.includes('echo-fountains'));
+  assert.ok(catalog.knowledgeVersions.includes('fictional-retrieval-quality-2026-10-25.2'));
+  assert.throws(
+    () => localGuideCatalogForSearch('?guideProfile=../../visitor-file.json'),
+    /not allowlisted/
+  );
 });
 
 test('provider reuses the production hallway guide identity', () => {

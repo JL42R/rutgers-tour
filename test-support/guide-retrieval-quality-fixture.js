@@ -1,3 +1,5 @@
+import { applyTrustedKnowledgeTransition } from '../src/guide-knowledge-administration.js';
+
 const APPROVAL = Object.freeze({
   reviewedBy: 'synthetic-retrieval-reviewer',
   reference: 'fixture-retrieval-quality-review-001',
@@ -407,4 +409,48 @@ export function retrievalQualityFixture() {
     knowledge: structuredClone(RETRIEVAL_QUALITY_KNOWLEDGE),
     profile: structuredClone(RETRIEVAL_QUALITY_PROFILE)
   };
+}
+
+const CLOUD_RECORD_IDS = Object.freeze([
+  'source-cloud-flight-guide-v1',
+  'cloud-kites',
+  'fact-cloud-silver-ribs',
+  'fact-cloud-violet-tether',
+  'fact-cloud-painted-stars',
+  'npc-cloud-kite-guide',
+  'zone-cloud-kite-loft'
+]);
+
+/** Fixed trusted transition used only by local tests and the development server. */
+export function retrievalQualityRetiredCloudFixture() {
+  const initial = retrievalQualityFixture();
+  const knowledge = applyTrustedKnowledgeTransition(initial.knowledge, {
+    type: 'trusted_mock_transition',
+    recordIds: [...CLOUD_RECORD_IDS],
+    nextStatus: 'retired',
+    knowledgeVersion: 'fictional-retrieval-quality-2026-10-25.2',
+    review: {
+      reviewedBy: 'synthetic-retrieval-reviewer',
+      reference: 'fixture-retrieval-quality-retirement-001',
+      reviewedAt: '2026-10-25'
+    }
+  });
+  const retiredFactIds = new Set([
+    'fact-cloud-silver-ribs',
+    'fact-cloud-violet-tether',
+    'fact-cloud-painted-stars'
+  ]);
+  const profile = structuredClone(initial.profile);
+  profile.profileVersion = 'fictional-retrieval-profile-2026-10-25.2';
+  profile.knowledgeVersion = knowledge.knowledgeVersion;
+  profile.topicAliases = profile.topicAliases.filter((entry) => entry.topicId !== 'cloud-kites');
+  profile.factAliases = profile.factAliases.filter((entry) => !retiredFactIds.has(entry.factId));
+  profile.ambiguityRules = profile.ambiguityRules.filter(
+    (entry) => !entry.topicIds.includes('cloud-kites')
+  );
+  profile.sourceBindings = profile.sourceBindings.filter(
+    (entry) => !retiredFactIds.has(entry.factId)
+  );
+
+  return { knowledge, profile };
 }
