@@ -148,6 +148,12 @@ test('allowlisted advanced profile crosses localhost with aliases, grounding, co
       'Does the retired glass garden frame spin as the old guide claimed?'
     );
     const unsupported = await session.ask('What is the weather tomorrow?');
+    const unsupportedSpeed = await session.ask(
+      'What is the maximum safe speed of paper automata?'
+    );
+    const unsupportedPurchase = await session.ask(
+      'Where can I purchase a mirror-grove fruit token?'
+    );
 
     assert.equal(paraphrase.envelope.outcome, 'answered');
     assert.equal(paraphrase.envelope.knowledgeVersion,
@@ -168,7 +174,13 @@ test('allowlisted advanced profile crosses localhost with aliases, grounding, co
     assert.equal(ambiguous.envelope.outcome, 'clarify');
     assert.equal(conflict.envelope.outcome, 'clarify');
     assert.match(conflict.response, /approved sources conflict/i);
-    for (const excluded of [draft, retired, unsupported]) {
+    for (const excluded of [
+      draft,
+      retired,
+      unsupported,
+      unsupportedSpeed,
+      unsupportedPurchase
+    ]) {
       assert.equal(excluded.envelope.outcome, 'unsupported');
       assert.deepEqual(excluded.envelope.factReferences, []);
       assert.equal(excluded.result.destinationNpcId, null);

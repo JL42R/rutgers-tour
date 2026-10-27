@@ -344,7 +344,7 @@ export const RETRIEVAL_QUALITY_KNOWLEDGE = Object.freeze({
 
 export const RETRIEVAL_QUALITY_PROFILE = Object.freeze({
   schemaVersion: '1.0',
-  profileVersion: 'fictional-retrieval-profile-2026-10-25.1',
+  profileVersion: 'fictional-retrieval-profile-2026-10-25.2',
   knowledgeVersion: RETRIEVAL_QUALITY_KNOWLEDGE.knowledgeVersion,
   contentClassification: 'synthetic_fixture',
   approval: APPROVAL,
@@ -374,6 +374,26 @@ export const RETRIEVAL_QUALITY_PROFILE = Object.freeze({
     { factId: 'fact-stars-navigation-map', phrases: ['paper constellations', 'origami stars'] },
     { factId: 'fact-echo-duration-short', phrases: ['sound well duration', 'resonant pool duration'] },
     { factId: 'fact-echo-duration-long', phrases: ['sound well duration', 'resonant pool duration'] }
+  ]),
+  answerabilityPhrases: Object.freeze([
+    { factId: 'fact-folded-motion-primary', phrases: ['rotate after a gentle tug', 'gentle tug makes devices rotate', 'gentle pull create rotational motion', 'paper hinge movement', 'origami mechanisms articulate'] },
+    { factId: 'fact-folded-motion-confirmation', phrases: ['linked paper joints turn', 'gentle tug makes devices rotate', 'pull tab moves', 'paper devices rotate', 'origami mechanisms articulate'] },
+    { factId: 'fact-folded-reset-tabs', phrases: ['amber tabs mark reset points', 'purpose of amber reset tabs'] },
+    { factId: 'fact-folded-light-frame', phrases: ['lightweight card ribs', 'easy to reset between demonstrations'] },
+    { factId: 'fact-glass-colored-light', phrases: ['crystal plants cast colors', 'make crystal plants cast colors', 'suspended leaves scatter colored light', 'suspended prism leaves create light'] },
+    { factId: 'fact-glass-patterns', phrases: ['arrange prism leaves', 'changing light patterns'] },
+    { factId: 'fact-glass-stationary-frame', phrases: ['stationary garden frame', 'garden frame does not move'] },
+    { factId: 'fact-cloud-silver-ribs', phrases: ['sky sails recover after wind bends', 'make aerial fabric forms spring back', 'aerial fabric forms bounce back', 'bounce back after strong wind', 'spring back after a gust'] },
+    { factId: 'fact-cloud-violet-tether', phrases: ['tether distributes tension', 'strain shared across anchor loops', 'spread strain across anchor loops'] },
+    { factId: 'fact-cloud-painted-stars', phrases: ['painted stars are alignment markers', 'painted stars do not steer or power'] },
+    { factId: 'fact-ribbon-cable-tension', phrases: ['woven spans share tension', 'ribbon cables carry tension'] },
+    { factId: 'fact-ribbon-anchor-fans', phrases: ['fan shaped anchors secure both ends', 'anchors keep two ends secure'] },
+    { factId: 'fact-prism-moonlight', phrases: ['mirror branches focus moonlight', 'moonlight onto acrylic fruit tokens'] },
+    { factId: 'fact-prism-fruit-tokens', phrases: ['acrylic tokens are not edible', 'snack on acrylic tokens', 'eat mirror grove fruit', 'optical markers'] },
+    { factId: 'fact-stars-seven-folds', phrases: ['seven creases from a square sheet', 'crease count for an origami star', 'crease count needed to make one star from a square sheet'] },
+    { factId: 'fact-stars-navigation-map', phrases: ['blue fold map labels the sequence', 'not a navigation instrument'] },
+    { factId: 'fact-echo-duration-short', phrases: ['echo duration in seconds', 'note repeats for four seconds'] },
+    { factId: 'fact-echo-duration-long', phrases: ['echo duration in seconds', 'note repeats for nine seconds'] }
   ]),
   excludedPhrases: Object.freeze([
     { phrase: 'rigid gold rods', lifecycleStatus: 'draft' },
@@ -441,10 +461,13 @@ export function retrievalQualityRetiredCloudFixture() {
     'fact-cloud-painted-stars'
   ]);
   const profile = structuredClone(initial.profile);
-  profile.profileVersion = 'fictional-retrieval-profile-2026-10-25.2';
+  profile.profileVersion = 'fictional-retrieval-profile-2026-10-25.3';
   profile.knowledgeVersion = knowledge.knowledgeVersion;
   profile.topicAliases = profile.topicAliases.filter((entry) => entry.topicId !== 'cloud-kites');
   profile.factAliases = profile.factAliases.filter((entry) => !retiredFactIds.has(entry.factId));
+  profile.answerabilityPhrases = profile.answerabilityPhrases.filter(
+    (entry) => !retiredFactIds.has(entry.factId)
+  );
   profile.ambiguityRules = profile.ambiguityRules.filter(
     (entry) => !entry.topicIds.includes('cloud-kites')
   );

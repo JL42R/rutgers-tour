@@ -90,6 +90,25 @@ work, can miss unlisted synonyms and nuanced paraphrases, and does not establish
 is true. Unprofiled legacy fixtures preserve their earlier deterministic matching behavior; the
 stricter exclusion and conflict rules require a reviewed profile.
 
+### Reviewed fact answerability
+
+Topic relevance and answerability are separate checks for reviewed profiles. Topic/fact aliases
+still locate and rank a relevant topic, but they are not themselves proof that a fact answers the
+requested property. Each approved fact has version-bound, reviewed `answerabilityPhrases`.
+After ranking, the retriever removes topic terms and generic question grammar, then requires every
+remaining focused query concept to occur in the candidate fact's canonical content or reviewed
+answerability phrases. Reinforcing facts may share that evidence; unresolved conflicts remain
+conflicts. Only eligible facts can be selected, so a nearby same-topic passage is no longer added
+merely because its score is close. Failure returns `unsupported` with
+`insufficient_answerability`, with no facts, citations, specialist, destination, or directions.
+
+The answerability phrases do not add points to the ranking score. They do participate in reviewed
+topic-evidence coverage and the later fact-level eligibility gate. Three narrow leading-clause
+forms (`please explain`, `I only want to know`, and `explain whether`) focus that gate on the actual
+request. Deterministic normalization handles only an explicit morphology table. There is no
+unrestricted semantic verifier and no question-specific exception list. Unprofiled legacy
+knowledge bypasses the new fact-level gate; the public API v1.0/v1.1 contracts remain unchanged.
+
 ## Worker connection
 
 `worker/src/approved-knowledge.js` constructs the approved retriever with the existing catalog and
@@ -182,8 +201,62 @@ extra same-topic fact. These results are intentionally retained rather than tune
 the holdout. They demonstrate that 100% on the original 57 cases is fixture-specific and does not
 establish general retrieval accuracy.
 
-`test/guide-retrieval-holdout.test.js` verifies the frozen input hash, recomputes the metrics through
-the Worker, rejects non-authoritative provider prose, and compares the run to the recorded result.
+The six first-run failures were diagnosed before implementing the answerability gate:
+
+| Case | First-run behavior | Cause and Worker safety |
+| --- | --- | --- |
+| `holdout-folded-amber-reset` | Expected reset-tabs fact; returned unsupported (`insufficient_specific_evidence`). | Correct topic/fact existed, but `purpose`, `serve`, and `during` were wrongly treated as missing evidence. Conservative false negative; Worker safely abstained. |
+| `holdout-orchard-token-food` | Returned the correct fruit-token fact (21.876916) plus unrelated moonlight fact (21.684773), both from the orchard atlas. | Near-score topic-wide selection hurt citation precision. The canonical answer was grounded but contained irrelevant evidence. |
+| `holdout-unsupported-automata-speed` | Returned motion facts (18.738572 and 18.618947) from the folded handbook/demonstration log. | Exact `paper automata` aliases were mistaken for proof of an unsupported speed attribute. Worker false-supported the question with related but non-answering evidence. |
+| `holdout-unsupported-prism-chemicals` | Returned glass-pattern/color facts (20.662634 and 20.566563) from the glass field guide. | Topic aliases bypassed evidence for polishing frequency and chemicals. Worker false-supported the question. |
+| `holdout-unsupported-span-emergency-load` | Returned the cable-tension fact (22.807046) from the ribbon-bridge notes. | The topic was relevant, but no approved emergency/load-limit fact existed. Worker false-supported the question. |
+| `holdout-unsupported-orchard-purchase` | Returned the non-edibility fact (26.556513) from the orchard atlas. | Acrylic/token overlap was treated as evidence for buying, although no purchase fact existed. Worker false-supported the question. |
+
+No failure was caused by a bad fact/source binding, wrong knowledge version, carried context, or
+invented provider prose. The common causes were topic aliases treated as proof, topic-wide evidence
+coverage, and near-score extra passages. The four unsupported failures were therefore unsafe as
+answers even though their text and citations were canonical.
+
+The original result remains unchanged. After diagnosis, the same 20 cases became a development
+set. The post-answerability measurement in
+`knowledge/guide-retrieval-quality-holdout-after-answerability.v1.json` is 8/8 Top-1, 9/9
+Recall@4, 0/5 false support, 4/4 ambiguity/conflict, 8/8 citation correctness, and 20/20 complete
+Worker outcomes. It is explicitly not an unseen result.
+
+`knowledge/guide-answerability-development.fixture.v1.json` freezes 20 diagnostic variations,
+including the six originals, supported protections, unsupported same-topic properties, numerical,
+time, cause, overlap, ambiguity, and context cases. Retrieval and the actual Worker path pass all
+20/20 with canonical evidence and the injected fake provider only.
+
+### Independent answerability holdout
+
+`knowledge/guide-answerability-holdout.fixture.v1.json` contains 30 independently frozen synthetic
+cases: 10 supported, 12 unsupported lookalikes, four ambiguous/conflicting, and four contextual.
+There is no exact question overlap with the earlier 57- or 20-case files. Its pre-run SHA-256 is
+`F2CC23C851D43C1D4FF950B458288D2855B53EE3AEF12E25E1C7C875C6ECB7FE`.
+
+| Measure | First run | Final rerun |
+| --- | ---: | ---: |
+| Top-1 supported-topic/fact accuracy | 0/10 (0%) | 0/10 (0%) |
+| Recall@4 for expected facts | 0/11 (0%) | 0/11 (0%) |
+| False support on unsupported cases | 0/12 (0%) | 0/12 (0%) |
+| Ambiguity/conflict handling | 0/4 (0%) | 0/4 (0%) |
+| Citation correctness | 0/10 (0%) | 0/10 (0%) |
+| Complete expected Worker outcomes | 14/30 (46.67%) | 14/30 (46.67%) |
+
+The first run proves the new gate prevents these unsupported lookalikes, but it is far too literal:
+it rejects all ten novel supported paraphrases and all four novel ambiguity/conflict phrasings.
+The final rerun is identical. It occurred after regression fixes derived only from the already
+examined 20-case diagnostic set, so it is recorded as post-first-run and not called unseen. Both
+runs and every failure ID are preserved in
+`knowledge/guide-answerability-holdout-results.v1.json`; expectations were not rewritten. This
+result blocks any production-readiness or generalization claim and motivates a teammate-authored
+blind set plus a reviewed design for recovering paraphrase recall without reintroducing false
+support.
+
+`test/guide-retrieval-holdout.test.js` preserves the original first-run metrics and verifies the
+post-diagnosis result. `test/guide-answerability-holdout.test.js` verifies the new frozen hash and
+both recorded runs through direct retrieval and the actual Worker boundary.
 
 ## Development browser integration
 

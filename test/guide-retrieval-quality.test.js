@@ -119,6 +119,27 @@ test('reviewed retrieval profile rejects unknown aliases and mismatched source b
     /source binding/
   );
 
+  const unknownAnswerabilityFact = structuredClone(profile);
+  unknownAnswerabilityFact.answerabilityPhrases[0].factId = 'visitor-invented-fact';
+  assert.throws(
+    () => prepareApprovedKnowledge(knowledge, { retrievalProfile: unknownAnswerabilityFact }),
+    /answerabilityPhrases references an invalid ID/
+  );
+
+  const malformedAnswerabilityPhrase = structuredClone(profile);
+  malformedAnswerabilityPhrase.answerabilityPhrases[0].phrases = ['   '];
+  assert.throws(
+    () => prepareApprovedKnowledge(knowledge, { retrievalProfile: malformedAnswerabilityPhrase }),
+    /answerabilityPhrases\[0\]\.phrases is invalid/
+  );
+
+  const missingAnswerabilityMetadata = structuredClone(profile);
+  delete missingAnswerabilityMetadata.answerabilityPhrases;
+  assert.throws(
+    () => prepareApprovedKnowledge(knowledge, { retrievalProfile: missingAnswerabilityMetadata }),
+    /fields are invalid/
+  );
+
   const unknownProfileField = structuredClone(profile);
   unknownProfileField.visitorAliases = ['trust me'];
   assert.throws(

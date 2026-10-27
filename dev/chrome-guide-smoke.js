@@ -443,6 +443,8 @@ async function advancedPhase(client) {
 
   for (const question of [
     'What is the weather tomorrow?',
+    'What is the maximum safe speed of paper automata?',
+    'Where can I purchase a mirror-grove fruit token?',
     'Do rigid gold rods hold cloud kites in shape?',
     'Does the retired glass garden frame spin as the old guide claimed?'
   ]) {
@@ -453,6 +455,13 @@ async function advancedPhase(client) {
       'document.querySelector("#dlg-text").textContent.includes("verified answer")',
       `safe exclusion: ${question}`
     );
+    const safeFallback = await evaluate(
+      client,
+      'document.querySelector("#dlg-text").textContent'
+    );
+    if (/Specialist:|Destination:|Directions:/.test(safeFallback)) {
+      throw new Error(`Unsupported answer invented routing: ${question}`);
+    }
   }
 
   await click(client, '#dlg-choices button');

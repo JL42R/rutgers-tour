@@ -98,6 +98,12 @@ This selects one fixed, reviewed synthetic profile on both sides of the localhos
 - `What can you tell me about orbit rings?` (intentional ambiguity)
 - `What color is the signal crystal?` (intentional approved-source conflict)
 - `How fast do the automata move?` (unsupported specific claim)
+- `What is the maximum safe speed of paper automata?` (same-topic unsupported property)
+- `Where can I purchase a mirror-grove fruit token?` (unsupported lookalike relation)
+
+The last two questions must show the concise verified-answer fallback. They must not display an
+unrelated fact, citation, specialist, destination, or directions, and they must not call the fake
+provider. A relevant topic is not enough: the reviewed fact must cover the requested property.
 
 Ordinary demonstrations must omit `--test-controls`. The automated Chrome lifecycle check alone
 starts the backend with:
@@ -142,8 +148,10 @@ browser path; draft and retired records remain unavailable. Neither profile load
 facts. Rate and budget controls are injected test interfaces, not durable distributed controls. No
 NVDA claim is made; an actual NVDA session remains required.
 
-The 57-case profile evaluation is an in-fixture regression suite. A separate 20-case holdout is
-documented in `GUIDE_DOCUMENT_RETRIEVAL.md`; its lower first-run results are the appropriate warning
-against claiming perfect generalization. Document ingestion and arbitrary publication remain
-outside the browser. The fixed Chrome retirement control demonstrates version change and stale
-context only; it is not a content-management endpoint.
+The 57-case profile evaluation is an in-fixture regression suite. The examined 20-case diagnostic
+and a separately frozen 30-case answerability holdout are documented in
+`GUIDE_DOCUMENT_RETRIEVAL.md`. The new holdout rejected every unsupported lookalike but also every
+novel supported paraphrase, so this lexical policy is intentionally treated as over-conservative,
+not production-ready. Document ingestion and arbitrary publication remain outside the browser. The
+fixed Chrome retirement control demonstrates version change and stale context only; it is not a
+content-management endpoint.

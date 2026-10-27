@@ -112,6 +112,15 @@ model and return `unsupported` or `clarify`. Canonical specialist, zone, and dir
 always rebuilt from server-owned approved records. Version `1.1` also returns friendly specialist
 and destination names from those same authoritative records; the model cannot submit them.
 
+For a reviewed retrieval profile, the Worker also requires fact-level answerability before calling
+the model. Topic aliases may establish relevance, but only reviewed answerability phrases and
+canonical fact content can cover the specific requested concepts. A same-topic request for an
+unpublished property (for example fictional speed, price, load rating, or cleaning schedule)
+returns the citation-free verified-answer fallback and no route. This is deterministic lexical
+abstention, not semantic entailment. The independent 30-case evaluation shows the current boundary
+is safe on its unsupported lookalikes but overly conservative on novel supported paraphrases; see
+`GUIDE_DOCUMENT_RETRIEVAL.md`.
+
 ## Decisions required before a live connection
 
 - Approval to change the locked static/no-backend architecture and project schedule.

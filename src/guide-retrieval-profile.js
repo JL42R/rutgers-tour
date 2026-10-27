@@ -8,6 +8,7 @@ const PROFILE_FIELDS = Object.freeze([
   'approval',
   'topicAliases',
   'factAliases',
+  'answerabilityPhrases',
   'excludedPhrases',
   'ambiguityRules',
   'sourceBindings',
@@ -200,6 +201,7 @@ export function prepareGuideRetrievalProfile(approvedKnowledge, profile) {
       profileVersion: null,
       aliasesForTopic: () => Object.freeze([]),
       aliasesForFact: () => Object.freeze([]),
+      answerabilityPhrasesForFact: () => Object.freeze([]),
       excludedMatch: () => null,
       ambiguityMatch: () => null,
       bindingForFact: (factId) => {
@@ -235,6 +237,13 @@ export function prepareGuideRetrievalProfile(approvedKnowledge, profile) {
     facts,
     'retrievalProfile.factAliases'
   );
+  const answerabilityPhrases = readAliases(
+    profile.answerabilityPhrases,
+    FACT_ALIAS_FIELDS,
+    'factId',
+    facts,
+    'retrievalProfile.answerabilityPhrases'
+  );
   const excluded = readExcluded(profile.excludedPhrases);
   const ambiguityRules = readAmbiguityRules(profile.ambiguityRules, topics);
   const bindings = readBindings(profile.sourceBindings, facts, sources);
@@ -244,6 +253,9 @@ export function prepareGuideRetrievalProfile(approvedKnowledge, profile) {
     profileVersion: profile.profileVersion,
     aliasesForTopic: (topicId) => topicAliases.get(topicId) ?? Object.freeze([]),
     aliasesForFact: (factId) => factAliases.get(factId) ?? Object.freeze([]),
+    answerabilityPhrasesForFact: (factId) => (
+      answerabilityPhrases.get(factId) ?? Object.freeze([])
+    ),
     excludedMatch(normalizedQuestion) {
       return excluded.find(({ phrase }) => ` ${normalizedQuestion} `.includes(` ${phrase} `)) ?? null;
     },

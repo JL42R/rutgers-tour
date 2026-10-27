@@ -17,6 +17,10 @@ const recordedResult = JSON.parse(readFileSync(
   new URL('../knowledge/guide-retrieval-quality-holdout-results.v1.json', import.meta.url),
   'utf8'
 ));
+const afterAnswerabilityResult = JSON.parse(readFileSync(
+  new URL('../knowledge/guide-retrieval-quality-holdout-after-answerability.v1.json', import.meta.url),
+  'utf8'
+));
 const expectedHoldoutHash = 'bb9c93c0524886e9af5beb4f57b069180a707bfb7870d39701d89db0a54f6764';
 const allowedOrigin = 'https://retrieval-holdout.example.test';
 let requestSequence = 0;
@@ -65,7 +69,7 @@ async function bodyFor(handler, question, context) {
   return { status: response.status, body: await response.json() };
 }
 
-test('separate fixed holdout reports first-run retrieval and Worker metrics without tuning', async () => {
+test('fixed diagnostic preserves its first run and verifies the post-answerability result', async () => {
   assert.equal(createHash('sha256').update(holdoutBytes).digest('hex'), expectedHoldoutHash);
   assert.equal(holdout.contentClassification, 'synthetic_fixture');
   assert.equal(holdout.cases.length, 20);
@@ -173,15 +177,54 @@ test('separate fixed holdout reports first-run retrieval and Worker metrics with
   });
   console.log(`HOLDOUT_RESULT=${JSON.stringify(report)}`);
 
+  assert.deepEqual(recordedResult, {
+    schemaVersion: '1.0',
+    evaluationVersion: 'fictional-retrieval-holdout-2026-10-25.1',
+    knowledgeVersion: 'fictional-retrieval-quality-2026-10-25.1',
+    contentClassification: 'synthetic_fixture',
+    holdoutSha256: expectedHoldoutHash,
+    measurement: 'first_run_before_holdout_review_or_retrieval_tuning',
+    directCases: 17,
+    conversationCases: 3,
+    metrics: {
+      supported: 8,
+      top1Correct: 7,
+      expectedFacts: 9,
+      recalledFacts: 8,
+      unsupported: 5,
+      falseSupported: 4,
+      ambiguityOrConflict: 4,
+      ambiguityOrConflictCorrect: 4,
+      citationCorrect: 6
+    },
+    directFailures: [
+      'holdout-folded-amber-reset',
+      'holdout-orchard-token-food',
+      'holdout-unsupported-automata-speed',
+      'holdout-unsupported-prism-chemicals',
+      'holdout-unsupported-span-emergency-load',
+      'holdout-unsupported-orchard-purchase'
+    ],
+    workerPassed: 14,
+    workerFailures: [
+      'holdout-folded-amber-reset',
+      'holdout-orchard-token-food',
+      'holdout-unsupported-automata-speed',
+      'holdout-unsupported-prism-chemicals',
+      'holdout-unsupported-span-emergency-load',
+      'holdout-unsupported-orchard-purchase'
+    ],
+    notes: recordedResult.notes
+  });
   assert.deepEqual(report, {
-    evaluationVersion: recordedResult.evaluationVersion,
-    holdoutSha256: recordedResult.holdoutSha256,
-    directCases: recordedResult.directCases,
-    conversationCases: recordedResult.conversationCases,
-    metrics: recordedResult.metrics,
-    directFailures: recordedResult.directFailures,
-    workerPassed: recordedResult.workerPassed,
-    workerFailures: recordedResult.workerFailures
+    evaluationVersion: afterAnswerabilityResult.evaluationVersion,
+    holdoutSha256: afterAnswerabilityResult.holdoutSha256,
+    directCases: afterAnswerabilityResult.directCases,
+    conversationCases: afterAnswerabilityResult.conversationCases,
+    metrics: afterAnswerabilityResult.metrics,
+    directFailures: afterAnswerabilityResult.directFailures,
+    workerPassed: afterAnswerabilityResult.workerPassed,
+    workerFailures: afterAnswerabilityResult.workerFailures
   });
   assert.equal(metrics.supported + metrics.unsupported + metrics.ambiguityOrConflict, 17);
   assert.equal(metrics.expectedFacts > 0, true);
