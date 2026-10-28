@@ -2,6 +2,36 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-10-27
+
+### Provisional equipment box workflow (Issue #12)
+- Added a debug-only editor to turn pairs of P snapshots into editable drafts,
+  preview orange AABBs, download drafts/samples, and save applied drafts locally.
+- Added explicit draft-collision testing with spawn/doorway clearance and sampled
+  floor-plan checks for NPC and exit access. Production collision is untouched.
+- No verified equipment measurements were found; production equipment boxes await
+  physical/visual calibration. Preserved local Vishan and all previous debug work.
+
+### Provisional Vishan placement (Issue #12)
+- Moved only Vishan's marker to `[-0.90, 1.80, 0.372]`, inside the printing-room
+  walls opposite Johnny. Workstation alignment awaits visual inspection; dialogue,
+  portrait, interaction radius, other NPCs, collisions, and debug tools are unchanged.
+
+### Printing-room placeholder alignment (Issue #12, Stage 2)
+- Corrected preview floor X/Z dimensions and centre from the existing wall inner
+  faces; fitted the rectangular grid to those bounds without moving wall meshes.
+- Added `?debugEquipment&equipmentPlaceholder` for printing-room-only preview.
+  Production placeholder remains false; real splat transforms and all collision,
+  NPC, dialogue, transition, and control data remain unchanged.
+
+### Equipment mapping preparation (Issue #12)
+- Added opt-in `?debugEquipment`: P logs printing-room world coordinates and yaw,
+  and existing collision boxes appear as cyan overlays. Dialogue/editable fields
+  suppress snapshots; normal visits do not install the shortcut.
+- Documented the aligned axes, placeholder-floor mismatch, survey inventory, and
+  existing Vishan marker reachability concern in `docs/EQUIPMENT_MAPPING.md`.
+- No equipment boxes, wall edits, or alignment changes were made.
+
 ## 2026-10-21
 
 ### Hallway start direction finalized (Issue #52)
