@@ -1,0 +1,21 @@
+{
+  "npc": "hallway-guide",
+  "name": "CORE Guide",
+  "nodes": {
+    "start": {
+      "text": "Welcome to the Rutgers CORE Building! I'm here to help you explore the spaces our Industrial & Systems Engineering students use to learn, design, and work on projects.",
+      "next": "controls"
+    },
+    "controls": {
+      "text": "Use WASD or your arrow keys to move, your mouse to look around, and E to talk to guides. The tracker in the corner shows who you've met and which guides you still have to visit!",
+      "next": "where_to_start"
+    },
+    "where_to_start": {
+      "text": "I recommend starting with the 3D Printing Room, where you can see how students turn their designs into real objects. But feel free to explore wherever you'd like!",
+      "next": "goodbye"
+    },
+    "goodbye": {
+      "text": "Enjoy exploring Rutgers CORE! Feel free to come back if you need a reminder of how the tour works."
+    }
+  }
+}
