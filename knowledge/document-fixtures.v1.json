@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "1.0",
+  "fixtureVersion": "fictional-documents-2026-10-24.1",
+  "contentClassification": "synthetic_fixture",
+  "documents": [
+    {
+      "id": "folded-machines-manual",
+      "version": "1",
+      "format": "markdown",
+      "path": "documents/folded-machines.v1.md",
+      "title": "Fictional Folded Machines Manual",
+      "sourceId": "source-folded-machines-document-v1",
+      "sourceReference": "fixture://documents/folded-machines/v1",
+      "contentClassification": "synthetic_fixture",
+      "topic": {
+        "id": "folded-machines-document",
+        "label": "Fictional folded machines document",
+        "category": "fictional-demonstrations"
+      },
+      "specialist": null,
+      "destinationZone": null
+    },
+    {
+      "id": "glass-gardens-field-notes",
+      "version": "2",
+      "format": "markdown",
+      "path": "documents/glass-gardens.v2.md",
+      "title": "Fictional Glass Gardens Field Notes",
+      "sourceId": "source-glass-gardens-document-v2",
+      "sourceReference": "fixture://documents/glass-gardens/v2",
+      "contentClassification": "synthetic_fixture",
+      "topic": {
+        "id": "glass-gardens-document",
+        "label": "Fictional glass gardens document",
+        "category": "fictional-demonstrations"
+      },
+      "specialist": null,
+      "destinationZone": null
+    },
+    {
+      "id": "cloud-kites-flight-guide",
+      "version": "1",
+      "format": "markdown",
+      "path": "documents/cloud-kites.v1.md",
+      "title": "Fictional Cloud Kites Flight Guide",
+      "sourceId": "source-cloud-kites-flight-guide-v1",
+      "sourceReference": "fixture://documents/cloud-kites/v1",
+      "contentClassification": "synthetic_fixture",
+      "topic": {
+        "id": "cloud-kite-shape",
+        "label": "Fictional cloud kites",
+        "category": "fictional-demonstrations"
+      },
+      "specialist": {
+        "id": "npc-cloud-kite-guide",
+        "name": "Fictional Cloud Kite Guide"
+      },
+      "destinationZone": {
+        "id": "zone-cloud-kite-loft",
+        "name": "Fictional Cloud Kite Loft",
+        "canonicalDirections": "From the fictional guide marker, follow the painted cloud spirals to the kite loft."
+      }
+    },
+    {
+      "id": "clockwork-coral-archive",
+      "version": "1",
+      "format": "text",
+      "path": "documents/clockwork-coral.v1.txt",
+      "title": "Fictional Clockwork Coral Archive",
+      "sourceId": "source-clockwork-coral-document-v1",
+      "sourceReference": "fixture://documents/clockwork-coral/v1",
+      "contentClassification": "synthetic_fixture",
+      "topic": {
+        "id": "clockwork-coral-document",
+        "label": "Fictional clockwork coral document",
+        "category": "fictional-archives"
+      },
+      "specialist": null,
+      "destinationZone": null
+    },
+    {
+      "id": "malicious-override-note",
+      "version": "1",
+      "format": "markdown",
+      "path": "documents/malicious-override.v1.md",
+      "title": "Fictional Untrusted Override Note",
+      "sourceId": "source-malicious-override-note-v1",
+      "sourceReference": "fixture://documents/malicious-override/v1",
+      "contentClassification": "synthetic_fixture",
+      "topic": {
+        "id": "untrusted-document-instructions",
+        "label": "Fictional untrusted document instructions",
+        "category": "fictional-adversarial-tests"
+      },
+      "specialist": null,
+      "destinationZone": null
+    }
+  ],
+  "administrativeExamples": [
+    {
+      "documentId": "folded-machines-manual",
+      "lifecycleStatus": "approved",
+      "review": {
+        "reviewedBy": "synthetic-document-reviewer",
+        "reference": "fixture-document-review-001",
+        "reviewedAt": "2026-10-24"
+      }
+    },
+    {
+      "documentId": "glass-gardens-field-notes",
+      "lifecycleStatus": "approved",
+      "review": {
+        "reviewedBy": "synthetic-document-reviewer",
+        "reference": "fixture-document-review-002",
+        "reviewedAt": "2026-10-24"
+      }
+    },
+    {
+      "documentId": "cloud-kites-flight-guide",
+      "lifecycleStatus": "draft",
+      "review": null
+    },
+    {
+      "documentId": "clockwork-coral-archive",
+      "lifecycleStatus": "retired",
+      "review": {
+        "reviewedBy": "synthetic-document-reviewer",
+        "reference": "fixture-document-retirement-001",
+        "reviewedAt": "2026-10-24"
+      }
+    },
+    {
+      "documentId": "malicious-override-note",
+      "lifecycleStatus": "draft",
+      "review": null
+    }
+  ]
+}
