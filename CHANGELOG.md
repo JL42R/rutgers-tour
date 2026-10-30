@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-10-30
+
+### AI CORE Guide development handoff (Issue #47)
+
+- Checkpointed the completed natural-language generalization work at `cb06b97`: reviewed property
+  bindings, safer answerability and topic competition, additional route follow-ups, synthetic
+  evaluation records, and browser/local HTTP regression coverage.
+- Added `docs/GUIDE_AI_HANDOFF.md` with the actual local architecture, exact PowerShell startup and
+  verification commands, security/privacy boundaries, limitations, prioritized backlog, and safe
+  teammate continuation steps.
+- Verified 338/338 automated tests, all four Chrome smoke phases (success, advanced lifecycle,
+  backend failure, and production isolation), and the production build. The build retains its known
+  large-bundle warning. No real provider request, credential, deployment, or production backend was
+  used.
+- Recorded that PRs #48 and #59 are now merged while #61 remains open. Current main and this old-base
+  handoff have conflicts in `src/main.js`, `src/guide-conversation.js`, and its test, so the published
+  branch is a recoverable baseline and requires focused reconciliation rather than a direct merge.
+
 Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
 ## 2026-10-21
