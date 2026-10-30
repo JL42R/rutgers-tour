@@ -1,5 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { matchQuestion } from '../src/guide-qa.js';
+import {
+  createConversationState, clearConversationState, handleGuideQuestion
+} from '../src/guide-conversation.js';
 
 import {
   createModelRequest,
@@ -16,10 +20,10 @@ const paperAnswer = Object.freeze({
 
 const paperRoute = Object.freeze({
   type: 'route',
-  topicId: 'paper-robotics',
+  topicId: 'paper-specialist',
   response: 'Ask the paper specialist.',
   destinationNpcId: 'npc-paper-specialist',
-  destinationZoneId: 'zone-model-workshop',
+  destinationZoneId: 'printing-room',
   score: 7
 });
 
@@ -42,6 +46,9 @@ const knowledge = Object.freeze({
     Object.freeze({
       id: 'paper-robotics',
       status: 'verified',
+      type: 'answer',
+      response: paperAnswer.response,
+      phrases: Object.freeze(['paper robotics']),
       facts: Object.freeze([
         Object.freeze({
           id: 'paper-folds',
@@ -58,6 +65,19 @@ const knowledge = Object.freeze({
           status: 'candidate',
           text: 'This draft fact must never be sent to the model.'
         })
+      ])
+    }),
+    Object.freeze({
+      id: 'paper-specialist',
+      status: 'verified',
+      type: 'route',
+      response: paperRoute.response,
+      destinationNpcId: paperRoute.destinationNpcId,
+      destinationZoneId: paperRoute.destinationZoneId,
+      phrases: Object.freeze(['paper specialist']),
+      facts: Object.freeze([
+        Object.freeze({ id: 'paper-folds', status: 'approved', text: 'Synthetic paper mechanisms.' }),
+        Object.freeze({ id: 'paper-motion', status: 'approved', text: 'Synthetic mechanical motion.' })
       ])
     }),
     Object.freeze({
@@ -87,21 +107,21 @@ const knowledge = Object.freeze({
     Object.freeze({
       id: 'npc-paper-specialist',
       status: 'approved',
-      zoneId: 'zone-model-workshop',
-      topicIds: Object.freeze(['paper-robotics']),
+      zoneId: 'printing-room',
+      topicIds: Object.freeze(['paper-specialist']),
       directions: 'Go to the fictional model workshop.'
     }),
     Object.freeze({
       id: 'npc-glass-specialist',
       status: 'approved',
-      zoneId: 'zone-glass-lab',
+      zoneId: 'project-studio',
       topicIds: Object.freeze(['glass-engine-design']),
       directions: 'Go to the fictional glass lab.'
     })
   ]),
   zones: Object.freeze([
-    Object.freeze({ id: 'zone-model-workshop', status: 'approved' }),
-    Object.freeze({ id: 'zone-glass-lab', status: 'approved' })
+    Object.freeze({ id: 'printing-room', status: 'approved' }),
+    Object.freeze({ id: 'project-studio', status: 'approved' })
   ])
 });
 
@@ -116,7 +136,7 @@ function resolverReturning(result) {
   return () => result;
 }
 
-function optionsFor(result, generateResponse = () => modelAnswer, extra = {}) {
+function optionsFor(result, generateResponse = () => ({ ...modelAnswer, topicId: result.topicId }), extra = {}) {
   return {
     resolveQuestion: resolverReturning(result),
     generateResponse,
@@ -460,7 +480,7 @@ test('model-generated directions cannot override canonical directions', async ()
 
   assert.equal(outcome.result.response, paperRoute.response);
   assert.equal(outcome.result.destinationNpcId, 'npc-paper-specialist');
-  assert.equal(outcome.result.destinationZoneId, 'zone-model-workshop');
+  assert.equal(outcome.result.destinationZoneId, 'printing-room');
   assert.equal(outcome.result.directions, 'Go to the fictional model workshop.');
 });
 
@@ -475,7 +495,7 @@ test('valid specialist recommendations preserve canonical routing', async () => 
   assert.equal(outcome.result.type, 'route');
   assert.equal(outcome.result.response, modelAnswer.answerText);
   assert.equal(outcome.result.destinationNpcId, 'npc-paper-specialist');
-  assert.equal(outcome.result.destinationZoneId, 'zone-model-workshop');
+  assert.equal(outcome.result.destinationZoneId, 'printing-room');
   assert.equal(outcome.result.directions, 'Go to the fictional model workshop.');
 });
 
@@ -483,7 +503,7 @@ test('contextual follow-up envelopes are processed without duplicating memory lo
   const nextState = Object.freeze({
     lastTopicId: 'paper-robotics',
     lastDestinationNpcId: 'npc-paper-specialist',
-    lastDestinationZoneId: 'zone-model-workshop',
+    lastDestinationZoneId: 'printing-room',
     history: ['This must not reach the model.']
   });
   const resolver = () => ({ result: paperAnswer, state: nextState });
@@ -506,23 +526,23 @@ test('contextual follow-up envelopes are processed without duplicating memory lo
   assert.deepEqual(request.context, {
     lastTopicId: 'paper-robotics',
     lastDestinationNpcId: 'npc-paper-specialist',
-    lastDestinationZoneId: 'zone-model-workshop'
+    lastDestinationZoneId: 'printing-room'
   });
   assert.equal('history' in request.context, false);
 });
 
 test('Stage 3 specialist follow-ups preserve canonical deterministic answers', async () => {
   const nextState = Object.freeze({
-    lastTopicId: 'paper-robotics',
+    lastTopicId: 'paper-specialist',
     lastDestinationNpcId: 'npc-paper-specialist',
-    lastDestinationZoneId: 'zone-model-workshop'
+    lastDestinationZoneId: 'printing-room'
   });
   const contextualAnswer = Object.freeze({
     type: 'answer',
-    topicId: 'paper-robotics',
+    topicId: 'paper-specialist',
     response: 'Go to the fictional model workshop.',
     destinationNpcId: 'npc-paper-specialist',
-    destinationZoneId: 'zone-model-workshop',
+    destinationZoneId: 'printing-room',
     score: 0
   });
   let modelCalls = 0;
@@ -555,10 +575,10 @@ test('Stage 3 expertise follow-ups do not require specialist directions', async 
   };
   const contextualAnswer = {
     type: 'answer',
-    topicId: 'paper-robotics',
+    topicId: 'paper-specialist',
     response: 'The fictional specialist teaches paper mechanisms.',
     destinationNpcId: 'npc-paper-specialist',
-    destinationZoneId: 'zone-model-workshop',
+    destinationZoneId: 'printing-room',
     score: 0
   };
   let modelCalls = 0;
@@ -851,4 +871,164 @@ test('simulated model callbacks make no network requests', async () => {
   }
 
   assert.equal(fetchCalls, 0);
+});
+
+// All content/approval flags below are synthetic; they do not approve CORE facts.
+const matcherAdapter = (question, suppliedKnowledge, _state, options) => (
+  matchQuestion(question, suppliedKnowledge.topics, options)
+);
+
+test('actual Stage 2 matcher adapter supports answers, routes and model failures', async () => {
+  for (const [question, type] of [['paper robotics', 'answer'], ['paper specialist', 'route']]) {
+    const outcome = await orchestrateGuideQuestion(question, knowledge, {}, {
+      resolveQuestion: matcherAdapter,
+      generateResponse: () => { throw new Error('Synthetic provider failure'); }
+    });
+    assert.equal(outcome.result.type, type);
+    assert.equal(outcome.result.response, type === 'answer' ? paperAnswer.response : paperRoute.response);
+    if (type === 'route') assert.equal(outcome.result.destinationZoneId, 'printing-room');
+  }
+});
+
+test('actual matcher and memory preserve routes, follow-ups, unknown questions and reset', async () => {
+  const suppliedKnowledge = structuredClone(knowledge);
+  suppliedKnowledge.specialists[0].expertise = 'Synthetic paper expertise.';
+  let calls = 0;
+  const options = {
+    resolveQuestion: handleGuideQuestion,
+    resolverOptions: { matchQuestion },
+    generateResponse: (request) => {
+      calls += 1;
+      return { ...modelAnswer, topicId: request.topicId };
+    }
+  };
+  const routed = await orchestrateGuideQuestion('paper specialist', suppliedKnowledge,
+    createConversationState(), options);
+  assert.equal(routed.result.type, 'route');
+  assert.equal(routed.result.destinationNpcId, paperRoute.destinationNpcId);
+  assert.equal(routed.state.lastTopicId, paperRoute.topicId);
+  for (const [question, response] of [
+    ['Where can I find them?', suppliedKnowledge.specialists[0].directions],
+    ['What do they specialize in?', suppliedKnowledge.specialists[0].expertise]
+  ]) {
+    const followUp = await orchestrateGuideQuestion(question, suppliedKnowledge, routed.state, options);
+    assert.equal(followUp.result.response, response);
+    assert.deepEqual(followUp.state, routed.state);
+  }
+  const unknown = await orchestrateGuideQuestion('unrelated weather', suppliedKnowledge, routed.state, options);
+  assert.equal(unknown.result.type, 'fallback');
+  assert.deepEqual(unknown.state, routed.state);
+  const reset = await orchestrateGuideQuestion('Where can I find them?', suppliedKnowledge,
+    clearConversationState(), options);
+  assert.equal(reset.result.type, 'clarify');
+  assert.equal(calls, 1);
+});
+
+test('actual memory clears revoked specialist context before orchestrating follow-ups', async () => {
+  const options = { resolveQuestion: handleGuideQuestion, resolverOptions: { matchQuestion } };
+  const routed = await orchestrateGuideQuestion('paper specialist', knowledge, createConversationState(), options);
+  const revoked = structuredClone(knowledge);
+  revoked.specialists[0].status = 'candidate';
+  const outcome = await orchestrateGuideQuestion('Where can I find them?', revoked, routed.state, options);
+  assert.equal(outcome.result.type, 'clarify');
+  assert.deepEqual(outcome.state, createConversationState());
+});
+
+test('Stage 2 routes reject approved destinations outside the three-zone scope', async () => {
+  for (const id of ['machine-shop', 'computer-lab', 'another-room']) {
+    const suppliedKnowledge = structuredClone(knowledge);
+    suppliedKnowledge.topics[1].destinationZoneId = id;
+    suppliedKnowledge.specialists[0].zoneId = id;
+    suppliedKnowledge.zones[0].id = id;
+    let calls = 0;
+    const outcome = await orchestrateGuideQuestion('paper specialist', suppliedKnowledge, {}, {
+      resolveQuestion: matcherAdapter,
+      generateResponse: () => { calls += 1; return modelAnswer; }
+    });
+    assert.equal(outcome.result.type, 'fallback');
+    assert.equal(calls, 0);
+  }
+});
+
+test('injected resolver cannot replace verified prose, topic type or canonical destination', async () => {
+  const suppliedKnowledge = structuredClone(knowledge);
+  suppliedKnowledge.specialists.push({ ...suppliedKnowledge.specialists[0], id: 'another-specialist' });
+  for (const result of [
+    { ...paperAnswer, response: 'Invented answer.' },
+    { ...paperRoute, response: 'Invented route.' },
+    { ...paperAnswer, topicId: paperRoute.topicId },
+    { ...paperRoute, destinationNpcId: 'another-specialist' },
+    { ...paperAnswer, destinationNpcId: paperRoute.destinationNpcId, destinationZoneId: 'printing-room' },
+    { ...paperRoute, type: 'answer', response: 'Invented follow-up.' }
+  ]) {
+    let calls = 0;
+    const outcome = await orchestrateGuideQuestion('question', suppliedKnowledge, {},
+      optionsFor(result, () => { calls += 1; return modelAnswer; }));
+    assert.equal(outcome.result.type, 'fallback');
+    assert.equal(calls, 0);
+  }
+});
+
+test('whitespace aliases cannot hide duplicate topic, zone or specialist records', async () => {
+  for (const [collection, original] of [
+    ['topics', knowledge.topics[1]], ['zones', knowledge.zones[0]],
+    ['specialists', knowledge.specialists[0]]
+  ]) {
+    const suppliedKnowledge = structuredClone(knowledge);
+    suppliedKnowledge[collection].push({ ...original, id: ` ${original.id} `, status: 'candidate' });
+    const outcome = await orchestrateGuideQuestion('question', suppliedKnowledge, {}, optionsFor(paperRoute));
+    assert.equal(outcome.result.type, 'fallback');
+  }
+});
+
+test('malformed resolver scores and destination fields fail closed', async () => {
+  for (const result of [
+    { ...paperAnswer, score: -1 }, { ...paperAnswer, score: NaN },
+    { ...paperAnswer, score: undefined }, { ...paperAnswer, destinationNpcId: 7 },
+    { ...deterministicFallback, topicId: paperAnswer.topicId },
+    { ...deterministicClarification, destinationZoneId: 'hallway' }
+  ]) {
+    const outcome = await orchestrateGuideQuestion('question', knowledge, {}, optionsFor(result));
+    assert.equal(outcome.result.type, 'fallback');
+    assert.equal(outcome.result.response, "I don't have a verified answer for that question.");
+  }
+});
+
+test('deterministic answers and specialist follow-ups do not depend on model facts', async () => {
+  const suppliedKnowledge = structuredClone(knowledge);
+  for (const topic of suppliedKnowledge.topics) delete topic.facts;
+  let calls = 0;
+  const options = {
+    resolveQuestion: handleGuideQuestion, resolverOptions: { matchQuestion },
+    generateResponse: () => { calls += 1; return modelAnswer; }
+  };
+  const answer = await orchestrateGuideQuestion('paper robotics', suppliedKnowledge, {}, options);
+  assert.equal(answer.result.response, paperAnswer.response);
+  const routed = await orchestrateGuideQuestion('paper specialist', suppliedKnowledge, {}, options);
+  assert.equal(routed.result.type, 'route');
+  const followUp = await orchestrateGuideQuestion('Where can I find them?', suppliedKnowledge, routed.state, options);
+  assert.equal(followUp.result.response, suppliedKnowledge.specialists[0].directions);
+  assert.equal(calls, 0);
+});
+
+test('actual memory route without directions remains available without inventing directions', async () => {
+  const suppliedKnowledge = structuredClone(knowledge);
+  delete suppliedKnowledge.specialists[0].directions;
+  const options = { resolveQuestion: handleGuideQuestion, resolverOptions: { matchQuestion } };
+  const routed = await orchestrateGuideQuestion('paper specialist', suppliedKnowledge, {}, options);
+  assert.equal(routed.result.type, 'route');
+  assert.equal(routed.result.directions, null);
+  const followUp = await orchestrateGuideQuestion('Where can I find them?', suppliedKnowledge, routed.state, options);
+  assert.equal(followUp.result.type, 'fallback');
+  assert.equal(followUp.result.response, "I don't have verified directions for that specialist.");
+});
+
+test('late model completion cannot change the returned timeout fallback', async () => {
+  let finish;
+  const outcome = await orchestrateGuideQuestion('paper robotics', knowledge, {}, optionsFor(paperAnswer,
+    () => new Promise((resolve) => { finish = resolve; }), { modelTimeoutMs: 5 }));
+  assert.deepEqual(outcome.result, paperAnswer);
+  finish(modelAnswer);
+  await Promise.resolve();
+  assert.deepEqual(outcome.result, paperAnswer);
 });

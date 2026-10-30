@@ -5,6 +5,8 @@ const MODEL_RESPONSE_FIELDS = Object.freeze([
   'usedFactIds'
 ]);
 
+const TOUR_ZONES = new Set(['hallway', 'printing-room', 'project-studio']);
+
 const DEFAULT_OPTIONS = Object.freeze({
   fallbackResponse: "I don't have a verified answer for that question.",
   maxAnswerLength: 600,
@@ -19,6 +21,18 @@ function isRecord(value) {
 
 function nonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0;
+}
+
+function validId(value) {
+  return typeof value === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
+}
+
+function uniqueRecord(entries, id) {
+  if (!validId(id) || !Array.isArray(entries)) return null;
+  const matches = entries.filter((entry) => (
+    isRecord(entry) && nonEmptyString(entry.id) && entry.id.trim() === id
+  ));
+  return matches.length === 1 && matches[0].id === id ? matches[0] : null;
 }
 
 function positiveInteger(value, fallback) {
@@ -109,9 +123,12 @@ function normalizeResolution(resolution, currentState) {
 }
 
 function normalizeDeterministicResult(result) {
-  if (!isRecord(result) || !nonEmptyString(result.response)) return null;
+  if (!isRecord(result) || !nonEmptyString(result.response) ||
+      !Number.isFinite(result.score) || result.score < 0) return null;
 
   if (result.type === 'fallback' || result.type === 'clarify') {
+    if (result.topicId !== null || result.destinationNpcId !== undefined ||
+        result.destinationZoneId !== undefined) return null;
     return {
       type: result.type,
       topicId: null,
@@ -121,7 +138,7 @@ function normalizeDeterministicResult(result) {
   }
 
   if ((result.type !== 'answer' && result.type !== 'route') ||
-      !nonEmptyString(result.topicId)) {
+      !validId(result.topicId)) {
     return null;
   }
 
@@ -133,17 +150,18 @@ function normalizeDeterministicResult(result) {
   };
 
   if (result.type === 'route') {
-    if (!nonEmptyString(result.destinationNpcId) ||
-        !nonEmptyString(result.destinationZoneId)) {
+    if (!validId(result.destinationNpcId) ||
+        !validId(result.destinationZoneId)) {
       return null;
     }
     normalized.destinationNpcId = result.destinationNpcId.trim();
     normalized.destinationZoneId = result.destinationZoneId.trim();
   } else {
-    const hasNpcId = nonEmptyString(result.destinationNpcId);
-    const hasZoneId = nonEmptyString(result.destinationZoneId);
+    const hasNpcId = result.destinationNpcId !== undefined;
+    const hasZoneId = result.destinationZoneId !== undefined;
     if (hasNpcId !== hasZoneId) return null;
     if (hasNpcId) {
+      if (!validId(result.destinationNpcId) || !validId(result.destinationZoneId)) return null;
       normalized.destinationNpcId = result.destinationNpcId.trim();
       normalized.destinationZoneId = result.destinationZoneId.trim();
     }
@@ -153,43 +171,31 @@ function normalizeDeterministicResult(result) {
 }
 
 function verifiedTopic(knowledge, topicId) {
-  const topics = Array.isArray(knowledge?.topics) ? knowledge.topics : [];
-  const matches = topics.filter((topic) => (
-    isRecord(topic) && topic.id === topicId
-  ));
-
-  if (matches.length !== 1 || matches[0].status !== 'verified') return null;
-  return matches[0];
+  const topic = uniqueRecord(knowledge?.topics, topicId);
+  return topic?.status === 'verified' &&
+    (topic.type === 'answer' || topic.type === 'route') &&
+    nonEmptyString(topic.response) ? topic : null;
 }
 
-function canonicalRoute(knowledge, result, requireDirections = true) {
-  const zones = Array.isArray(knowledge?.zones) ? knowledge.zones : [];
-  const specialists = Array.isArray(knowledge?.specialists) ? knowledge.specialists : [];
-  const matchingZones = zones.filter((entry) => (
-    isRecord(entry) && entry.id === result.destinationZoneId
-  ));
+function canonicalRoute(knowledge, topic, result) {
+  if (topic.type !== 'route' || !TOUR_ZONES.has(result.destinationZoneId) ||
+      topic.destinationNpcId !== result.destinationNpcId ||
+      topic.destinationZoneId !== result.destinationZoneId) return null;
 
-  if (matchingZones.length !== 1 || matchingZones[0].status !== 'approved') return null;
-  const zone = matchingZones[0];
-
-  const matchingSpecialists = specialists.filter((entry) => (
-    isRecord(entry) && entry.id === result.destinationNpcId
-  ));
-
-  if (matchingSpecialists.length !== 1) return null;
-  const specialist = matchingSpecialists[0];
-  if (specialist.status !== 'approved' ||
+  const zone = uniqueRecord(knowledge?.zones, result.destinationZoneId);
+  const specialist = uniqueRecord(knowledge?.specialists, result.destinationNpcId);
+  if (zone?.status !== 'approved' || specialist?.status !== 'approved' ||
       specialist.zoneId !== result.destinationZoneId ||
       !Array.isArray(specialist.topicIds) ||
-      !specialist.topicIds.includes(result.topicId) ||
-      (requireDirections && !nonEmptyString(specialist.directions))) {
+      !specialist.topicIds.includes(result.topicId)) {
     return null;
   }
 
   return Object.freeze({
     destinationNpcId: specialist.id,
     destinationZoneId: zone.id,
-    directions: nonEmptyString(specialist.directions) ? specialist.directions.trim() : null
+    directions: nonEmptyString(specialist.directions) ? specialist.directions.trim() : null,
+    expertise: nonEmptyString(specialist.expertise) ? specialist.expertise.trim() : null
   });
 }
 
@@ -411,15 +417,21 @@ export async function orchestrateGuideQuestion(question, knowledge, context, opt
     nonEmptyString(deterministic.destinationZoneId);
   try {
     const topic = verifiedTopic(knowledge, deterministic.topicId);
-    request = createModelRequest(question, topic, normalized.state, settings);
+    if (!topic || (!isContextualSpecialistAnswer &&
+        (topic.type !== deterministic.type || topic.response.trim() !== deterministic.response))) {
+      return createOutcome(safeFallback, normalized.state);
+    }
     route = deterministic.type === 'route' || isContextualSpecialistAnswer
-      ? canonicalRoute(knowledge, deterministic, deterministic.type === 'route')
+      ? canonicalRoute(knowledge, topic, deterministic)
       : null;
+    if (isContextualSpecialistAnswer && (!route ||
+        (deterministic.response !== route.directions && deterministic.response !== route.expertise))) {
+      return createOutcome(safeFallback, normalized.state);
+    }
+    request = createModelRequest(question, topic, normalized.state, settings);
   } catch {
     return createOutcome(safeFallback, normalized.state);
   }
-  if (!request) return createOutcome(safeFallback, normalized.state);
-
   if ((deterministic.type === 'route' || isContextualSpecialistAnswer) && !route) {
     return createOutcome(safeFallback, normalized.state);
   }
@@ -435,7 +447,9 @@ export async function orchestrateGuideQuestion(question, knowledge, context, opt
   const generateResponse = typeof settings.generateResponse === 'function'
     ? settings.generateResponse
     : null;
-  if (!generateResponse) return createOutcome(deterministicResult, normalized.state);
+  // Model facts are an additional requirement for generation, not for an
+  // already verified deterministic response from the matcher/memory modules.
+  if (!generateResponse || !request) return createOutcome(deterministicResult, normalized.state);
 
   let generated;
   try {
