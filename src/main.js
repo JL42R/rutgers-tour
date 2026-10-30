@@ -8,6 +8,7 @@ import { ZoneManager } from './zones.js';
 import { NPCManager } from './npc.js';
 import { Dialogue } from './dialogue.js';
 import { InteractionTracker } from './interaction-tracker.js';
+import { room116ArrivalPosition } from './room116-arrival.js';
 
 const app = document.getElementById('app');
 
@@ -107,15 +108,29 @@ init();
 
 let zoneSwitchInProgress = false;
 
-async function switchZone(zoneId) {
+async function switchZone(zoneId, transition = null, previousPosition = null) {
   if (zoneSwitchInProgress || zones.current?.id === zoneId) return;
 
   const oldZoneId = zones.current?.id ?? 'none';
+  const sourceZone = zones.current;
+  const crossingPosition = { x: controls.camera.position.x, z: controls.camera.position.z };
   zoneSwitchInProgress = true;
   controls.enabled = false;
 
   try {
     const newZone = await zones.loadZone(zoneId);
+    if (oldZoneId === 'hallway' && newZone.id === 'project-studio'
+      && transition?.id === 'project-studio-door' && transition.target === newZone.id
+      && sourceZone.transitions?.includes(transition) && previousPosition
+      && crossedTransition(previousPosition, crossingPosition, transition)) {
+      const arrival = room116ArrivalPosition(crossingPosition, newZone);
+      if (arrival) {
+        controls.camera.position.x = arrival.x;
+        controls.camera.position.z = arrival.z;
+      } else {
+        console.warn('D3 inward arrival was unsafe; retaining the original crossing position.');
+      }
+    }
     npcs.setNPCs(newZone.npcs ?? []);
     console.info(`Switched zone from "${oldZoneId}" to "${newZone.id}".`);
   } catch (err) {
@@ -151,13 +166,13 @@ const clock = new THREE.Clock();
 renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.05); // clamp so tab-switch doesn't teleport you
   const previousPosition = { x: camera.position.x, z: camera.position.z };
-  controls.update(dt, zones.getCollisionBoxes());
+  controls.update(dt, zones.getCollisionBoxes(), zones.current);
 
   if (!zoneSwitchInProgress) {
     const transition = (zones.current?.transitions ?? []).find((candidate) =>
       crossedTransition(previousPosition, camera.position, candidate)
     );
-    if (transition) void switchZone(transition.target);
+    if (transition) void switchZone(transition.target, transition, previousPosition);
   }
 
   npcs.update(camera.position);

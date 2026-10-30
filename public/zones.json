@@ -117,14 +117,14 @@
         },
         {
           "min": [1.07, 0, -20.2],
-          "max": [1.22, 3.15, 16.33]
+          "max": [1.22, 3.15, 16.1556675816972]
         },
         {
           "min": [-1.44, 0, 16.33],
           "max": [-1.29, 3.15, 19.00]
         },
         {
-          "min": [1.36, 0, 16.33],
+          "min": [1.36, 0, 17.923909531203247],
           "max": [1.51, 3.15, 19.00]
         },
         {
@@ -144,6 +144,14 @@
           "plane": -0.62295043,
           "direction": "negative",
           "range": [4.80, 6.55]
+        },
+        {
+          "id": "project-studio-door",
+          "target": "project-studio",
+          "axis": "x",
+          "plane": 1.2642833297509717,
+          "direction": "positive",
+          "range": [16.505667581697203, 17.573909531203245]
         }
       ],
       "signs": [
@@ -153,6 +161,14 @@
           "subtitle": "Walk through this door to enter",
           "position": [-0.985, 1.57, 5.6775],
           "rotation": [0, 90, 0],
+          "size": [1.20, 0.42]
+        },
+        {
+          "id": "project-studio-entry-sign",
+          "title": "PROJECT STUDIO — ROOM 116",
+          "subtitle": "Walk through this door to enter",
+          "position": [1.121380892252976, 1.57, 17.039788556450226],
+          "rotation": [0, -90, 0],
           "size": [1.20, 0.42]
         }
       ],
@@ -167,6 +183,46 @@
           "dialogueFile": "./dialogue/hallway-guide.json"
         }
       ]
+    },
+    {
+      "id": "project-studio",
+      "label": "Project Studio — Room 116",
+      "splat": "./splats/project-studio.compressed.ply",
+      "placeholder": false,
+      "rotation": [-89.93141246341177, -0.02891296431085124, -91.07745603281089],
+      "scale": 5.884697544325829,
+      "origin": [7.005323448976146, 1.3881086328206438, 17.77650375545308],
+      "spawn": [2, 0, -1.5],
+      "walkingBoundary": {
+        "width": 6.0960,
+        "depth": 11.0490,
+        "entranceRight": [1.1679567381989318, 22.17181860228656],
+        "entranceLeft": [1.2825898215842069, 16.07689651449958],
+        "farRight": [12.21500302231283, 22.379591065922373],
+        "farLeft": [12.329636105698105, 16.284668978135393],
+        "doorway": {
+          "transitionId": "hallway-door",
+          "openingZ": [16.1556675816972, 17.923909531203247]
+        },
+        "exclusions": [
+          { "id": "entrance-right", "forward": [0, 1.900], "left": [0.300, 4.236812761805356] },
+          { "id": "right-wall-strip", "forward": [1.900, 11.0490], "left": [0, 1.2192] }
+        ]
+      },
+      "npcs": [],
+      "signs": [],
+      "transitions": [
+        {
+          "id": "hallway-door",
+          "target": "hallway",
+          "axis": "x",
+          "plane": 1.2642833297509717,
+          "direction": "negative",
+          "range": [16.505667581697203, 17.573909531203245]
+        }
+      ],
+      "collision": [],
+      "debugCollision": false
     }
   ]
 }
