@@ -17,6 +17,11 @@ Newest entry first. This records what changed and when — for schedule and gate
 - Kept unfinished work explicit: studio NPCs (#56), standalone unmerged PRs #46/#48/#59/#61 and Johnny's AI TEST prototype (#47), missing Vishan image (#67), regression tests absent from CI (#68), permanent printing equipment boxes (#66), content approvals (#20), actual NVDA failure (#33), and planned quality/SH/performance measurements (#8/#23/#24/#25/#34). No production defect is resolved by these documentation edits.
 - Historical entries below describe their original checkpoints. Later release acceptance/publication above supersedes earlier “manual walkthrough/publication pending” notes without rewriting those records. This documentation branch is local review work only; no commit, push or deployment is authorized in Phase 3A.
 
+### PR #59 conversation-memory review corrections
+
+- Validate matcher results against unique verified topics and matching approved specialist/topic/zone records within the three-zone scope; revalidate follow-up context and reject malformed input without retaining visitor transcripts.
+- Add real matcher/memory integration tests; retain the 32 author tests with complete synthetic knowledge fixtures. These standalone modules are not wired into the live NPC interface and do not add generative AI or a backend.
+
 ## 2026-10-29
 
 ### Room 116 integrated with latest main locally
