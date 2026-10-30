@@ -4,6 +4,8 @@ const EMPTY_STATE = Object.freeze({
   lastDestinationZoneId: null
 });
 
+const TOUR_ZONES = new Set(['hallway', 'printing-room', 'project-studio']);
+
 const DEFAULT_RESPONSES = Object.freeze({
   missingContext: 'Please ask about a specialist first so I know who you mean.',
   missingDirections: "I don't have verified directions for that specialist.",
@@ -111,37 +113,60 @@ function contextualAnswer(state, response) {
   };
 }
 
-function approvedDestination(knowledge, npcId, zoneId) {
-  if (!nonEmptyString(npcId) || !nonEmptyString(zoneId)) return null;
-
-  const normalizedNpcId = npcId.trim();
-  const normalizedZoneId = zoneId.trim();
-
-  const zones = Array.isArray(knowledge?.zones) ? knowledge.zones : [];
-  const specialists = Array.isArray(knowledge?.specialists) ? knowledge.specialists : [];
-  const zone = zones.find((entry) => (
-    isRecord(entry) &&
-    entry.status === 'approved' &&
-    entry.id === normalizedZoneId
-  ));
-
-  if (!zone) return null;
-
-  const specialist = specialists.find((entry) => (
-    isRecord(entry) &&
-    entry.status === 'approved' &&
-    entry.id === normalizedNpcId &&
-    entry.zoneId === normalizedZoneId
-  ));
-
-  return specialist ?? null;
+function validId(value) {
+  return typeof value === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 }
 
-function validMatchedResult(result, type) {
-  return isRecord(result) &&
-    result.type === type &&
-    nonEmptyString(result.topicId) &&
-    nonEmptyString(result.response);
+function uniqueRecord(entries, id) {
+  if (!validId(id) || !Array.isArray(entries)) return null;
+  const matches = entries.filter((entry) => (
+    isRecord(entry) && nonEmptyString(entry.id) && entry.id.trim() === id
+  ));
+  return matches.length === 1 && matches[0].id === id ? matches[0] : null;
+}
+
+function verifiedTopic(knowledge, topicId) {
+  const topic = uniqueRecord(knowledge?.topics, topicId);
+  return topic?.status === 'verified' &&
+    (topic.type === 'answer' || topic.type === 'route') &&
+    nonEmptyString(topic.response) ? topic : null;
+}
+
+function approvedDestination(knowledge, topic, npcId, zoneId) {
+  if (!topic || topic.type !== 'route' ||
+      !validId(npcId) || !TOUR_ZONES.has(zoneId) ||
+      topic.destinationNpcId !== npcId || topic.destinationZoneId !== zoneId) return null;
+
+  const zone = uniqueRecord(knowledge?.zones, zoneId);
+  const specialist = uniqueRecord(knowledge?.specialists, npcId);
+  if (zone?.status !== 'approved' || specialist?.status !== 'approved' ||
+      specialist.zoneId !== zoneId || !Array.isArray(specialist.topicIds) ||
+      !specialist.topicIds.includes(topic.id)) return null;
+
+  return specialist;
+}
+
+function validMatchedResult(result, type, knowledge) {
+  if (!isRecord(result) || result.type !== type ||
+      !Number.isFinite(result.score) || result.score < 0 ||
+      !nonEmptyString(result.response)) return false;
+  const topic = verifiedTopic(knowledge, result.topicId);
+  return topic?.type === type && result.response.trim() === topic.response.trim() &&
+    (type === 'route' ||
+      (result.destinationNpcId === undefined && result.destinationZoneId === undefined));
+}
+
+function validatedState(state, knowledge) {
+  const copied = copyState(state);
+  const topic = verifiedTopic(knowledge, copied.lastTopicId);
+  if (!topic) return createConversationState();
+  if (topic.type === 'answer') {
+    return copied.lastDestinationNpcId === null && copied.lastDestinationZoneId === null
+      ? copied : createConversationState();
+  }
+  return approvedDestination(knowledge, topic,
+    copied.lastDestinationNpcId, copied.lastDestinationZoneId)
+    ? copied : createConversationState();
 }
 
 function passThroughResult(result) {
@@ -183,13 +208,20 @@ export function classifyFollowUp(question) {
 /**
  * Process a visitor question using an injected Stage 2-compatible matcher.
  * Returns both the response result and a new immutable conversation state.
+ * Knowledge must contain unique verified topics and approved zones/specialists;
+ * route destinations must agree with the topic and specialist.topicIds.
+ * Approval flags are supplied by curated knowledge, not inferred by this module.
  */
 export function handleGuideQuestion(question, knowledge, state, options = {}) {
-  const currentState = copyState(state);
+  const currentState = validatedState(state, knowledge);
   const settings = isRecord(options) ? options : {};
   const fallbackResponse = responseOption(settings, 'fallbackResponse', DEFAULT_RESPONSES.fallback);
   const matcher = typeof settings.matchQuestion === 'function' ? settings.matchQuestion : null;
   let matched = null;
+
+  if (!normalizeFollowUp(question)) {
+    return createResult(fallbackResult(fallbackResponse), currentState);
+  }
 
   if (matcher) {
     try {
@@ -204,7 +236,7 @@ export function handleGuideQuestion(question, knowledge, state, options = {}) {
   }
 
   // A concrete new topic always wins over pronoun-based follow-up handling.
-  if (validMatchedResult(matched, 'answer')) {
+  if (validMatchedResult(matched, 'answer', knowledge)) {
     const nextState = Object.freeze({
       lastTopicId: matched.topicId.trim(),
       lastDestinationNpcId: null,
@@ -219,10 +251,12 @@ export function handleGuideQuestion(question, knowledge, state, options = {}) {
     }, nextState);
   }
 
-  if (validMatchedResult(matched, 'route')) {
+  if (validMatchedResult(matched, 'route', knowledge)) {
     const npcId = matched.destinationNpcId;
     const zoneId = matched.destinationZoneId;
-    const specialist = approvedDestination(knowledge, npcId, zoneId);
+    const specialist = approvedDestination(
+      knowledge, verifiedTopic(knowledge, matched.topicId), npcId, zoneId
+    );
 
     if (!specialist) {
       return createResult(fallbackResult(fallbackResponse), currentState);
@@ -248,6 +282,7 @@ export function handleGuideQuestion(question, knowledge, state, options = {}) {
   if (followUp) {
     const specialist = approvedDestination(
       knowledge,
+      verifiedTopic(knowledge, currentState.lastTopicId),
       currentState.lastDestinationNpcId,
       currentState.lastDestinationZoneId
     );
@@ -282,6 +317,9 @@ export function handleGuideQuestion(question, knowledge, state, options = {}) {
 
   if (isRecord(matched) &&
       (matched.type === 'clarify' || matched.type === 'fallback') &&
+      matched.topicId === null &&
+      matched.destinationNpcId === undefined && matched.destinationZoneId === undefined &&
+      Number.isFinite(matched.score) && matched.score >= 0 &&
       nonEmptyString(matched.response)) {
     return createResult(passThroughResult(matched), currentState);
   }

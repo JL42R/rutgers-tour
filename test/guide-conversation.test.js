@@ -12,8 +12,8 @@ const paperRoute = Object.freeze({
   type: 'route',
   topicId: 'paper-robotics',
   response: 'Ask the paper specialist.',
-  destinationNpcId: 'npc-paper-specialist',
-  destinationZoneId: 'zone-model-workshop',
+  destinationNpcId: 'johnny-bambu',
+  destinationZoneId: 'printing-room',
   score: 6
 });
 
@@ -21,8 +21,8 @@ const glassRoute = Object.freeze({
   type: 'route',
   topicId: 'glass-engine-design',
   response: 'Ask the glass specialist.',
-  destinationNpcId: 'npc-glass-specialist',
-  destinationZoneId: 'zone-glass-lab',
+  destinationNpcId: 'hallway-guide',
+  destinationZoneId: 'hallway',
   score: 5
 });
 
@@ -33,27 +33,34 @@ const fallback = Object.freeze({
   score: 0
 });
 
+// Synthetic content only; IDs use the current tour scope, not content approval.
 const knowledge = Object.freeze({
   topics: Object.freeze([
-    Object.freeze({ id: 'paper-robotics', status: 'verified' }),
-    Object.freeze({ id: 'glass-engine-design', status: 'verified' })
+    Object.freeze({ id: 'paper-robotics', status: 'verified', ...paperRoute }),
+    Object.freeze({ id: 'glass-engine-design', status: 'verified', ...glassRoute }),
+    Object.freeze({
+      id: 'model-workshop-navigation', status: 'verified', type: 'answer',
+      response: 'This is synthetic navigation information.'
+    })
   ]),
   zones: Object.freeze([
-    Object.freeze({ id: 'zone-model-workshop', status: 'approved' }),
-    Object.freeze({ id: 'zone-glass-lab', status: 'approved' })
+    Object.freeze({ id: 'printing-room', status: 'approved' }),
+    Object.freeze({ id: 'hallway', status: 'approved' })
   ]),
   specialists: Object.freeze([
     Object.freeze({
-      id: 'npc-paper-specialist',
-      zoneId: 'zone-model-workshop',
+      id: 'johnny-bambu',
+      zoneId: 'printing-room',
       status: 'approved',
+      topicIds: Object.freeze(['paper-robotics']),
       directions: 'Visit the paper specialist in the fictional model workshop.',
       expertise: 'The paper specialist teaches fictional paper robotics.'
     }),
     Object.freeze({
-      id: 'npc-glass-specialist',
-      zoneId: 'zone-glass-lab',
+      id: 'hallway-guide',
+      zoneId: 'hallway',
       status: 'approved',
+      topicIds: Object.freeze(['glass-engine-design']),
       directions: 'Visit the glass specialist in the fictional glass lab.',
       expertise: 'The glass specialist teaches fictional glass-engine design.'
     })
@@ -100,8 +107,8 @@ test('stores validated context after a specialist recommendation', () => {
   assert.deepEqual(result, paperRoute);
   assert.deepEqual(state, {
     lastTopicId: 'paper-robotics',
-    lastDestinationNpcId: 'npc-paper-specialist',
-    lastDestinationZoneId: 'zone-model-workshop'
+    lastDestinationNpcId: 'johnny-bambu',
+    lastDestinationZoneId: 'printing-room'
   });
 });
 
@@ -156,8 +163,8 @@ test('replaces specialist context when a new topic is selected', () => {
   const glass = ask('Who teaches glass-engine design?', paper.state);
   const followUp = ask('Where can I find them?', glass.state);
 
-  assert.equal(glass.state.lastDestinationNpcId, 'npc-glass-specialist');
-  assert.equal(glass.state.lastDestinationZoneId, 'zone-glass-lab');
+  assert.equal(glass.state.lastDestinationNpcId, 'hallway-guide');
+  assert.equal(glass.state.lastDestinationZoneId, 'hallway');
   assert.equal(
     followUp.result.response,
     'Visit the glass specialist in the fictional glass lab.'
@@ -222,7 +229,7 @@ test('rejects a specialist whose configured zone does not match the route', () =
     ...knowledge,
     specialists: [{
       ...knowledge.specialists[0],
-      zoneId: 'zone-glass-lab'
+      zoneId: 'hallway'
     }]
   };
   const { result } = ask('Who teaches paper robotics?', undefined, mismatched);
@@ -367,8 +374,8 @@ test('clarification preserves previously validated context', () => {
 test('never mutates caller-supplied state during an update', () => {
   const original = Object.freeze({
     lastTopicId: 'paper-robotics',
-    lastDestinationNpcId: 'npc-paper-specialist',
-    lastDestinationZoneId: 'zone-model-workshop'
+    lastDestinationNpcId: 'johnny-bambu',
+    lastDestinationZoneId: 'printing-room'
   });
   const snapshot = { ...original };
   const next = ask('Who teaches glass-engine design?', original);
@@ -414,7 +421,7 @@ test('gives an explicit newly matched topic priority over old context', () => {
 
   assert.equal(next.result.type, 'route');
   assert.equal(next.state.lastTopicId, 'glass-engine-design');
-  assert.equal(next.state.lastDestinationNpcId, 'npc-glass-specialist');
+  assert.equal(next.state.lastDestinationNpcId, 'hallway-guide');
 });
 
 test('direct answers replace prior specialist context', () => {
