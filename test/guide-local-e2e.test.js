@@ -139,6 +139,9 @@ test('allowlisted advanced profile crosses localhost with aliases, grounding, co
     const paraphrase = await session.ask(
       'Could you explain why articulated paper devices rotate after a gentle tug?'
     );
+    const grammaticalVariation = await session.ask(
+      "Which colored tabs identify the repeating fold's reset points?"
+    );
     const followUp = await session.ask('Where can I find them?');
     const switched = await session.ask('Why do crystal plants cast colors across the display?');
     const ambiguous = await session.ask('How do paper light patterns work?');
@@ -168,6 +171,11 @@ test('allowlisted advanced profile crosses localhost with aliases, grounding, co
     ]);
     assert.equal(paraphrase.result.specialistName, 'Fictional Folded Machines Guide');
     assert.equal(paraphrase.result.destinationZoneName, 'Fictional Imaginary Workshop');
+    assert.equal(grammaticalVariation.envelope.outcome, 'answered');
+    assert.deepEqual(grammaticalVariation.envelope.factReferences, [
+      { factId: 'fact-folded-reset-tabs', sourceId: 'source-folded-handbook-v2' }
+    ]);
+    assert.match(grammaticalVariation.envelope.answerText, /Amber tabs mark the reset points/);
     assert.match(followUp.result.directions, /silver paper arrows/);
     assert.equal(switched.result.topicId, 'glass-gardens');
     assert.equal(switched.result.specialistName, 'Fictional Glass Gardens Guide');
@@ -212,7 +220,7 @@ test('allowlisted advanced profile crosses localhost with aliases, grounding, co
     assert.equal(fresh.envelope.knowledgeVersion,
       'fictional-retrieval-quality-2026-10-25.2');
     assert.equal(fresh.result.topicId, 'glass-gardens');
-    assert.equal(providerRequests.length, 5);
+    assert.equal(providerRequests.length, 6);
     assert.ok(providerRequests.every((entry) => (
       entry.model === 'local-fixture-model' && entry.store === false && entry.toolCount === 0
     )));

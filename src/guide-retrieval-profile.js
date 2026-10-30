@@ -9,6 +9,8 @@ const PROFILE_FIELDS = Object.freeze([
   'topicAliases',
   'factAliases',
   'answerabilityPhrases',
+  'propertyDefinitions',
+  'factProperties',
   'excludedPhrases',
   'ambiguityRules',
   'sourceBindings',
@@ -17,6 +19,8 @@ const PROFILE_FIELDS = Object.freeze([
 const APPROVAL_FIELDS = Object.freeze(['reviewedBy', 'reference', 'reviewedAt']);
 const ALIAS_FIELDS = Object.freeze(['topicId', 'phrases']);
 const FACT_ALIAS_FIELDS = Object.freeze(['factId', 'phrases']);
+const PROPERTY_FIELDS = Object.freeze(['id', 'phrases']);
+const FACT_PROPERTY_FIELDS = Object.freeze(['factId', 'propertyIds']);
 const EXCLUDED_FIELDS = Object.freeze(['phrase', 'lifecycleStatus']);
 const AMBIGUITY_FIELDS = Object.freeze(['phrase', 'topicIds']);
 const BINDING_FIELDS = Object.freeze(['factId', 'sourceId', 'sourceLocation']);
@@ -123,6 +127,47 @@ function readExcluded(entries) {
   return Object.freeze(excluded);
 }
 
+function readProperties(definitionEntries, factEntries, facts) {
+  const definitions = new Map();
+  for (const [index, entry] of exactArray(
+    definitionEntries,
+    'retrievalProfile.propertyDefinitions',
+    1,
+    60
+  ).entries()) {
+    exactFields(entry, PROPERTY_FIELDS, `retrievalProfile.propertyDefinitions[${index}]`);
+    const id = identifier(entry.id, 'property definition id');
+    if (definitions.has(id)) throw new TypeError('Retrieval profile property definition is invalid.');
+    definitions.set(id, normalizedPhrases(
+      entry.phrases,
+      `retrievalProfile.propertyDefinitions[${index}].phrases`
+    ));
+  }
+
+  const propertiesByFact = new Map();
+  for (const [index, entry] of exactArray(
+    factEntries,
+    'retrievalProfile.factProperties',
+    facts.size,
+    facts.size
+  ).entries()) {
+    exactFields(entry, FACT_PROPERTY_FIELDS, `retrievalProfile.factProperties[${index}]`);
+    const factId = identifier(entry.factId, 'fact property factId');
+    const propertyIds = exactArray(entry.propertyIds, 'fact property IDs', 1, 12)
+      .map((propertyId) => identifier(propertyId, 'fact property ID'));
+    if (!facts.has(factId) || propertiesByFact.has(factId) ||
+        new Set(propertyIds).size !== propertyIds.length ||
+        propertyIds.some((propertyId) => !definitions.has(propertyId))) {
+      throw new TypeError('Retrieval profile fact properties are invalid.');
+    }
+    propertiesByFact.set(factId, Object.freeze(propertyIds));
+  }
+  if (propertiesByFact.size !== facts.size) {
+    throw new TypeError('Every approved fact needs reviewed properties.');
+  }
+  return { definitions, propertiesByFact };
+}
+
 function readAmbiguityRules(entries, topics) {
   const rules = [];
   const seen = new Set();
@@ -202,6 +247,8 @@ export function prepareGuideRetrievalProfile(approvedKnowledge, profile) {
       aliasesForTopic: () => Object.freeze([]),
       aliasesForFact: () => Object.freeze([]),
       answerabilityPhrasesForFact: () => Object.freeze([]),
+      propertyIdsForFact: () => Object.freeze([]),
+      propertyIdsForQuestion: () => Object.freeze([]),
       excludedMatch: () => null,
       ambiguityMatch: () => null,
       bindingForFact: (factId) => {
@@ -244,6 +291,11 @@ export function prepareGuideRetrievalProfile(approvedKnowledge, profile) {
     facts,
     'retrievalProfile.answerabilityPhrases'
   );
+  const { definitions: propertyDefinitions, propertiesByFact } = readProperties(
+    profile.propertyDefinitions,
+    profile.factProperties,
+    facts
+  );
   const excluded = readExcluded(profile.excludedPhrases);
   const ambiguityRules = readAmbiguityRules(profile.ambiguityRules, topics);
   const bindings = readBindings(profile.sourceBindings, facts, sources);
@@ -256,6 +308,31 @@ export function prepareGuideRetrievalProfile(approvedKnowledge, profile) {
     answerabilityPhrasesForFact: (factId) => (
       answerabilityPhrases.get(factId) ?? Object.freeze([])
     ),
+    propertyIdsForFact: (factId) => propertiesByFact.get(factId) ?? Object.freeze([]),
+    propertyIdsForQuestion(normalizedQuestion) {
+      const matched = new Set();
+      const clauses = normalizedQuestion.split(/\band\b/).map((clause) => clause.trim()).filter(Boolean);
+      for (const clause of clauses) {
+        let earliest = Number.POSITIVE_INFINITY;
+        let longest = 0;
+        const clauseMatches = [];
+        for (const [propertyId, phrases] of propertyDefinitions) {
+          for (const phrase of phrases) {
+            const position = ` ${clause} `.indexOf(` ${phrase} `);
+            if (position < 0) continue;
+            if (position < earliest || position === earliest && phrase.length > longest) {
+              earliest = position;
+              longest = phrase.length;
+              clauseMatches.splice(0, clauseMatches.length, propertyId);
+            } else if (position === earliest && phrase.length === longest) {
+              clauseMatches.push(propertyId);
+            }
+          }
+        }
+        for (const propertyId of clauseMatches) matched.add(propertyId);
+      }
+      return Object.freeze([...matched]);
+    },
     excludedMatch(normalizedQuestion) {
       return excluded.find(({ phrase }) => ` ${normalizedQuestion} `.includes(` ${phrase} `)) ?? null;
     },

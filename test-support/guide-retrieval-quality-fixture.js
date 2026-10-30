@@ -344,12 +344,12 @@ export const RETRIEVAL_QUALITY_KNOWLEDGE = Object.freeze({
 
 export const RETRIEVAL_QUALITY_PROFILE = Object.freeze({
   schemaVersion: '1.0',
-  profileVersion: 'fictional-retrieval-profile-2026-10-25.2',
+  profileVersion: 'fictional-retrieval-profile-2026-10-27.1',
   knowledgeVersion: RETRIEVAL_QUALITY_KNOWLEDGE.knowledgeVersion,
   contentClassification: 'synthetic_fixture',
   approval: APPROVAL,
   topicAliases: Object.freeze([
-    { topicId: 'folded-machines', phrases: ['origami mechanisms', 'paper automata', 'articulated paper devices'] },
+    { topicId: 'folded-machines', phrases: ['origami mechanisms', 'paper automata', 'articulated paper devices', 'articulated mechanisms'] },
     { topicId: 'glass-gardens', phrases: ['crystal gardens', 'prism foliage', 'optical plants'] },
     { topicId: 'cloud-kites', phrases: ['sky sails', 'aerial fabric forms', 'windborne kites'] },
     { topicId: 'ribbon-bridges', phrases: ['woven spans', 'fabric crossings'] },
@@ -358,14 +358,14 @@ export const RETRIEVAL_QUALITY_PROFILE = Object.freeze({
     { topicId: 'echo-fountains', phrases: ['sound wells', 'resonant pools'] }
   ]),
   factAliases: Object.freeze([
-    { factId: 'fact-folded-motion-primary', phrases: ['paper automata', 'origami mechanisms', 'articulated paper devices', 'paper devices turn'] },
-    { factId: 'fact-folded-motion-confirmation', phrases: ['paper automata', 'origami mechanisms', 'linked paper joints', 'paper devices turn'] },
+    { factId: 'fact-folded-motion-primary', phrases: ['paper automata', 'origami mechanisms', 'articulated paper devices', 'articulated mechanisms', 'paper devices turn'] },
+    { factId: 'fact-folded-motion-confirmation', phrases: ['paper automata', 'origami mechanisms', 'articulated mechanisms', 'linked paper joints', 'paper devices turn'] },
     { factId: 'fact-glass-colored-light', phrases: ['crystal plants cast colors', 'prism foliage', 'optical plants'] },
     { factId: 'fact-glass-patterns', phrases: ['prism foliage', 'changing prism patterns'] },
     { factId: 'fact-glass-stationary-frame', phrases: ['glass garden frame move', 'stationary garden frame'] },
     { factId: 'fact-cloud-silver-ribs', phrases: ['sky sails recover', 'windborne kites', 'aerial fabric forms'] },
     { factId: 'fact-cloud-violet-tether', phrases: ['windborne kites'] },
-    { factId: 'fact-cloud-painted-stars', phrases: ['windborne kites', 'painted stars on the kite'] },
+    { factId: 'fact-cloud-painted-stars', phrases: ['windborne kites', 'painted stars on the kite', 'painted stars'] },
     { factId: 'fact-ribbon-cable-tension', phrases: ['fabric crossings', 'woven spans'] },
     { factId: 'fact-ribbon-anchor-fans', phrases: ['fabric crossings', 'woven spans', 'secures both ends'] },
     { factId: 'fact-prism-moonlight', phrases: ['light orchards', 'mirror groves'] },
@@ -394,6 +394,49 @@ export const RETRIEVAL_QUALITY_PROFILE = Object.freeze({
     { factId: 'fact-stars-navigation-map', phrases: ['blue fold map labels the sequence', 'not a navigation instrument'] },
     { factId: 'fact-echo-duration-short', phrases: ['echo duration in seconds', 'note repeats for four seconds'] },
     { factId: 'fact-echo-duration-long', phrases: ['echo duration in seconds', 'note repeats for nine seconds'] }
+  ]),
+  propertyDefinitions: Object.freeze([
+    { id: 'motion-response', phrases: ['motion', 'move', 'turn', 'rotate', 'rotation', 'stationary', 'spring back', 'recover', 'restore'] },
+    { id: 'marker-purpose', phrases: ['mark', 'identify', 'alignment marker', 'alignment markers', 'steering control', 'steering controls', 'purpose', 'used for'] },
+    { id: 'structure-material', phrases: ['lightweight', 'light enough', 'material', 'made from'] },
+    { id: 'optical-effect', phrases: ['colored light', 'cast colors', 'scatter light', 'bend light', 'direct moonlight', 'focus moonlight', 'moonlight'] },
+    { id: 'arrangement-effect', phrases: ['arrangement', 'light pattern', 'prism pattern'] },
+    { id: 'tension-distribution', phrases: ['tension', 'strain', 'share tether'] },
+    { id: 'anchoring', phrases: ['held in place', 'secure ends', 'anchor', 'ends'] },
+    { id: 'edibility', phrases: ['eat', 'edible', 'snack', 'food'] },
+    { id: 'construction-count', phrases: ['crease count', 'how many creases', 'seven folds', 'make one star'] },
+    { id: 'map-purpose', phrases: ['navigation', 'fold map', 'labels the sequence'] },
+    { id: 'duration', phrases: ['duration', 'how long', 'seconds', 'minutes', 'operate continuously'] },
+    { id: 'speed', phrases: ['speed', 'how fast'] },
+    { id: 'price', phrases: ['price', 'cost', 'buy', 'purchase'] },
+    { id: 'mass', phrases: ['mass', 'grams', 'heavy', 'weight'] },
+    { id: 'cleaning', phrases: ['clean', 'cleaner', 'polish', 'solvent', 'chemicals'] },
+    { id: 'temperature', phrases: ['heat', 'temperature'] },
+    { id: 'capacity', phrases: ['capacity', 'riders', 'how many riders'] },
+    { id: 'range', phrases: ['range', 'how far'] },
+    { id: 'load-rating', phrases: ['load limit', 'weight rating', 'certified rating'] },
+    { id: 'maintenance', phrases: ['repair', 'maintenance', 'how frequently'] },
+    { id: 'depth', phrases: ['depth', 'how deep'] }
+  ]),
+  factProperties: Object.freeze([
+    { factId: 'fact-folded-motion-primary', propertyIds: ['motion-response'] },
+    { factId: 'fact-folded-motion-confirmation', propertyIds: ['motion-response'] },
+    { factId: 'fact-folded-reset-tabs', propertyIds: ['marker-purpose'] },
+    { factId: 'fact-folded-light-frame', propertyIds: ['structure-material'] },
+    { factId: 'fact-glass-colored-light', propertyIds: ['optical-effect'] },
+    { factId: 'fact-glass-patterns', propertyIds: ['arrangement-effect'] },
+    { factId: 'fact-glass-stationary-frame', propertyIds: ['motion-response'] },
+    { factId: 'fact-cloud-silver-ribs', propertyIds: ['motion-response', 'structure-material'] },
+    { factId: 'fact-cloud-violet-tether', propertyIds: ['tension-distribution'] },
+    { factId: 'fact-cloud-painted-stars', propertyIds: ['marker-purpose'] },
+    { factId: 'fact-ribbon-cable-tension', propertyIds: ['tension-distribution'] },
+    { factId: 'fact-ribbon-anchor-fans', propertyIds: ['anchoring'] },
+    { factId: 'fact-prism-moonlight', propertyIds: ['optical-effect'] },
+    { factId: 'fact-prism-fruit-tokens', propertyIds: ['edibility', 'marker-purpose'] },
+    { factId: 'fact-stars-seven-folds', propertyIds: ['construction-count'] },
+    { factId: 'fact-stars-navigation-map', propertyIds: ['map-purpose'] },
+    { factId: 'fact-echo-duration-short', propertyIds: ['duration'] },
+    { factId: 'fact-echo-duration-long', propertyIds: ['duration'] }
   ]),
   excludedPhrases: Object.freeze([
     { phrase: 'rigid gold rods', lifecycleStatus: 'draft' },
@@ -461,11 +504,14 @@ export function retrievalQualityRetiredCloudFixture() {
     'fact-cloud-painted-stars'
   ]);
   const profile = structuredClone(initial.profile);
-  profile.profileVersion = 'fictional-retrieval-profile-2026-10-25.3';
+  profile.profileVersion = 'fictional-retrieval-profile-2026-10-27.2';
   profile.knowledgeVersion = knowledge.knowledgeVersion;
   profile.topicAliases = profile.topicAliases.filter((entry) => entry.topicId !== 'cloud-kites');
   profile.factAliases = profile.factAliases.filter((entry) => !retiredFactIds.has(entry.factId));
   profile.answerabilityPhrases = profile.answerabilityPhrases.filter(
+    (entry) => !retiredFactIds.has(entry.factId)
+  );
+  profile.factProperties = profile.factProperties.filter(
     (entry) => !retiredFactIds.has(entry.factId)
   );
   profile.ambiguityRules = profile.ambiguityRules.filter(

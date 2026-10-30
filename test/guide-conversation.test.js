@@ -90,6 +90,8 @@ test('creates an empty immutable conversation state', () => {
 test('recognizes only supported narrow follow-up phrases', () => {
   assert.equal(classifyFollowUp('  Where can I find them?! '), 'destination');
   assert.equal(classifyFollowUp('Where can I find that?'), 'destination');
+  assert.equal(classifyFollowUp('What route reaches that guide?'), 'destination');
+  assert.equal(classifyFollowUp('Where should I go for it?'), 'destination');
   assert.equal(classifyFollowUp('What do they specialize in?'), 'expertise');
   assert.equal(classifyFollowUp('What did they say yesterday?'), null);
   assert.equal(classifyFollowUp(null), null);

@@ -13,13 +13,17 @@ const DEFAULT_RESPONSES = Object.freeze({
 
 const DESTINATION_FOLLOW_UPS = new Set([
   'how do i get there',
+  'what route reaches that guide',
+  'what route reaches them',
   'where are they',
   'where can i find her',
   'where can i find him',
   'where can i find that',
   'where can i find them',
   'where is that',
-  'where is the specialist'
+  'where is the specialist',
+  'where should i go',
+  'where should i go for it'
 ]);
 
 const EXPERTISE_FOLLOW_UPS = new Set([

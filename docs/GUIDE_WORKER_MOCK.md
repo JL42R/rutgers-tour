@@ -113,8 +113,10 @@ always rebuilt from server-owned approved records. Version `1.1` also returns fr
 and destination names from those same authoritative records; the model cannot submit them.
 
 For a reviewed retrieval profile, the Worker also requires fact-level answerability before calling
-the model. Topic aliases may establish relevance, but only reviewed answerability phrases and
-canonical fact content can cover the specific requested concepts. A same-topic request for an
+the model. Topic aliases may establish relevance, but only reviewed fact-property bindings,
+answerability phrases, and canonical fact content can authorize the requested information. A
+property classifier may identify that a question asks about speed or capacity, but it cannot make
+such a fact exist; the selected topic must contain an approved fact bound to that property. A same-topic request for an
 unpublished property (for example fictional speed, price, load rating, or cleaning schedule)
 returns the citation-free verified-answer fallback and no route. This is deterministic lexical
 abstention, not semantic entailment. The independent 30-case evaluation shows the current boundary

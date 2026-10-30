@@ -95,11 +95,14 @@ stricter exclusion and conflict rules require a reviewed profile.
 Topic relevance and answerability are separate checks for reviewed profiles. Topic/fact aliases
 still locate and rank a relevant topic, but they are not themselves proof that a fact answers the
 requested property. Each approved fact has version-bound, reviewed `answerabilityPhrases`.
-After ranking, the retriever removes topic terms and generic question grammar, then requires every
-remaining focused query concept to occur in the candidate fact's canonical content or reviewed
-answerability phrases. Reinforcing facts may share that evidence; unresolved conflicts remain
-conflicts. Only eligible facts can be selected, so a nearby same-topic passage is no longer added
-merely because its score is close. Failure returns `unsupported` with
+The generalization layer also declares a small reviewed property vocabulary and binds each approved
+fact to the properties it can support. The question is split only at explicit `and` clauses; the
+earliest reviewed property construction in each clause identifies what is being requested. A topic
+match plus an unsupported property such as speed, price, mass, cleaning, capacity, or load rating
+still has no eligible fact. When no reviewed property construction is recognized, the earlier
+strict concept-coverage gate remains the fallback. Reinforcing facts may share evidence;
+unresolved conflicts remain conflicts. Only eligible facts can be selected, so a nearby same-topic
+passage is no longer added merely because its score is close. Failure returns `unsupported` with
 `insufficient_answerability`, with no facts, citations, specialist, destination, or directions.
 
 The answerability phrases do not add points to the ranking score. They do participate in reviewed
@@ -257,6 +260,41 @@ support.
 `test/guide-retrieval-holdout.test.js` preserves the original first-run metrics and verifies the
 post-diagnosis result. `test/guide-answerability-holdout.test.js` verifies the new frozen hash and
 both recorded runs through direct retrieval and the actual Worker boundary.
+
+After the 30-case failures were examined, they became diagnostic development data. The actual root
+causes were: ordinary inflections and generic relational verbs treated as required evidence;
+alternative property wording required literally; `where` incorrectly treated as route intent;
+cross-topic comparisons filtered before ambiguity; and duration conflicts filtered before claim
+resolution. Reviewed property metadata, clause-level request focus, conservative topic anchoring,
+exact reviewed-concept priority, and bounded route follow-up phrases raise this examined set to
+10/10 Top-1, 11/11 Recall@4, 0/12 false support, 4/4 ambiguity/conflict, 10/10 citations, and 30/30
+Worker outcomes. The result is stored in
+`knowledge/guide-answerability-holdout-after-generalization.v1.json` and is not unseen evidence.
+
+### Prospectively frozen generalization challenge
+
+`knowledge/guide-generalization-challenge.fixture.v1.json` was written and hashed before its first
+execution. It contains 44 Codex-authored synthetic cases: 12 supported paraphrases, 12 unsupported
+lookalikes, six ambiguity/conflict cases, eight multi-fact/relationship cases, and six context
+cases. Its SHA-256 is
+`265966A4EA20466AA16C1A6302F87FB175C263C35A2DC8801D0CF9DB25159687`, with no exact question
+overlap against the earlier fixtures.
+
+| Measure | First frozen challenge run |
+| --- | ---: |
+| Top-1 supported-topic/fact accuracy | 11/20 (55.00%) |
+| Recall@4 for expected facts | 17/30 (56.67%) |
+| False support on unsupported cases | 0/13 (0%) |
+| Ambiguity/conflict handling | 5/6 (83.33%) |
+| Citation correctness | 9/20 (45.00%) |
+| Complete expected Worker outcomes | 30/44 (68.18%) |
+
+The first run is preserved in `knowledge/guide-generalization-challenge-results.v1.json`. It shows
+material supported recall beyond the earlier 0/11 result while retaining zero false support, but
+novel descriptive wording and several multi-property questions still over-abstain. No expectation
+or retrieval rule was changed after this run. Because Codex authored the fixture, it is not a
+human-authored blind benchmark; a teammate-authored evaluation remains required before any
+real-world reliability claim.
 
 ## Development browser integration
 

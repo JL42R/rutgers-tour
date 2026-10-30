@@ -100,6 +100,7 @@ This selects one fixed, reviewed synthetic profile on both sides of the localhos
 - `How fast do the automata move?` (unsupported specific claim)
 - `What is the maximum safe speed of paper automata?` (same-topic unsupported property)
 - `Where can I purchase a mirror-grove fruit token?` (unsupported lookalike relation)
+- `Which colored tabs identify the repeating fold's reset points?` (property-aware grammar)
 
 The last two questions must show the concise verified-answer fallback. They must not display an
 unrelated fact, citation, specialist, destination, or directions, and they must not call the fake
@@ -148,10 +149,10 @@ browser path; draft and retired records remain unavailable. Neither profile load
 facts. Rate and budget controls are injected test interfaces, not durable distributed controls. No
 NVDA claim is made; an actual NVDA session remains required.
 
-The 57-case profile evaluation is an in-fixture regression suite. The examined 20-case diagnostic
-and a separately frozen 30-case answerability holdout are documented in
-`GUIDE_DOCUMENT_RETRIEVAL.md`. The new holdout rejected every unsupported lookalike but also every
-novel supported paraphrase, so this lexical policy is intentionally treated as over-conservative,
-not production-ready. Document ingestion and arbitrary publication remain outside the browser. The
+The 57-case profile evaluation and examined 20-/30-case diagnostics are documented in
+`GUIDE_DOCUMENT_RETRIEVAL.md`. A prospectively frozen 44-case Codex-authored challenge improved
+supported recall while retaining zero false support, but still passed only 30/44 complete Worker
+outcomes. The deterministic policy remains over-conservative and is not production-ready.
+Document ingestion and arbitrary publication remain outside the browser. The
 fixed Chrome retirement control demonstrates version change and stale context only; it is not a
 content-management endpoint.

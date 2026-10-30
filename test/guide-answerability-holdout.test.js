@@ -17,6 +17,10 @@ const recordedResult = JSON.parse(readFileSync(
   new URL('../knowledge/guide-answerability-holdout-results.v1.json', import.meta.url),
   'utf8'
 ));
+const afterGeneralizationResult = JSON.parse(readFileSync(
+  new URL('../knowledge/guide-answerability-holdout-after-generalization.v1.json', import.meta.url),
+  'utf8'
+));
 const expectedHash = 'f2cc23c851d43c1d4ff950b458288d2855b53ee3aef12e25e1c7c875c6ecb7fe';
 const allowedOrigin = 'https://answerability-holdout.example.test';
 let requestSequence = 0;
@@ -170,13 +174,32 @@ test('frozen answerability holdout preserves first-run and final measured metric
     workerPassed: report.workerPassed,
     workerFailures: report.workerFailures
   };
-  assert.deepEqual(recordedResult.firstRun, {
-    measurement: 'first_run_before_holdout_review_or_tuning',
-    ...measuredResult
+  assert.equal(recordedResult.firstRun.measurement,
+    'first_run_before_holdout_review_or_tuning');
+  assert.equal(recordedResult.finalImplementationRun.measurement,
+    'post_first_run_after_old_diagnostic_regression_fixes_not_unseen');
+  assert.deepEqual(recordedResult.firstRun.metrics, {
+    supported: 10,
+    top1Correct: 0,
+    expectedFacts: 11,
+    recalledFacts: 0,
+    unsupported: 12,
+    falseSupported: 0,
+    ambiguityOrConflict: 4,
+    ambiguityOrConflictCorrect: 0,
+    citationCorrect: 0
   });
-  assert.deepEqual(recordedResult.finalImplementationRun, {
-    measurement: 'post_first_run_after_old_diagnostic_regression_fixes_not_unseen',
-    ...measuredResult
+  assert.equal(recordedResult.firstRun.workerPassed, 14);
+  assert.equal(afterGeneralizationResult.measurement,
+    'after_reviewed_property_generalization_diagnostic_not_unseen');
+  assert.equal(afterGeneralizationResult.holdoutSha256, expectedHash);
+  assert.deepEqual(measuredResult, {
+    directCases: afterGeneralizationResult.directCases,
+    conversationCases: afterGeneralizationResult.conversationCases,
+    metrics: afterGeneralizationResult.metrics,
+    directFailures: afterGeneralizationResult.directFailures,
+    workerPassed: afterGeneralizationResult.workerPassed,
+    workerFailures: afterGeneralizationResult.workerFailures
   });
   assert.equal(recordedResult.evaluationVersion, holdout.evaluationVersion);
   assert.equal(recordedResult.holdoutSha256, expectedHash);

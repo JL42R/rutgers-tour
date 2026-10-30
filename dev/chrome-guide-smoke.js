@@ -397,6 +397,14 @@ async function advancedPhase(client) {
   }
 
   await click(client, '#dlg-choices button');
+  await enterQuestion(client, "Which colored tabs identify the repeating fold's reset points?");
+  await waitFor(
+    client,
+    'document.querySelector("#dlg-text").textContent.includes("Amber tabs mark the reset points")',
+    'property-aware grammatical variation'
+  );
+
+  await click(client, '#dlg-choices button');
   await enterQuestion(client, 'Where can I find them?');
   await waitFor(
     client,

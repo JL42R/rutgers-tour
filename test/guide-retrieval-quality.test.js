@@ -140,6 +140,29 @@ test('reviewed retrieval profile rejects unknown aliases and mismatched source b
     /fields are invalid/
   );
 
+  const unknownProperty = structuredClone(profile);
+  unknownProperty.factProperties[0].propertyIds = ['invented-property'];
+  assert.throws(
+    () => prepareApprovedKnowledge(knowledge, { retrievalProfile: unknownProperty }),
+    /fact properties are invalid/
+  );
+
+  const duplicatePropertyDefinition = structuredClone(profile);
+  duplicatePropertyDefinition.propertyDefinitions.push(
+    structuredClone(duplicatePropertyDefinition.propertyDefinitions[0])
+  );
+  assert.throws(
+    () => prepareApprovedKnowledge(knowledge, { retrievalProfile: duplicatePropertyDefinition }),
+    /property definition is invalid/
+  );
+
+  const missingFactProperties = structuredClone(profile);
+  missingFactProperties.factProperties.pop();
+  assert.throws(
+    () => prepareApprovedKnowledge(knowledge, { retrievalProfile: missingFactProperties }),
+    /factProperties is invalid/
+  );
+
   const unknownProfileField = structuredClone(profile);
   unknownProfileField.visitorAliases = ['trust me'];
   assert.throws(

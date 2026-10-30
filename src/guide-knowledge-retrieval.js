@@ -23,7 +23,9 @@ const GENERIC_QUERY_WORDS = new Set([
   'approved', 'both', 'claim', 'correct', 'helps', 'inside', 'know', 'many', 'its',
   'long', 'makes', 'need', 'only',
   'passage', 'passages', 'picnic', 'purpose', 'serve', 'serves', 'skip', 'someone',
-  'support', 'talk', 'thing', 'those', 'travel', 'unrelated', 'use', 'used', 'visitor',
+  'between', 'by', 'enough', 'follows', 'happens', 'held', 'identify', 'make', 'meets',
+  'over', 'parts', 'place', 'restore', 'shares', 'support', 'talk', 'thing', 'those',
+  'travel', 'unrelated', 'use', 'used', 'visitor',
   'visitors', 'want', 'whether'
 ]);
 
@@ -35,10 +37,12 @@ const MORPHOLOGY = new Map([
   ['folds', 'fold'], ['forms', 'form'], ['fountains', 'fountain'], ['gardens', 'garden'],
   ['gusts', 'gust'], ['hinges', 'hinge'], ['joints', 'joint'], ['keeps', 'keep'],
   ['kites', 'kite'], ['leaves', 'leaf'], ['loops', 'loop'], ['machines', 'machine'],
+  ['mechanisms', 'mechanism'],
   ['makes', 'make'], ['markers', 'marker'], ['moves', 'move'], ['moving', 'move'],
   ['orchards', 'orchard'],
   ['patterns', 'pattern'], ['plants', 'plant'], ['pools', 'pool'], ['powers', 'power'],
   ['pulls', 'pull'], ['ribs', 'rib'],
+  ['tugged', 'tug'], ['tugs', 'tug'], ['branches', 'branch'],
   ['repeats', 'repeat'], ['rods', 'rod'], ['rotated', 'rotate'], ['rotates', 'rotate'],
   ['rotational', 'rotate'], ['sails', 'sail'], ['seconds', 'second'], ['spans', 'span'],
   ['needed', 'need'], ['secures', 'secure'], ['stars', 'star'], ['tabs', 'tab'], ['tokens', 'token'],
@@ -169,6 +173,7 @@ function createEntries(knowledge, profile) {
       topicTerms: uniqueTerms(topicPhrases.join(' ')),
       factAliasTerms: uniqueTerms(factPhrases.join(' ')),
       answerabilityTerms: uniqueTerms(`${fact.content} ${answerabilityPhrases.join(' ')}`),
+      propertyIds: Object.freeze(profile.propertyIdsForFact(fact.id)),
       contentTerms: Object.freeze(contentTokens),
       contentTermCounts: countTerms(contentTokens),
       sourceTerms: Object.freeze(sourceTokens),
@@ -274,11 +279,16 @@ function topicEvidence(scored, query) {
       matchedSpecific,
       coverage: specificTerms.length === 0 ? 1 : matchedSpecific.length / specificTerms.length
     };
-  }).sort((left, right) => right.score - left.score || left.topicId.localeCompare(right.topicId));
+  }).sort((left, right) => (
+    Number(right.exactFactPhrase) - Number(left.exactFactPhrase) ||
+    right.score - left.score ||
+    left.topicId.localeCompare(right.topicId)
+  ));
 }
 
 function hasRouteIntent(normalizedQuestion) {
-  return /\b(where|find|located|location|directions|get there)\b/.test(normalizedQuestion);
+  return /\b(find|located|location|directions|get there|route reaches)\b/.test(normalizedQuestion) ||
+    /\bwhere (?:is|are|can i|should i|do i go)\b/.test(normalizedQuestion);
 }
 
 function topicHasRoute(topicId, knowledge) {
@@ -295,6 +305,20 @@ function supportedEvidence(topic, settings) {
 
 function answerableTopicEntries(topic, query, settings) {
   if (!settings.hasReviewedProfile) return topic.entries;
+  if (query.propertyIds.length > 0) {
+    const eligible = topic.entries.filter((item) => {
+      const propertyIds = new Set(item.entry.propertyIds);
+      if (item.entry.claim) {
+        for (const factId of item.entry.claim.factIds) {
+          const companion = topic.entries.find((candidate) => candidate.entry.factId === factId);
+          for (const propertyId of companion?.entry.propertyIds ?? []) propertyIds.add(propertyId);
+        }
+      }
+      return query.propertyIds.some((propertyId) => propertyIds.has(propertyId));
+    });
+    const covered = new Set(eligible.flatMap((item) => item.entry.propertyIds));
+    return query.propertyIds.every((propertyId) => covered.has(propertyId)) ? eligible : [];
+  }
   const specificTerms = query.terms.filter((term) => (
     !topic.topicTerms.has(term) && !GENERIC_QUERY_WORDS.has(term)
   ));
@@ -315,8 +339,22 @@ function answerableTopicEntries(topic, query, settings) {
   });
 }
 
-function competingTopicEvidence(best, runner, settings) {
+function competingTopicEvidence(best, runner, settings, query) {
   if (!runner || best.exactFactPhrase && !runner.exactFactPhrase) return false;
+  const explicitComparison = /\b(or|versus|compare)\b/.test(query.phrase);
+  const supportsProperties = (topic) => query.propertyIds.length === 0 ||
+    query.propertyIds.every((propertyId) => topic.entries.some(
+      (item) => item.entry.propertyIds.includes(propertyId)
+    ));
+  const bestSupportsProperties = supportsProperties(best);
+  const runnerSupportsProperties = supportsProperties(runner);
+  if (bestSupportsProperties && !runnerSupportsProperties) return false;
+  if (explicitComparison && runner.score >= settings.minimumScore && (
+    query.propertyIds.length === 0 ||
+    bestSupportsProperties && runnerSupportsProperties &&
+      best.mentionedTopicTerms.size > 0 && runner.mentionedTopicTerms.size > 0
+  )) return true;
+  if (best.mentionedTopicTerms.size > 0 && runner.mentionedTopicTerms.size === 0) return false;
   if (!settings.hasReviewedProfile && best.mentionedTopicTerms.size > 0 &&
       runner.mentionedTopicTerms.size > 0) return true;
   if (best.exactTopicPhrase && !runner.exactTopicPhrase) return false;
@@ -339,7 +377,7 @@ function competingTopicEvidence(best, runner, settings) {
   return bestUnique && runnerUnique && combinedCoverage && runner.score >= best.score * 0.2;
 }
 
-function selectedResults(topic, settings, limit, eligibleEntries = topic.entries) {
+function selectedResults(topic, settings, limit, eligibleEntries = topic.entries, query = null) {
   const bestScore = eligibleEntries[0]?.score ?? 0;
   const relevanceFloor = Math.max(settings.minimumScore, bestScore - 2.25);
   const selected = eligibleEntries.filter((item) => item.score >= relevanceFloor);
@@ -348,6 +386,15 @@ function selectedResults(topic, settings, limit, eligibleEntries = topic.entries
   }
 
   const selectedIds = new Set(selected.map((item) => item.entry.factId));
+  for (const propertyId of query?.propertyIds ?? []) {
+    const propertyEvidence = eligibleEntries.find((item) => (
+      item.entry.propertyIds.includes(propertyId)
+    ));
+    if (propertyEvidence && !selectedIds.has(propertyEvidence.entry.factId)) {
+      selected.push(propertyEvidence);
+      selectedIds.add(propertyEvidence.entry.factId);
+    }
+  }
   for (const item of [...selected]) {
     if (item.entry.claim?.resolution !== 'reinforcing') continue;
     for (const factId of item.entry.claim.factIds) {
@@ -361,7 +408,14 @@ function selectedResults(topic, settings, limit, eligibleEntries = topic.entries
   }
 
   return selected
-    .sort((left, right) => right.score - left.score || left.entry.factId.localeCompare(right.entry.factId))
+    .sort((left, right) => {
+      if (left.entry.claim?.id && left.entry.claim.id === right.entry.claim?.id &&
+          left.entry.claim.resolution === 'reinforcing') {
+        return left.entry.claim.factIds.indexOf(left.entry.factId) -
+          right.entry.claim.factIds.indexOf(right.entry.factId);
+      }
+      return right.score - left.score || left.entry.factId.localeCompare(right.entry.factId);
+    })
     .slice(0, limit);
 }
 
@@ -428,7 +482,8 @@ export function createApprovedKnowledgeRetriever(approvedKnowledge, options = {}
       const focused = focusedQuestion(question);
       const query = Object.freeze({
         phrase: normalizedPhrase(focused),
-        terms: Object.freeze([...new Set(tokens(focused))])
+        terms: Object.freeze([...new Set(tokens(focused))]),
+        propertyIds: profile.propertyIdsForQuestion(normalizeQuestion(focused))
       });
       if (query.terms.length === 0) {
         return unsupported(approvedKnowledge.knowledgeVersion, 'unsupported', 'no_search_terms');
@@ -452,17 +507,19 @@ export function createApprovedKnowledgeRetriever(approvedKnowledge, options = {}
       const rankedTopics = topicEvidence(scored, query);
       const best = rankedTopics[0];
       const runnerUp = rankedTopics[1];
-      if (competingTopicEvidence(best, runnerUp, settings)) {
+      if (competingTopicEvidence(best, runnerUp, settings, query)) {
         return unsupported(approvedKnowledge.knowledgeVersion, 'ambiguous', 'multiple_approved_topics');
       }
-      if (!supportedEvidence(best, settings)) {
+      const answerableEntries = answerableTopicEntries(best, query, settings);
+      const propertyGroundedTopic = query.propertyIds.length > 0 && answerableEntries.length > 0 &&
+        (best.exactTopicPhrase || best.exactFactPhrase || best.mentionedTopicTerms.size > 0);
+      if (!supportedEvidence(best, settings) && !propertyGroundedTopic) {
         return unsupported(approvedKnowledge.knowledgeVersion, 'unsupported', 'insufficient_specific_evidence');
       }
       if (hasRouteIntent(normalized) && !topicHasRoute(best.topicId, approvedKnowledge)) {
         return unsupported(approvedKnowledge.knowledgeVersion, 'unsupported', 'no_approved_route');
       }
 
-      const answerableEntries = answerableTopicEntries(best, query, settings);
       if (answerableEntries.length === 0) {
         return unsupported(
           approvedKnowledge.knowledgeVersion,
@@ -470,7 +527,7 @@ export function createApprovedKnowledgeRetriever(approvedKnowledge, options = {}
           'insufficient_answerability'
         );
       }
-      const selected = selectedResults(best, settings, limit, answerableEntries);
+      const selected = selectedResults(best, settings, limit, answerableEntries, query);
       if (selected.some((item) => item.entry.claim?.resolution === 'unresolved_conflict')) {
         return unsupported(approvedKnowledge.knowledgeVersion, 'conflict', 'unresolved_approved_conflict');
       }
