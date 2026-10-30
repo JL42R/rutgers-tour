@@ -14,8 +14,10 @@ The user confirmed all 13 Stage 9B manual Chrome checks passed before Stage 10. 
 the matching hallway sign and a safe D3-only forward-0.60 m arrival. All 55 automated groups
 and the build pass. The user subsequently confirmed all nine Stage 10 Chrome checks passed.
 The completed manual approvals are Stage 7 **8/8**, Stage 8B **11/11**, Stage 9B **13/13** and
-Stage 10 **9/9**, totaling **41/41**. These tests preceded upstream reconciliation; the combined
-application still requires integrated regression and manual browser retesting. Room 116 NPCs,
+Stage 10 **9/9**, totaling **41/41**. These tests preceded upstream reconciliation. Integration with
+main `ae252293` now passes all 55 permanent tests and 18 local equipment/application probes,
+plus the production build. These include actual working-tree modules with DOM stubs, not a
+browser walkthrough; the combined application still requires manual browser retesting. Room 116 NPCs,
 dialogue and interactive information are deferred to another teammate. Task state remains in GitHub Issues.
 
 ## Confirmed physical references

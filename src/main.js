@@ -9,6 +9,7 @@ import { NPCManager } from './npc.js';
 import { Dialogue } from './dialogue.js';
 import { InteractionTracker } from './interaction-tracker.js';
 import { room116ArrivalPosition } from './room116-arrival.js';
+import { debugEquipment, equipmentPlaceholder, installEquipmentDebug } from './equipment-debug.js';
 
 const app = document.getElementById('app');
 
@@ -42,9 +43,10 @@ scene.add(dir);
 // --- Game systems ---
 const dialogue = new Dialogue();
 const controls = new PlayerControls(camera, renderer.domElement);
-const zones = new ZoneManager(scene);
+const zones = new ZoneManager(scene, { debugEquipment, equipmentPlaceholder });
 const npcs = new NPCManager(scene, dialogue);
 const tracker = new InteractionTracker();
+installEquipmentDebug({ camera, controls, zones, dialogue });
 
 // While a dialogue is open, freeze movement so buttons are usable.
 dialogue.onOpen = () => {

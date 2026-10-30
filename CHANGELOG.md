@@ -4,11 +4,22 @@ Newest entry first. This records what changed and when — for schedule and gate
 
 ## 2026-10-29
 
+### Room 116 integrated with latest main locally
+- Integrated upstream main `ae252293` into the Room 116 feature branch. Retained both main.js
+  imports/wiring and both changelog histories; preserved printing-room equipment tools,
+  placeholder alignment, Vishan placement and all approved Room 116 data.
+- The integrated code passes all **55** permanent Room 116 tests, **10** equipment compatibility
+  checks against working-tree modules, and **8** additional local startup/welcome/progress,
+  dialogue/NPC and equipment-persistence probes: **73/73**, zero failures. DOM probes use stubs;
+  they do not establish browser rendering or pointer-lock acceptance.
+- Production build passes with the existing large-bundle warning. Startup remains hallway;
+  the combined application still requires the user's manual walkthrough before publishing.
+
 ### Room 116 final manual acceptance and local integration preparation
 - Recorded the user's completed Chrome checks: Stage 7 **8/8**, Stage 8B **11/11**,
   Stage 9B **13/13**, and Stage 10 **9/9** — **41/41 manual checks passed**.
 - These approvals cover the Room 116 implementation before upstream reconciliation.
-  The combined application still requires integrated regression and manual browser retesting.
+  Integrated automated results are recorded above; a new combined manual walkthrough remains required.
 - Retained the approved PLY/transform, bidirectional D3, oriented walking rectangle, yellow/orange
   exclusions, hallway sign and D3-only 0.60 m inward arrival with its small lateral safety adjustment.
   Room 116-to-hallway returns preserve their existing crossing position and camera orientation.
@@ -137,6 +148,33 @@ Newest entry first. This records what changed and when — for schedule and gate
   trial values and missing D3 alignment information. Calibration is not final.
 - Retained hallway startup and both existing zone configurations. No D3 wall opening, transitions,
   signs, movement boundaries, equipment collisions or NPCs were authored.
+### Provisional equipment box workflow (Issue #12)
+- Added a debug-only editor to turn pairs of P snapshots into editable drafts,
+  preview orange AABBs, download drafts/samples, and save applied drafts locally.
+- Added explicit draft-collision testing with spawn/doorway clearance and sampled
+  floor-plan checks for NPC and exit access. Production collision is untouched.
+- No verified equipment measurements were found; production equipment boxes await
+  physical/visual calibration. Preserved local Vishan and all previous debug work.
+
+### Provisional Vishan placement (Issue #12)
+- Moved only Vishan's marker to `[-0.90, 1.80, 0.372]`, inside the printing-room
+  walls opposite Johnny. Workstation alignment awaits visual inspection; dialogue,
+  portrait, interaction radius, other NPCs, collisions, and debug tools are unchanged.
+
+### Printing-room placeholder alignment (Issue #12, Stage 2)
+- Corrected preview floor X/Z dimensions and centre from the existing wall inner
+  faces; fitted the rectangular grid to those bounds without moving wall meshes.
+- Added `?debugEquipment&equipmentPlaceholder` for printing-room-only preview.
+  Production placeholder remains false; real splat transforms and all collision,
+  NPC, dialogue, transition, and control data remain unchanged.
+
+### Equipment mapping preparation (Issue #12)
+- Added opt-in `?debugEquipment`: P logs printing-room world coordinates and yaw,
+  and existing collision boxes appear as cyan overlays. Dialogue/editable fields
+  suppress snapshots; normal visits do not install the shortcut.
+- Documented the aligned axes, placeholder-floor mismatch, survey inventory, and
+  existing Vishan marker reachability concern in `docs/EQUIPMENT_MAPPING.md`.
+- No equipment boxes, wall edits, or alignment changes were made.
 
 ## 2026-10-21
 

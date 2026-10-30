@@ -82,6 +82,7 @@ Hallway entry crosses +x and intentionally advances to local forward 0.60 m. A m
 adjustment of at most 11.1 mm at applicable entry positions preserves a clear backward path.
 Camera height and facing are preserved; studio return crosses −x with its crossing position unchanged.
 The user passed all 41 manual checks across Stages 7, 8B, 9B and 10 before upstream reconciliation;
-the combined application requires retesting. Room 116 NPCs and interactive content are deferred.
+the combined application passes 55 permanent tests and 18 local probes, but requires a new manual
+walkthrough. Room 116 NPCs and interactive content are deferred.
 See `ROOM116_INTEGRATION.md` for the approved transform, boundaries, exclusions and test evidence. D2/D4 remain
 unwired behind their existing hallway collision walls; no opening was made for them.
