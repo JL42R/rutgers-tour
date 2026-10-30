@@ -1,24 +1,16 @@
-# Project Studio — Room 116 inspection
+# Project Studio — Room 116 integration record
 
-This records the local trial begun on 2026-10-27, Stage 4/5/6 analysis on 2026-10-28, and Stage 7
-alignment on 2026-10-29. **D3 is now configured in both directions using corrected manual jamb
-correspondences.** Startup is restored to `hallway`. Scale and leveling are unchanged. The build
-and numerical movement/collision checks pass. In the Stage 8 request, the user confirmed all eight
-Stage 7 Chrome checks passed, including repeated D3 entry/return and floor/orientation. Stage 8
-rejected AABB approximations. **Stage 8B now implements an explicitly authorized Room 116-only
-oriented walking boundary**, preserving the approved transforms, D3 and other-zone AABBs.
-Numerical checks and build pass. In the Stage 9A request, the user confirmed that all 11
-Stage 8B manual browser checks passed. The user subsequently approved the final Stage 9A shape
-and authorized Stage 9B: both exclusions are now active and invisible in the normal tour.
-The user confirmed all 13 Stage 9B manual Chrome checks passed before Stage 10. Stage 10 adds
-the matching hallway sign and a safe D3-only forward-0.60 m arrival. All 55 automated groups
-and the build pass. The user subsequently confirmed all nine Stage 10 Chrome checks passed.
-The completed manual approvals are Stage 7 **8/8**, Stage 8B **11/11**, Stage 9B **13/13** and
-Stage 10 **9/9**, totaling **41/41**. These tests preceded upstream reconciliation. Integration with
-main `ae252293` now passes all 55 permanent tests and 18 local equipment/application probes,
-plus the production build. These include actual working-tree modules with DOM stubs, not a
-browser walkthrough; the combined application still requires manual browser retesting. Room 116 NPCs,
-dialogue and interactive information are deferred to another teammate. Task state remains in GitHub Issues.
+## Current publication status — synchronized 2026-10-30
+
+Room 116 navigation is **implemented, user-approved and published**. Feature commit [bc0b623](https://github.com/JL42R/rutgers-tour/commit/bc0b62323b2ecb881e5c17039a8223c297914e1e) was integrated with upstream equipment tooling in [main b2a18e5](https://github.com/JL42R/rutgers-tour/commit/b2a18e5d8cb840c7a37226871f4cc412542b17a3). The user reported **41/41 pre-integration stage approvals** and then **14/14 post-integration Chrome approvals**. [GitHub Pages run 40986520793](https://github.com/JL42R/rutgers-tour/actions/runs/40986520793) completed successfully for b2a18e5.
+
+Stage 11B passed **55/55 tracked Room 116 tests**, **10/10 ignored local equipment compatibility probes**, **8/8 ignored local integration probes**, and the production build. The 18 local probes used DOM stubs/diagnostics under ignored `tmp/`; they are not tracked fresh-clone CI coverage or browser-rendering tests. The later user walkthrough supplies the integrated manual evidence. See the Stage 11B/11C record below.
+
+The approved PLY, transform, D3, oriented walking rectangle, two exclusions, hallway sign and inward arrival are retained. Startup is `hallway`. **Room 116 NPCs/dialogue remain outstanding (#56)**, not an integration blocker. Current scope is exactly hallway, printing room and Room 116; Machine Shop/Computer Lab are future-cohort options only.
+
+Historical capture/backup/registration/training provenance remains unverified (#50); successful rendering does not supply those records. Current three-zone performance/cross-browser and actual screen-reader acceptance remain separate open work.
+
+The following preserves the trials begun 2026-10-27, analysis from 2026-10-28 and Stages 7–10 from 2026-10-29. Statements about pending checks or uncommitted work inside those dated records describe that checkpoint; later Stage 11 approvals/publication supersede them. All original alignment measurements and diagnostic evidence are preserved.
 
 ## Confirmed physical references
 
@@ -113,11 +105,9 @@ for scale. No splats were removed or hidden from the runtime scene. The bounded 
 projections are analysis views only; ghosting and duplicated surfaces still require
 rendered visitor-view inspection.
 
-## Current local inspection
+## Repeating the local walkthrough
 
-The actual saved `public/zones.json` now has `"startZone": "hallway"`. Stage 7 restored it after
-geometrically coherent D3 registration and reciprocal transition implementation. The normal
-application is available on port 5175; the former port-5174 response override is not used.
+The saved `public/zones.json` has `"startZone": "hallway"`. To repeat checks after future changes, start the normal app below on port 5175 if that port is free. This document does not assert that a local server is already running. The former port-5174 response override is not used.
 
 From PowerShell in `C:\dev\rutgers-tour`:
 
@@ -129,7 +119,7 @@ Open `http://127.0.0.1:5175/` and refresh with Ctrl+Shift+R. Confirm hallway wel
 Progress, visit the printing room and return through D1, then continue toward positive Z to
 the last positive-X brown doorway near Z = 17.04. Cross it into Room 116, turn around and exit,
 and repeat near both sides of the usable passage. Check preserved camera position/orientation,
-floor level and doorway seams. These are required manual tests, not claimed browser results.
+floor level and doorway seams. These are repeatable regression instructions; the user already approved the integrated 14/14 walkthrough. No new browser test is claimed by the 2026-10-30 documentation pass.
 Room 116 now enforces its oriented walking rectangle and doorway exception, as described below.
 Local diagnostics remain under ignored `tmp/`.
 
@@ -159,7 +149,7 @@ After visual calibration and doorway correspondence are verified, wire reciproca
 and split only the relevant hallway wall segment. Custom walking-area boundaries, equipment
 collisions, NPCs and dialogue remain separate later stages.
 
-## Stage 4 heading proposal and unresolved correspondence
+## Stage 4 heading proposal and unresolved correspondence (historical)
 
 During Stage 4 the inspection rotation remained unchanged. To point raw +Y approximately into hallway +X while
 preserving the leveled floor, compose a -90-degree **world-Y** heading before the local rotation:
@@ -205,7 +195,7 @@ Candidate 3 is not the last opening. Precise moving-door jambs within Candidate 
 established. Final X/Z origin, transition plane, clear doorway range and alignment residual remain
 undetermined. No hallway geometry or collision data was changed.
 
-## Stage 5 evidence, with Stage 6 measurement corrections
+## Stage 5 evidence, with Stage 6 measurement corrections (historical)
 
 The user describes a central doorway flanked by two dark glass-like sections with strip features.
 The scan was captured in darkness. Candidate 4's multi-section framing/dark glazing is consistent
@@ -243,7 +233,7 @@ opening, it could use one hallway wall segment or cross the segment change. Do n
 collision box merely from the broad Candidate 4 search window. No placement or transition is
 implemented while the inside-jamb and threshold correspondence remains unresolved.
 
-## Stage 6 targeted comparison and local landmark capture
+## Stage 6 targeted comparison and local landmark capture (historical)
 
 This section records the Stage 6 procedure and blocker. The save-origin fix and completed picks
 used port 5177 on 2026-10-29. Do not repeat picking for Stage 7: the original capture-frame data
@@ -799,9 +789,33 @@ Use **http://127.0.0.1:5175/** and Ctrl+Shift+R. Check welcome/Tour Progress and
 sign, then inspect the new D3 sign's visibility, facing, centering and readability. Enter at
 center/both safe edges; check the small inward arrival and unchanged camera facing/height.
 Walk backward to D3, return, repeat, then recheck yellow/orange blocking and D1. **The user confirmed
-all nine Stage 10 manual checks passed before upstream reconciliation.** The integrated application
-requires a new walkthrough. Automated numerical tests and HTTP checks are separate evidence;
+all nine Stage 10 manual checks passed before upstream reconciliation.** At that checkpoint an integrated walkthrough was still pending; the Stage 11B/11C record below supplies the later 14/14 approval and publication. Automated numerical tests and HTTP checks are separate evidence;
 the agent does not claim to have rerun those manual browser checks.
 
 Full A–O report: `tmp/ROOM116_STAGE10_REPORT.md`; preservation and exact examples:
-`tmp/room116-stage10/verification.json`. No commits, pushes, merges, rebases or deployment.
+`tmp/room116-stage10/verification.json`. No commits, pushes, merges, rebases or deployment occurred at that Stage 10 checkpoint.
+
+## Stage 11B and Stage 11C — completed integration and publication
+
+The completed release sequence, recorded in the user's approvals and subsequent repository/deployment checks:
+
+| Evidence | Result / reference |
+|---|---|
+| Room 116 feature | `bc0b62323b2ecb881e5c17039a8223c297914e1e` |
+| Final integrated main | `b2a18e5d8cb840c7a37226871f4cc412542b17a3`, including upstream `ae252293` equipment tooling |
+| Pre-integration manual approvals | User-reported Stage 7 8/8 + Stage 8B 11/11 + Stage 9B 13/13 + Stage 10 9/9 = **41/41** |
+| Post-integration browser approvals | User-reported **14/14 Chrome checks passed**, before publication |
+| Tracked Room 116 regression suite | **55/55**: boundary 20, exclusions 22, entry/arrival 13 |
+| Ignored local equipment compatibility probes | **10/10**, not part of the tracked suite |
+| Ignored local integration probes | **8/8**, not part of the tracked suite |
+| Production build | Passed with the existing large-bundle warning |
+| GitHub Pages | Run **40986520793**, push event for b2a18e5, completed/success |
+
+This release preserved the newer printing-room equipment tools along with D1/D3, NPC/dialogue, welcome and progress behavior. The 18 local probes are historical diagnostics, not dependencies for a fresh clone. The portable tracked checks are:
+
+```powershell
+node --test tests/room116-boundary.test.js tests/room116-exclusions.test.js tests/room116-entry.test.js
+npm.cmd run build
+```
+
+No further Room 116 calibration or navigation work is requested by this status update. NPC identities, approved facts, dialogue, placement and tracker/accessibility acceptance remain #56; missing historical capture/training records remain #50. The AI guide is separate ongoing #47 work; missing portrait (#67), CI tests (#68), permanent printing equipment collisions (#66) and the NVDA failure (#33) remain unresolved. The documentation synchronization neither reruns the user's browser checks nor fixes those defects.

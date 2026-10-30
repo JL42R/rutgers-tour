@@ -1,8 +1,8 @@
-# Printing-room equipment mapping (Issue #12)
+# Printing-room equipment mapping (active tracker #66; original #12)
 
-This stage prepares mapping only. No equipment footprints have been measured or
-added. Issue #5 is completed; Issue #12 remains open. Its original centred-room
-example predates the hallway alignment and must not be copied as world positions.
+**Current status — 2026-10-30:** PR #65 implemented the mapping/debug tools and optional draft editor. **Permanent equipment collision boxes are not implemented**; normal printing-room collision still contains only its five structural wall AABBs. [Issue #66](https://github.com/JL42R/rutgers-tour/issues/66) tracks the unfinished physical measurements, permanent boxes and real-splat/normal-gameplay acceptance. #12 preserves the original requirements/history; both remain open.
+
+No equipment footprints are verified here. The original centred-room example predates hallway alignment and must not be copied as world positions. The current deliverable is hallway, printing room and Room 116 only; these printing-room tools do not alter Room 116's separately approved solver/geometry. Existing NPC access, D1 and the structural walls must be preserved.
 
 ## Run the mapping helper
 

@@ -1,6 +1,16 @@
 # Changelog
 
-Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
+Newest entry first. This records what changed and when — for schedule and gates see `docs/PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
+
+## 2026-10-30
+
+### Final three-environment scope and documentation synchronization
+
+- Confirmed the current cohort's deliverable as **hallway, printing-room and project-studio (Room 116)** only. Machine Shop and Computer Lab are excluded for this team; earlier capture/reconstruction research, story concepts and schedules remain as clearly labeled future-cohort/history material. See issues #49/#55/#32.
+- Synchronized current startup, assets, D1/D3, NPC counts, approved Room 116 oriented solver/exclusions and printing-room AABB descriptions across the project guides. Current priorities are Room 116 NPCs (#56), Vishan's interactive guide (#47), then three-zone visual quality/performance. Dates and original gate evidence are preserved; G2's still-open GitHub status is distinguished from recorded acceptance.
+- Recorded the completed release: Room 116 feature `bc0b62323b2ecb881e5c17039a8223c297914e1e`, integrated main `b2a18e5d8cb840c7a37226871f4cc412542b17a3`, user-reported **41/41 pre-integration** and **14/14 post-integration Chrome approvals**, **55/55 tracked tests**, **10/10 ignored local equipment probes**, **8/8 ignored local integration probes**, and a successful production build. [Pages run 40986520793](https://github.com/JL42R/rutgers-tour/actions/runs/40986520793) completed successfully for b2a18e5.
+- Kept unfinished work explicit: studio NPCs (#56), standalone unmerged PRs #46/#48/#59/#61 and Johnny's AI TEST prototype (#47), missing Vishan image (#67), regression tests absent from CI (#68), permanent printing equipment boxes (#66), content approvals (#20), actual NVDA failure (#33), and planned quality/SH/performance measurements (#8/#23/#24/#25/#34). No production defect is resolved by these documentation edits.
+- Historical entries below describe their original checkpoints. Later release acceptance/publication above supersedes earlier “manual walkthrough/publication pending” notes without rewriting those records. This documentation branch is local review work only; no commit, push or deployment is authorized in Phase 3A.
 
 ## 2026-10-29
 

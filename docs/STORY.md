@@ -4,8 +4,9 @@ This document defines the proposed visitor story for Issue #57: the suggested ro
 each guide, and the hand-off between stops. It is a content plan, not a technical design. Architecture
 stays in `DESIGN.md`, zone geometry stays in `docs/ZONES.md`, and task state stays in GitHub Issues.
 
-**Approval status:** Proposed — awaiting team approval on Issue #57. Do not treat proposed dialogue
-below as final script copy until the team approves the route, responsibilities, and wording.
+**Scope confirmed 2026-10-30:** exactly Hallway → 3D Printing Room → Project Studio / Room 116, with free exploration preserved. Machine Shop and Computer Lab are excluded for this cohort; older concepts are retained in the future-cohort section below.
+
+**Copy approval status:** proposed narrative wording is not established as approved by the reviewed records. #57's documentation work is closed, but that alone does not prove approval of every hand-off or script. Keep proposed dialogue separate from the implemented JSON and obtain content review under #20/#56.
 
 ## Status and scope
 
@@ -14,25 +15,22 @@ as if visitors can already experience it.
 
 | Element | Status | Notes |
 |---|---|---|
-| Hallway and printing-room zones | **Implemented** | Both zones are loaded from `public/zones.json` and connected by a doorway transition. |
+| Hallway, printing-room and project-studio zones | **Implemented/published** | Three captured environments; D1 and D3 connect rooms to the hallway. Room 116 boundaries/exclusions, sign and arrival are approved. |
 | Printing-room guides | **Implemented** | Four Johnny stations and Vishan have dialogue files and tracker entries. |
 | NPC completion reporting | **Implemented** | Dialogue completion is reported once per guide and can be reset. |
 | Tour Progress tracker | **Implemented** | The tracker reads every configured zone and NPC, preserves progress, and works in any visit order. |
-| Hallway welcome guide | **Implemented on the Issue #54 branch** | The scripted welcome, one-time automatic opening, and tracker entry use the existing NPC systems. |
-| Machine-shop guide | **Future — Issue #55** | Facts, representative, script, and final placement still require work. |
-| Project-studio guide | **Future — Issue #56** | Facts, representative, script, and final placement still require work. |
+| Hallway welcome guide | **Implemented on main** | The scripted welcome, one-time automatic opening, and tracker entry use the existing NPC systems. |
+| Project-studio guide(s) | **Outstanding current priority — #56** | Room 116 exists, but its NPC list is empty. Identity/permission, facts, scripts, placement and tracker/accessibility tests remain. |
 | Hand-off lines in this document | **Proposed** | Existing dialogue JSON is unchanged by Issue #57. |
 | Final tracker message in this document | **Proposed** | The tracker works, but its current shorter message must be updated separately after approval. |
 
-The optional computer-lab zone is outside the current suggested story. If it survives the project cut
-ladder and receives an NPC, the team must add that guide's responsibility and hand-off here. Because
-the tracker counts every configured NPC, any such guide would also become part of tour completion.
+Computer Lab is excluded from the current deliverable, not an optional remaining task. Do not add it or Machine Shop to the active route, NPC tracker or current completion criteria. Existing printing-room scripts are implemented but factual/subject-matter approval remains #20; the missing Vishan portrait is #67. Vishan's separate work developing the interactive guide (#47) is ongoing and does not resolve that asset issue.
 
 ## Visitor goal
 
 The tour introduces visitors to Rutgers CORE and shows how its engineering spaces connect. Each guide
 teaches one distinct part of the story and suggests a useful next stop. Together, the stops move from
-orientation, to prototyping, to manufacturing, to applying engineering work in student projects.
+orientation, to printing-room topics, to verified Project Studio information once its guide content is developed. No unverified studio purpose, representative or student activity is approved by this plan.
 
 The route is always optional. Visitors may enter rooms, revisit guides, and complete conversations in
 any order. No dialogue should block movement or require the suggested sequence, and the Tour Progress
@@ -44,21 +42,15 @@ tracker must continue to calculate completion from the configured NPC list rathe
    Progress tracker. Recommend the 3D Printing Room as the first stop.
 2. **3D Printing Room — prototyping through post-processing.** Visit the four numbered Johnny
    stations, then Vishan's ergonomics station. The printing room is on the hallway's negative-x wall.
-3. **Machine Shop — manufacturing.** Continue to the machine shop just past the printing-room door,
-   on the hallway's positive-x wall. All equipment, access, and safety details require verification.
-4. **Project Studio — bringing engineering work together.** Continue to the project studio at the far
-   end of the hallway's positive-x wall. Its purpose and student activities require verification.
-5. **Tour completion.** When every NPC currently configured in `zones.json` has been completed, the
-   tracker displays the approved closing message. Visitors remain free to explore and replay dialogue.
+3. **Project Studio / Room 116.** Return to the hallway and continue to D3 near the far positive-Z end on the positive-X wall. The environment is implemented; its guide identity, facts and dialogue remain #56 work.
+4. **Tour completion.** The tracker displays its implemented message when every currently configured NPC is completed. Room 116 has no NPCs yet, so that message currently reflects the hallway and five printing-room guides, not completed future studio content. Visitors remain free to explore and replay dialogue.
 
 This route describes the narrative order, not a navigation lock. The hallway starts at its origin,
 facing positive Z toward the 3D Printing Room doorway.
 
 ## Opening beat — hallway guide
 
-The hallway guide from Issue #54 is the visitor's introduction. It is the same guide planned
-for the typed-question work tracked separately in Issue #47. The scripted welcome should ship through
-the existing dialogue-node system and must not depend on question answering being available.
+The hallway guide from Issue #54 is implemented on main and introduces the visitor using the existing dialogue-node system. Its automatic welcome and replay do not depend on question answering. Vishan's typed-guide work is tracked separately in #47; main's current Johnny prototype only echoes AI TEST, and PRs #48/#59/#61 remain standalone/unmerged. Coordinate future integration with the existing welcome rather than assuming a functioning hallway AI already exists.
 
 The visitor starts at `[0, 0, 0]`, facing positive Z. The guide is centered behind the visitor at
 `[0, 1.6, -3]`, where it remains reachable for replay without distracting from the route toward the
@@ -100,19 +92,15 @@ take over another guide's main responsibility.
 
 | Stop | Status | Main responsibility | Avoid repeating |
 |---|---|---|---|
-| Hallway guide | Implemented on the #54 branch | Welcome visitors, explain controls and the tracker, describe free exploration, and suggest the printing room. | Detailed room content or equipment explanations. |
+| Hallway guide | Implemented on main | Welcome visitors, explain controls and the tracker, describe free exploration, and suggest the printing room. | Detailed room content or equipment explanations. |
 | Johnny — Bambu X1E | Implemented | Rapid prototyping, the AMS, the CAD-to-part workflow, and design iteration for student projects. | Detailed explanations of the other printers or the complete support-cleaning process. |
 | Johnny — Ultimaker | Implemented | Dual extrusion, the Air Manager, and using two compatible materials for different print needs. | Bambu-specific AMS details, Stratasys-specific material details, or a full cleaning-equipment explanation. |
 | Johnny — Stratasys | Implemented | FDM, ABSplus, durable or functional parts, and why soluble support material is used. | The full support-cleaning process, which belongs to the SCA station. |
 | Johnny — SCA | Implemented | Support removal, the cleaning apparatus, and post-processing after compatible prints finish. | Detailed operation of the printers or broader ergonomics content. |
 | Vishan — Ergonomics | Implemented | Human movement, visual attention, ergonomics, and designing work around people. | 3D-printer specifications or manufacturing-equipment descriptions. |
-| Machine-shop guide | Future — #55 | Explain the verified purpose of the shop, how manufacturing turns designs into parts, and verified equipment, access, training, and safety expectations. | Detailed additive-manufacturing content already covered in the printing room. |
-| Project-studio guide | Future — #56 | Explain the verified purpose of the studio and how verified student activities bring engineering work together. | Repeating individual equipment explanations from the printing room or machine shop. |
+| Project-studio guide(s) | Current priority, not implemented — #56 | Communicate only room facts and responsibilities verified and approved through #56; no identities or statements are selected here. | Unverified room claims or duplication of printing-room explanations. |
 
-The table assigns topics; it does not verify new facts. Issue #55 must confirm the machine shop's
-equipment, users, training, access, and safety rules. Issue #56 must confirm the project studio's
-purpose, users, classes or teams, equipment, and access. Unknown information must remain marked for
-verification and must not be converted into dialogue by inference.
+The table describes existing topic assignments and proposed scope, not new factual verification. #20 still needs printing-room content/subject-matter approval evidence. #56 must verify studio facts, permissions and script wording before implementation. Unknown information must not become dialogue by inference. Nonvisual discoverability and actual screen-reader acceptance remain #15/#33; the recorded NVDA failure is unresolved.
 
 ## Proposed hand-offs
 
@@ -139,18 +127,9 @@ Issue #57 does not overwrite the current JSON scripts.
 > Now you've seen how printed parts get finished. Before you leave, check out Vishan's station to see
 > how engineers study the people using their designs!
 
-### Vishan → Machine Shop
+### Printing Room → Project Studio (copy not yet written)
 
-> Engineering isn't just about making something work. It's also about making it work well for people.
-> Next, check out the Machine Shop to learn more about manufacturing!
-
-### Machine Shop → Project Studio
-
-> Now you've seen another side of how engineers turn their ideas into real parts. Head farther down the
-> hallway to the Project Studio to see how students bring their ideas together!
-
-This line states only the proposed story transition. The machine-shop script must use verified room
-information gathered under Issue #55.
+The active next environment is Room 116 via the hallway and D3. Any revised hand-off requires separately reviewed, verified content under #20/#56; this pass invents no replacement dialogue. Earlier Machine Shop hand-offs are preserved below as future-cohort concepts.
 
 ### Project Studio → tour completion
 
@@ -196,13 +175,33 @@ review, preserving those interaction patterns.
 
 ## Follow-up issue boundaries
 
-- **Issue #54 — hallway welcome:** implement and place the hallway guide, write the short scripted
-  welcome, auto-start it once, and keep the guide available afterward.
-- **Issue #55 — machine-shop guide:** choose the representative with permission where required,
-  collect verified facts, write terminal dialogue paths, and place the guide after zone alignment.
+- **Issue #54 — hallway welcome:** implemented on main; preserve automatic opening, replay and completion behavior.
+- **Issue #47 — interactive guide:** ongoing development by Vishan; approved knowledge, adapters/UI and browser/accessibility acceptance remain. Preserve the existing scripted guides.
 - **Issue #56 — project-studio guide:** choose the representative with permission where required,
-  collect verified facts, write terminal dialogue paths, and place the guide after zone alignment.
-- **Issue #57 — this document:** obtain team approval for the route, guide responsibilities, opening,
-  hand-offs, and closing beat before the related scripts are finalized.
+  collect verified facts, review terminal dialogue paths, place guides within the already-approved walking area, and test tracker/accessibility behavior while preserving D3.
+- **Issue #57 — this document:** documentation proposal is recorded; obtain and record approval of proposed visitor-facing copy/responsibilities before related scripts are finalized. The three-environment scope is already confirmed.
 
 No future issue should copy an unverified detail from this story plan into visitor-facing dialogue.
+
+## Future-cohort story concepts — excluded from current deliverable
+
+The following preserves the earlier Machine Shop route/guide ideas. They are not current requirements, approved scripts or evidence that the room is implemented. #49/#55 remain open for a later reviewed “not planned for current cohort” closure. Computer Lab also remains excluded; any future cohort must verify its own scope, facts and permissions.
+
+Original route concept:
+
+> **Machine Shop — manufacturing.** Continue to the machine shop just past the printing-room door, on the hallway's positive-x wall. All equipment, access, and safety details require verification.
+
+Original guide responsibility: explain the verified purpose of the shop, manufacturing, equipment, access, training and safety without duplicating printing-room additive-manufacturing topics. Original #55 requirements included representative permission, verified facts, terminal dialogue, tracker placement and reviewed hand-offs; no work is scheduled here.
+
+### Vishan → Machine Shop
+
+> Engineering isn't just about making something work. It's also about making it work well for people.
+> Next, check out the Machine Shop to learn more about manufacturing!
+
+### Machine Shop → Project Studio
+
+> Now you've seen another side of how engineers turn their ideas into real parts. Head farther down the
+> hallway to the Project Studio to see how students bring their ideas together!
+
+This line states only the proposed story transition. The machine-shop script must use verified room
+information gathered under Issue #55.
