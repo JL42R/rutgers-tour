@@ -4,6 +4,11 @@ Newest entry first. This records what changed and when — for schedule and gate
 
 ## 2026-10-30
 
+### PR #46 discoverability review corrections
+- Shortened the control hint to describe floating guide markers, including portraits and badge fallbacks. WASD, mouse-look and Escape instructions remain.
+- Preserved Vishan's distance-scaling implementation, NPC positions/radii and image fallback. Added eight focused headless checks for hint, scaling, selection, images and dialogue gating.
+- Visual acceptance of marker overlap, doors/signs and narrow-screen readability is still required before merging #46; automated checks do not establish that acceptance.
+
 ### Final three-environment scope and documentation synchronization
 
 - Confirmed the current cohort's deliverable as **hallway, printing-room and project-studio (Room 116)** only. Machine Shop and Computer Lab are excluded for this team; earlier capture/reconstruction research, story concepts and schedules remain as clearly labeled future-cohort/history material. See issues #49/#55/#32.
