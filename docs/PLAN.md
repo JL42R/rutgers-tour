@@ -9,6 +9,20 @@
 
 ---
 
+## Final scope addendum — 2026-10-30
+
+The current team's deliverable is **exactly three environments**: CORE Hallway (`hallway`), 3D Printing Room (`printing-room`) and Project Studio / Room 116 (`project-studio`). Machine Shop and Computer Lab are **excluded for this cohort** and retained only as future-group options. Their capture research and earlier schedules are preserved below; neither room blocks current-project completion.
+
+Current work, in priority order:
+
+1. **Room 116 NPCs/dialogue (#56).** Navigation, D3, boundaries/exclusions, sign and arrival are published in main `b2a18e5` (feature `bc0b623`). Choose permissioned identities, verify facts, review scripts, place guides and test tracker/accessibility behavior. No studio NPCs are implemented yet.
+2. **Interactive guide (#47), developed by Vishan.** PRs #48/#59/#61 are standalone, unmerged foundations; PR #46's discoverability work is also unmerged. Main's Johnny typed form returns an AI TEST echo. Approved knowledge, component/UI integration and browser/accessibility acceptance remain; preserve existing welcome/printing guides. No live LLM/backend approval is implied.
+3. **Quality/performance on these three environments (#8/#23/#24/#25/#34).** Measure the current baseline, compare SH/cleanup copies side by side and get user approval before changing assets; do not initiate additional captures/environments.
+
+Remaining release work includes permanent printing equipment boxes (#66), missing Vishan portrait (#67), CI regression integration (#68), content approvals (#20), NVDA failure (#33), first-time-user recruitment/testing (#29/#16), cross-browser/network acceptance (#11), and final rehearsals/demo preparation (#35). These are separate from the completed Room 116 environment.
+
+**Schedule preserved:** the original gates/dates below remain historical commitments, not claims that every gate passed. Interpret current G3/G4 scope as these three environments only. #49/#55 stay open pending a separate reviewed future-cohort closure; no milestone dates or GitHub states are changed by this documentation pass. The Nov 6 feature-freeze wording and current guide priorities require team scheduling, not an automatic extension.
+
 ## 1. How to use this document
 
 Tasks live on the GitHub milestone board (§4), unassigned. Pick up whatever is open and claim it
@@ -26,7 +40,9 @@ Two rules that make an unassigned list work:
 
 ---
 
-## 2. Why the schedule is ordered this way
+## 2. Why the schedule is ordered this way (historical rationale)
+
+The following records the earlier capture-first, 4–5-zone plan. It explains the original schedule; the dated scope addendum above supersedes its remaining-room and zone-count instructions.
 
 **Capture is front-loaded, ahead of everything else.** This is the biggest change from the earlier
 plan and it is deliberate. Capture depends only on a phone camera, building access, and daylight —
@@ -56,7 +72,9 @@ and verified working. So training validation gets its own gate with a real fallb
 
 ---
 
-## 3. Decision gates
+## 3. Original decision gates and recorded evidence
+
+Original dates and pass conditions are preserved below. The current three-zone scope does not itself prove missing historical capture/training records, content approval or release tests. Room 116's later publication and the user's 14/14 integrated Chrome approvals are recorded in `ROOM116_INTEGRATION.md`; its capture provenance remains incomplete (#50).
 
 Each gate is a go/no-go with a date. If one fails, execute the fallback **that week**. Don't slide
 the date and hope.
@@ -74,7 +92,7 @@ the date and hope.
 Breadth is gated first because capture and training run on an external clock — daylight and a
 single training machine — while polish does not.
 
-**G2 passed 2026-09-29, four days after the Sep 25 date.**
+**Historical G2 acceptance recorded 2026-09-29, four days after the Sep 25 date.** The five-zone list below is the decision made then, superseded for the current deliverable on 2026-10-30; retain it as history.
 - ✅ Hallway captured: 11:25 video, 684/735 registered (93.06%, above the ≥80% floor)
 - ✅ Backed up to Drive
 - ✅ Trained (30k iterations)
@@ -100,14 +118,12 @@ file keeps only what doesn't change week to week: why the order is what it is (�
 | Milestone on the board | Gate | Date |
 |---|---|---|
 | *(none — closed)* | **G1** Training works | ✅ passed Sep 9 |
-| *(closed)* `G2 — Hallway captured, scope fixed` | **G2** | ✅ passed Sep 29 |
+| `G2 — Hallway captured, scope fixed` *(still open on GitHub as checked 2026-10-30)* | **G2** | Historical acceptance Sep 29; status reconciliation pending |
 | `G3 — Every zone exists (breadth)` | **G3** | Fri Oct 9 |
 | `G4 — Every zone finished (depth)` | **G4** | Fri Nov 6 |
 | `G5 — Final lock` | **G5** | Fri Nov 20 |
 
-Each milestone's description carries its full pass condition from §3, so the board is readable
-without opening this file. Both were last reconciled 2026-09-17 — if you change a gate in §3,
-change the milestone too, or the board quietly starts lying.
+The milestone descriptions retain the original gate conditions from §3; final three-zone scope was added to the development issues on 2026-10-30, but milestone metadata has not been changed. #49 (G3) and #55 (G4) are future-cohort work, not active blockers. G2 remains open despite its recorded acceptance. Reconcile those statuses through a separately reviewed GitHub update; do not change dates or claim new gate completion from this document.
 
 To find your next task: open the board, filter to the nearest open milestone, take something
 unassigned, and say so in the team chat before you start. If a milestone is empty and its date
@@ -129,7 +145,9 @@ wrong.
 
 ---
 
-## 6. Known risks
+## 6. Known risks (original capture/training planning)
+
+Retained historical risk analysis. Earlier smaller/more-zone or recapture mitigations below do not authorize changing the final three-environment deliverable. Current release risks and issue links are listed in the 2026-10-30 addendum.
 
 | Risk | Likelihood | Mitigation |
 |---|---|---|
@@ -142,7 +160,9 @@ wrong.
 
 ---
 
-## 7. Descoping ladder
+## 7. Historical descoping ladder
+
+**Superseded for active zone scope on 2026-10-30.** The original ladder/rationale below is preserved for handoff. Machine Shop and Computer Lab are already excluded; no additional zone is to be implemented, and no approved environment, transition or collision behavior may be cut without a new explicit decision.
 
 If you're behind at a gate, cut in this order. Cut early and deliberately — a polished three-zone
 tour demos far better than a broken five-zone one.

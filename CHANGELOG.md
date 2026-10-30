@@ -1,6 +1,209 @@
 # Changelog
 
-Newest entry first. This records what changed and when — for schedule and gates see `PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
+Newest entry first. This records what changed and when — for schedule and gates see `docs/PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
+
+## 2026-10-30
+
+### PR #46 discoverability review corrections
+- Shortened the control hint to describe floating guide markers, including portraits and badge fallbacks. WASD, mouse-look and Escape instructions remain.
+- Preserved Vishan's distance-scaling implementation, NPC positions/radii and image fallback. Added eight focused headless checks for hint, scaling, selection, images and dialogue gating.
+- The user confirmed Chrome visual acceptance of near/far markers, doors/signs, narrow-window hint readability and WASD/mouse/E/Esc behavior on the corrected PR preview before merging #46.
+
+### Final three-environment scope and documentation synchronization
+
+- Confirmed the current cohort's deliverable as **hallway, printing-room and project-studio (Room 116)** only. Machine Shop and Computer Lab are excluded for this team; earlier capture/reconstruction research, story concepts and schedules remain as clearly labeled future-cohort/history material. See issues #49/#55/#32.
+- Synchronized current startup, assets, D1/D3, NPC counts, approved Room 116 oriented solver/exclusions and printing-room AABB descriptions across the project guides. Current priorities are Room 116 NPCs (#56), Vishan's interactive guide (#47), then three-zone visual quality/performance. Dates and original gate evidence are preserved; G2's still-open GitHub status is distinguished from recorded acceptance.
+- Recorded the completed release: Room 116 feature `bc0b62323b2ecb881e5c17039a8223c297914e1e`, integrated main `b2a18e5d8cb840c7a37226871f4cc412542b17a3`, user-reported **41/41 pre-integration** and **14/14 post-integration Chrome approvals**, **55/55 tracked tests**, **10/10 ignored local equipment probes**, **8/8 ignored local integration probes**, and a successful production build. [Pages run 40986520793](https://github.com/JL42R/rutgers-tour/actions/runs/40986520793) completed successfully for b2a18e5.
+- Kept unfinished work explicit: studio NPCs (#56), standalone unmerged PRs #46/#48/#59/#61 and Johnny's AI TEST prototype (#47), missing Vishan image (#67), regression tests absent from CI (#68), permanent printing equipment boxes (#66), content approvals (#20), actual NVDA failure (#33), and planned quality/SH/performance measurements (#8/#23/#24/#25/#34). No production defect is resolved by these documentation edits.
+- Historical entries below describe their original checkpoints. Later release acceptance/publication above supersedes earlier “manual walkthrough/publication pending” notes without rewriting those records. This documentation branch is local review work only; no commit, push or deployment is authorized in Phase 3A.
+
+### PR #59 conversation-memory review corrections
+
+- Validate matcher results against unique verified topics and matching approved specialist/topic/zone records within the three-zone scope; revalidate follow-up context and reject malformed input without retaining visitor transcripts.
+- Add real matcher/memory integration tests; retain the 32 author tests with complete synthetic knowledge fixtures. These standalone modules are not wired into the live NPC interface and do not add generative AI or a backend.
+
+## 2026-10-29
+
+### Room 116 integrated with latest main locally
+- Integrated upstream main `ae252293` into the Room 116 feature branch. Retained both main.js
+  imports/wiring and both changelog histories; preserved printing-room equipment tools,
+  placeholder alignment, Vishan placement and all approved Room 116 data.
+- The integrated code passes all **55** permanent Room 116 tests, **10** equipment compatibility
+  checks against working-tree modules, and **8** additional local startup/welcome/progress,
+  dialogue/NPC and equipment-persistence probes: **73/73**, zero failures. DOM probes use stubs;
+  they do not establish browser rendering or pointer-lock acceptance.
+- Production build passes with the existing large-bundle warning. Startup remains hallway;
+  the combined application still requires the user's manual walkthrough before publishing.
+
+### Room 116 final manual acceptance and local integration preparation
+- Recorded the user's completed Chrome checks: Stage 7 **8/8**, Stage 8B **11/11**,
+  Stage 9B **13/13**, and Stage 10 **9/9** — **41/41 manual checks passed**.
+- These approvals cover the Room 116 implementation before upstream reconciliation.
+  Integrated automated results are recorded above; a new combined manual walkthrough remains required.
+- Retained the approved PLY/transform, bidirectional D3, oriented walking rectangle, yellow/orange
+  exclusions, hallway sign and D3-only 0.60 m inward arrival with its small lateral safety adjustment.
+  Room 116-to-hallway returns preserve their existing crossing position and camera orientation.
+- Room 116 NPCs, dialogue and interactive information are deferred to another teammate.
+
+### Room 116 Stage 10 hallway sign and inward arrival
+- Recorded the user's confirmation that all 13 Stage 9B manual Chrome checks passed.
+- Added one hallway PROJECT STUDIO — ROOM 116 entrance sign at the verified D3 jamb midpoint,
+  facing hallway -X. Reused the existing 1.20 × 0.42 m white/red sign renderer and typography;
+  the original printing-room sign and renderer are unchanged.
+- Added a D3-context-only arrival target at local forward 0.60 m. Preserved camera height,
+  yaw and pitch; retained local lateral position except for a maximum 11.1 mm leftward edge
+  correction that keeps a direct backward path within D3's existing safe Z interval.
+- All 55 tests pass, including 84,810 actual-context entry/return crossings, 1,028 landing/return
+  samples and repeated D3/D1 routes. Build passes with the existing large-bundle warning.
+- All Stage 8B/9B collision geometry/code, transforms and PLYs are unchanged. The user subsequently
+  confirmed all nine Stage 10 Chrome checks passed, including sign visibility and arrival feel.
+
+### Room 116 Stage 9B approved invisible exclusions
+- Implemented the user's visually approved final Stage 9A draft as two Room 116-only local
+  rectangles: entrance-right forward 0–1.9 m / left 0.3–4.236812761805356 m, and right-wall
+  strip forward 1.9–11.049 m / left 0–1.2192 m. No geometry was resized or moved.
+- Extended the oriented solver with swept disk contacts against finite faces/rounded corners,
+  one shared 0.35 m radius, union behavior at the junction and simultaneous-contact sliding.
+  Normal gameplay has no debug meshes; hallway/printing-room AABBs and D1/D3 are unchanged.
+- All 42 tests pass: the original 20 Stage 8B groups plus 22 Stage 9B groups, including 84,810
+  updated-runtime D3 crossings, repeated D3/D1 routes, corridor widths, corners and no tunneling.
+  The conservative 10.026 mm D3 margin stays positive without any new physical safety inset.
+- Production build passes with the existing large-bundle warning. Normal port 5175 starts in
+  hallway; the user subsequently confirmed all 13 Stage 9B Chrome movement/visibility checks passed.
+
+### Room 116 Stage 9A entrance-table survey and local preview
+- Recorded the user's approval of Stage 8B: all 11 manual browser checks passed.
+- Inspected decoded RGB projections of the entrance-right rectangular object. Prepared an
+  explicitly unapproved table estimate and a 1.2192 m right-wall strip beginning at its
+  estimated back edge, not at the entrance threshold. Object identity and edges need confirmation.
+- Added an ignored, adjustable survey preview under tmp/room116-stage9 on strict port 5178,
+  with colored guides, local draft saving/readback, connection and D3 clearance calculations.
+  The preview uses existing Spark/ZoneManager; it does not override zones.json.
+- No application source/configuration, approved boundaries, transitions, transforms or PLYs
+  changed. New exclusions remain OFF. Existing 20 boundary tests and production build pass;
+  the new preview's actual Chrome rendering remains unverified by the agent.
+
+### Room 116 Stage 8B oriented walking rectangle
+- Implemented the explicitly authorized Room 116-only 6.0960 × 11.0490 m invisible boundary
+  from the verified Stage 8 corners, using continuous plane sweeps and tangential sliding.
+- Preserved D3 with a doorway corridor using its existing radius-safe range and transition;
+  no camera teleport, extra inset, arbitrary hallway margin or stepped AABB joints.
+- Added explicit studio walkingBoundary data, a small dedicated module and minimal controls/main
+  routing. Exported the existing radius constant; the legacy AABB resolver is unchanged.
+- All 20 test groups pass, including 100 simulated D3 crossings, 20 D1 crossings, portal edges,
+  corner exits, previous AABB traps and randomized probes. Build passes; actual post-8B browser
+  movement/rendering remains unverified and requires the documented walkthrough.
+- Preserved all prior zone data/transforms, PLYs, welcome/progress, and other-zone collisions.
+  No equipment, NPC, sign, rendering/dependency or deployment work was included.
+
+### Room 116 Stage 8 boundary feasibility; working connection preserved
+- Recorded the user's confirmation that all eight Stage 7 Chrome checks passed.
+- Calculated the approved 6.0960 by 11.0490 m footprint from the converted right-wall point,
+  verified threshold and approved room basis; documented exact world corners and radius clearance.
+- Rejected a conservative world-axis enclosure: up to 20.78 cm side inset and a trapped D3 entry.
+  Stepped side-wall trials with 6/12/24 boxes per side also trap diagonal sliding at artificial
+  joints using the actual resolver, despite smaller geometric error and continuous expanded walls.
+- Stopped before applying boundaries as requested when AABB approximation is inadequate.
+  Application configuration/source, assets, D1/D3 and hallway startup are unchanged. A room-only
+  oriented-boundary extension or explicit approximation acceptance remains a separate decision.
+
+### Room 116 Stage 7 manual doorway registration and D3 connection
+- Preserved all eight original clicks and backed them up locally; swapped only the two room
+  inside-jamb labels in a derived mapping, per the user's screen-left/right clarification.
+- Applied a proper rigid horizontal fit: -91.07746 degrees world-Y adjustment, 11.76 mm jamb
+  residuals and a 1.19 mm independent threshold check. Retained uniform scale, leveling and Y origin.
+- Opened only D3 across the two positive-X hallway collision segments and added reciprocal
+  X crossings with a radius-safe center range. Preserved D1, both end caps, existing features,
+  all PLYs and application source. Restored hallway startup.
+- Build and numerical collision/movement checks pass, including simulated D3/D1 round trips.
+  Browser welcome, progress, visual registration and rendered transitions remain unverified.
+  No custom walking boundaries, equipment collisions, signs or NPCs were added.
+
+## 2026-10-28
+
+### Room 116 Stage 6 corrected door references and targeted verification tool
+- Superseded Stage 5's reversed A/B interpretation: A is the 6 ft 2 in (1.8796 m) moving-door
+  opening; B is 13 ft 6 in (4.1148 m) from the finished right wall to the outside right frame
+  corner, not an inside jamb. Corrected the current integration notes and conditional clearance.
+- Targeted the hallway frame pair near Z = 16.09/17.97 and room raw X = -0.273/+0.049;
+  widths agree approximately, but inside-jamb/threshold identity is still unverified.
+- Added an ignored local landmark-capture view on port 5176 using the existing application
+  systems. It saves reference-floor picks and camera coordinates without production source or
+  zone changes. Browser/manual verification remains pending; no D3 opening or transition added.
+- Retained the 6.0960 by 11.0490 m future right-wall-anchored strip, scale, leveling, startup,
+  all assets and existing hallway/printing-room behavior. No walking boundaries were implemented.
+
+### Room 116 Stage 5 doorway analysis and walking-width revision
+- Accepted the user's identification of the last positive-X opening toward the printing-room
+  end as the D3 search target; Candidate 4 is the strongest match, but its exact moving-door
+  jambs and threshold remain unverified.
+- Corrected A/B units following the user's clarification: 13 ft 6 in = 4.1148 m, and 6 ft 2 in
+  = 1.8796 m. The discrepancy with the reconstructed brown-door envelope remains unresolved;
+  no scale adjustment or substitute clear width was applied. Stage 6 corrects the reversed A/B
+  labels and endpoints used in that interpretation; its width-discrepancy claim is superseded.
+- Replaced the planned 15-foot width with **20 ft (6.0960 m)**, retaining the 36 ft 3 in
+  (11.0490 m) depth and finished-right-wall anchor. Recorded conditional 0.35 m radius clearance.
+- Preserved all runtime configuration, isolated inspection startup, splats and existing features.
+  No D3 transition, hallway opening, walking boundary or upstream integration was implemented.
+
+### Room 116 references confirmed; D3 placement remains unverified
+- Recorded confirmed visible-ceiling height, finished-wall width, threshold-to-back-wall length,
+  brown-door hallway connection and inward raw +Y direction.
+- Preserved uniform scale, leveling and runtime placement. Calculated an unapplied heading
+  composition but did not assign a hallway doorway or cut an opening.
+- Documented the future 4.5720 m by 11.0490 m walking strip anchored to the finished right wall;
+  no strip boundaries or equipment collisions were implemented.
+- Corrected current inspection instructions to the actual temporary `project-studio` start on
+  ordinary Vite port 5175. Runtime code, hallway/D1 data, startup and PLY assets were unchanged
+  during this stage. No upstream integration was performed.
+
+## 2026-10-27
+
+### Project Studio Room 116 added for isolated inspection
+- Verified the unchanged 68,849,656-byte `project-studio.compressed.ply`: 1,123,473 Gaussians,
+  4,389 chunks, SH band 3, and the supplied SHA-256. Spark 2.1.0's installed PLY reader decoded
+  all Gaussian and SH records without non-finite attributes; browser rendering remains unverified.
+- Added an unconnected `project-studio` zone with geometry-derived trial leveling and height-based
+  uniform scale. `docs/ROOM116_INTEGRATION.md` records the evidence, competing scale estimates,
+  trial values and missing D3 alignment information. Calibration is not final.
+- Retained hallway startup and both existing zone configurations. No D3 wall opening, transitions,
+  signs, movement boundaries, equipment collisions or NPCs were authored.
+### Provisional equipment box workflow (Issue #12)
+- Added a debug-only editor to turn pairs of P snapshots into editable drafts,
+  preview orange AABBs, download drafts/samples, and save applied drafts locally.
+- Added explicit draft-collision testing with spawn/doorway clearance and sampled
+  floor-plan checks for NPC and exit access. Production collision is untouched.
+- No verified equipment measurements were found; production equipment boxes await
+  physical/visual calibration. Preserved local Vishan and all previous debug work.
+
+### Provisional Vishan placement (Issue #12)
+- Moved only Vishan's marker to `[-0.90, 1.80, 0.372]`, inside the printing-room
+  walls opposite Johnny. Workstation alignment awaits visual inspection; dialogue,
+  portrait, interaction radius, other NPCs, collisions, and debug tools are unchanged.
+
+### Printing-room placeholder alignment (Issue #12, Stage 2)
+- Corrected preview floor X/Z dimensions and centre from the existing wall inner
+  faces; fitted the rectangular grid to those bounds without moving wall meshes.
+- Added `?debugEquipment&equipmentPlaceholder` for printing-room-only preview.
+  Production placeholder remains false; real splat transforms and all collision,
+  NPC, dialogue, transition, and control data remain unchanged.
+
+### Equipment mapping preparation (Issue #12)
+- Added opt-in `?debugEquipment`: P logs printing-room world coordinates and yaw,
+  and existing collision boxes appear as cyan overlays. Dialogue/editable fields
+  suppress snapshots; normal visits do not install the shortcut.
+- Documented the aligned axes, placeholder-floor mismatch, survey inventory, and
+  existing Vishan marker reachability concern in `docs/EQUIPMENT_MAPPING.md`.
+- No equipment boxes, wall edits, or alignment changes were made.
+
+## 2026-10-21
+
+### Hallway start direction finalized (Issue #52)
+- Retained the hallway spawn at `[0, 0, 0]` and added `spawnYaw: 180`, which starts the visitor
+  facing positive Z toward the 3D Printing Room without changing camera pitch or other zones.
+- Moved the CORE Guide marker from `[0, 1.6, 3]` to `[0, 1.6, -3]`, behind the initial view but
+  centered and reachable in the hallway. The automatic welcome and normal E interaction are preserved.
+- Removed the temporary Stage A P-key camera snapshot tool and documented the final placement.
 
 ## 2026-09-29
 

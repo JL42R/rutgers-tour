@@ -4,6 +4,8 @@ Welcome! This guide takes you from a blank computer to running the project and m
 
 **What we're building:** a web-based, photorealistic 3D tour of the CORE building first floor, made with 3D Gaussian Splatting (phone video → AI-reconstructed 3D scene → explorable in a browser with NPC guides). You do NOT need to understand the 3D reconstruction to contribute — the app, dialogue, and testing work needs no special hardware.
 
+**Current scope (2026-10-30):** exactly CORE Hallway (`hallway`), 3D Printing Room (`printing-room`) and Project Studio / Room 116 (`project-studio`). Machine Shop and Computer Lab are excluded for this team; older capture/research material remains for future groups. Room 116 NPCs are still #56 work, and Vishan's interactive-guide PRs are unmerged (#47).
+
 ---
 
 ## Part 1 — Install the tools (~45 min)
@@ -12,13 +14,10 @@ Welcome! This guide takes you from a blank computer to running the project and m
 - [ ] Go to https://nodejs.org and download the **LTS** version. Run the installer, accept all defaults.
 - [ ] Verify: open PowerShell (Windows key, type "powershell", Enter) and run `node --version`. You should see a version number.
 
-### 2. Fix PowerShell script permissions (Windows only — you WILL hit this otherwise)
-- [ ] In PowerShell, run:
-  ```powershell
-  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-  ```
-  Type `Y` if it asks. (Windows blocks npm by default; this is the standard safe fix.)
-- [ ] Verify: `npm --version` prints a number.
+### 2. Verify npm in PowerShell (Windows)
+
+- [ ] In Windows PowerShell, use `npm.cmd` for npm commands, such as `npm.cmd install` and `npm.cmd run dev`. Some PowerShell configurations block the `npm.ps1` launcher; using `npm.cmd` does not require changing execution policy.
+- [ ] Verify: `npm.cmd --version` prints a number. On non-Windows platforms, continue using `npm --version` and the usual `npm` commands.
 
 ### 3. VS Code
 - [ ] Download from https://code.visualstudio.com and install with defaults. This is your editor — where you'll read code, edit files, and run everything.
@@ -56,14 +55,20 @@ This repo is set up so any major AI coding tool understands the project: the pro
   The repository is public; cloning does not require an invite. If the command fails, check the URL and your network connection.
 
 ### 7a. The splat files
-**Nothing to download.** Zone 1 (the printing room) is committed to the repo as a 62 MB
-Compressed PLY, so the clone you just made already renders the real scan. Skip to step 8.
+**No separate asset download.** The clone contains all three real compressed PLYs:
+
+| File in `public/splats/` | Exact bytes |
+|---|---:|
+| `hallway.compressed.ply` | 19,617,110 |
+| `printing-room-updated.compressed.ply` | 62,132,080 |
+| `project-studio.compressed.ply` | 68,849,656 |
+
+These are the three active environments; skip to step 8. No WSL, CUDA or training setup is needed to run them.
 
 What stays out of Git, and why: raw uncompressed PLY exports are ~240 MB each, over GitHub's
 100 MB hard limit, so `.gitignore` excludes `*.ply` and re-includes only the finished
 `public/splats/*.compressed.ply` files. Raw capture video is excluded for the same reason. A new
-zone named `<zone>.compressed.ply` is therefore tracked automatically — see
-`.claude/skills/training-pipeline/SKILL.md` when you add one.
+zone named `<zone>.compressed.ply` is therefore tracked automatically. This is retained pipeline guidance for existing-data research/future cohorts; the current team is not adding zones. See `.claude/skills/training-pipeline/SKILL.md` only for separately authorized pipeline work.
 
 **Drive folders — only if you're doing capture or training work:**
 - Raw capture videos (phone footage, before COLMAP/training): https://drive.google.com/drive/folders/1ux-tWNdUBWBhVojNKb_qSXBVEBpQkwyW?usp=drive_link
@@ -77,11 +82,11 @@ zone named `<zone>.compressed.ply` is therefore tracked automatically — see
 - [ ] Open the built-in terminal: **View → Terminal**.
 - [ ] Run:
   ```powershell
-  npm install
-  npm run dev
+  npm.cmd install
+  npm.cmd run dev
   ```
-- [ ] Ctrl+click the `http://localhost:5173` link that appears.
-- [ ] **Success check:** you see the printing-room splat — a photoreal 3D scan, not a gray box. Click it, walk with WASD, look with the mouse, and press **Esc** to release your mouse. The printing-room zone currently has no NPC markers. If you get the gray placeholder room instead, something is wrong; see troubleshooting below.
+- [ ] Ctrl+click the Local URL Vite prints (usually `http://localhost:5173`; use the actual port). `npm.cmd` avoids a blocked PowerShell `npm.ps1` launcher; other platforms can use `npm`.
+- [ ] **Success check:** the hallway scan loads, with an automatic welcome and Tour Progress. Close dialogue, click the scene, walk with WASD and look with the mouse; Esc releases the mouse. Walk through D1 on the hallway's negative-X wall to the printing room's **five NPCs**; approach a marker and press E. Return to the hallway and continue toward positive Z to D3 on the positive-X wall near the far end for Room 116. Return through the same door. Room 116's navigation is implemented but **it has no NPCs yet**. A gray placeholder is not the normal production experience.
 - [ ] To stop the server later: click in the terminal, press **Ctrl+C**. To run other commands while it's running, open a second terminal with the **+** button.
 
 ### 8a. Production deployment (GitHub Pages)
@@ -95,8 +100,7 @@ Deployment is automated by `.github/workflows/deploy.yml`. Every push or merged 
 
 After a deployment:
 1. Open the repository's **Actions** tab and confirm **Deploy to GitHub Pages** passed.
-2. Open the public URL in a private browser window and time from navigation until the printing-room
-   splat is visible and usable.
+2. Open the public URL in a private browser window. Record time to usable hallway, then per-zone and full-route loading through D1 → printing room → hallway → D3 → Room 116 → hallway. Record browser/version, hardware, network and cache conditions; a prior printing-room timing is not the current three-zone result.
 3. Confirm WASD, mouse-look, pointer lock/Esc release, collision, and sliding along room boundaries.
 4. Confirm the cyan collision debug overlay is hidden and no gray placeholder room appears.
 5. If loading fails, use the browser Network tab to check that `zones.json` and the configured
@@ -106,7 +110,20 @@ Issue #11 established a deployment baseline on 2026-09-22: the tour became usabl
 **12 seconds on a non-Johnny Windows machine over normal Wi-Fi**, with the real printing-room splat,
 movement, mouse-look, pointer lock, collision, and boundary sliding all working. Deployment test
 coverage exists for **Chrome and Edge**. **Firefox remains unverified. Safari remains unverified and
-requires a teammate with a macOS or iOS device.**
+requires a teammate with a macOS or iOS device.** These are historical printing-room deployment checks. Later Room 116 publication at `b2a18e5` passed [Pages run 40986520793](https://github.com/JL42R/rutgers-tour/actions/runs/40986520793), and the user reported 14/14 integrated Chrome checks after the earlier 41/41 stage checks. Current three-zone cold-cache timing and remaining browser acceptance still need measurements (#11).
+
+### 8b. Regression checks and current limitations
+
+From the repository root:
+
+```powershell
+node --test tests/room116-boundary.test.js tests/room116-exclusions.test.js tests/room116-entry.test.js
+npm.cmd run build
+```
+
+There are 55 tracked Room 116 tests. CI currently runs install/build but not this suite (#68). Historical local equipment/integration probes under ignored `tmp/` are not fresh-clone requirements. The runtime includes `src/interaction-tracker.js`, `src/room116-*.js` and opt-in `src/equipment-*.js` helpers in addition to the core modules listed in README.
+
+Known open work: studio NPCs (#56); interactive-guide integration (#47 — the current Johnny form only echoes AI TEST); missing Vishan portrait/marker image (#67); permanent printing equipment boxes (#66); actual NVDA announcement failure (#33); and visual-quality/SH/load/FPS comparisons (#8/#23/#24/#25/#34). Do not mistake successful tests/builds for those acceptance results.
 
 ---
 
@@ -152,9 +169,9 @@ training**, so every training task lands there by necessity. Nobody else needs W
 testing, deployment — is open to whoever has time.
 
 ## Troubleshooting quick hits
-- `npm` "cannot be loaded / running scripts is disabled" → you skipped step 2 (execution policy).
+- `npm` "cannot be loaded / running scripts is disabled" → PowerShell may be blocking `npm.ps1`. Use `npm.cmd install` or `npm.cmd run dev` as shown in step 2; no execution-policy change is required.
 - `npm install` fails or acts weird → check the terminal prompt ends in `rutgers-tour` (you must be IN the project folder), and confirm the folder is not inside OneDrive.
-- Gray placeholder room instead of the real splat → NOT expected any more; the splat ships with the repo. Check that `public/splats/printing-room-updated.compressed.ply` exists and is ~62 MB. If it's tiny, your clone didn't pull it down properly — re-clone.
+- Gray placeholder instead of a real scan → check the configured filename and the three asset sizes in §7a, then inspect the failing request/console. Hallway loads first, so check `hallway.compressed.ply` first. Preserve local work before considering a fresh clone.
 - Console shows `Splat failed for zone ... using placeholder` → the file is missing from `public/splats/`, or the filename in `public/zones.json` doesn't match it.
 - Blank page in the browser → press F12, open the Console tab, copy the red error, paste it to your AI assistant and ask it to fix it.
 - Anything else → ask your AI assistant first, then the group chat. Always paste the exact error text, never a description of it.

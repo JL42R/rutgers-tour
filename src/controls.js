@@ -4,6 +4,7 @@
 
 import * as THREE from 'three';
 import { resolveMovement } from './collision.js';
+import { createRoom116Boundary, resolveRoom116Movement } from './room116-boundary.js';
 
 export const EYE_HEIGHT = 1.65; // meters — average standing eye level
 const WALK_SPEED = 2.2;         // meters per second
@@ -43,7 +44,7 @@ export class PlayerControls {
     if (document.pointerLockElement === this.dom) document.exitPointerLock();
   }
 
-  update(dt, collisionBoxes) {
+  update(dt, collisionBoxes, zone = null) {
     // Apply look rotation (yaw around Y, then pitch).
     this.camera.quaternion.setFromEuler(
       new THREE.Euler(this.pitch, this.yaw, 0, 'YXZ')
@@ -66,7 +67,16 @@ export class PlayerControls {
     const step = input.multiplyScalar(WALK_SPEED * dt);
 
     // Try to move, sliding along any collision walls.
-    const next = resolveMovement(this.camera.position, step, collisionBoxes);
+    let next;
+    if (zone?.id === 'project-studio' && zone.walkingBoundary) {
+      if (this.boundaryZone !== zone) {
+        this.roomBoundary = createRoom116Boundary(zone);
+        this.boundaryZone = zone;
+      }
+      next = resolveRoom116Movement(this.camera.position, step, this.roomBoundary);
+    } else {
+      next = resolveMovement(this.camera.position, step, collisionBoxes);
+    }
     this.camera.position.set(next.x, this.camera.position.y, next.z);
   }
 }

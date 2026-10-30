@@ -10,8 +10,13 @@ import * as THREE from 'three';
 import { SplatMesh } from '@sparkjsdev/spark';
 
 export class ZoneManager {
-  constructor(scene) {
+  constructor(scene, { debugEquipment = false, equipmentPlaceholder = false } = {}) {
     this.scene = scene;
+    this.debugEquipment = debugEquipment;
+    this.equipmentPlaceholder = debugEquipment && equipmentPlaceholder;
+    this.equipmentDrafts = [];
+    this.testEquipmentCollisions = false;
+    this.equipmentDraftGroup = null;
     this.config = null;
     this.current = null;        // zone data currently loaded
     this.currentGroup = null;   // THREE.Group holding the zone's objects
@@ -25,7 +30,25 @@ export class ZoneManager {
   }
 
   getCollisionBoxes() {
-    return this.current?.collision ?? [];
+    const boxes = this.current?.collision ?? [];
+    return this.debugEquipment && this.current?.id === 'printing-room' && this.testEquipmentCollisions
+      ? [...boxes, ...this.equipmentDrafts] : boxes;
+  }
+
+  setEquipmentDrafts(boxes, testCollisions = false) {
+    if (!this.debugEquipment || this.current?.id !== 'printing-room') return;
+    if (this.equipmentDraftGroup) {
+      this.equipmentDraftGroup.traverse((object) => {
+        object.geometry?.dispose();
+        object.material?.dispose();
+      });
+      this.currentGroup.remove(this.equipmentDraftGroup);
+    }
+    this.equipmentDrafts = boxes;
+    this.testEquipmentCollisions = testCollisions;
+    this.equipmentDraftGroup = new THREE.Group();
+    this.buildCollisionDebug(this.equipmentDraftGroup, { collision: boxes }, 0xff9900);
+    this.currentGroup.add(this.equipmentDraftGroup);
   }
 
   disposeCurrentGroup() {
@@ -56,6 +79,7 @@ export class ZoneManager {
     this.scene.remove(this.currentGroup);
     this.currentGroup.clear();
     this.currentGroup = null;
+    this.equipmentDraftGroup = null;
   }
 
   async loadZone(zoneId) {
@@ -68,7 +92,8 @@ export class ZoneManager {
     const group = new THREE.Group();
     group.name = `zone-${zone.id}`;
 
-    if (zone.splat && !zone.placeholder) {
+    const previewPlaceholder = this.equipmentPlaceholder && zone.id === 'printing-room';
+    if (zone.splat && !zone.placeholder && !previewPlaceholder) {
       // Real captured scene: Spark loads the splat file and renders it
       // like any other Three.js object.
       //
@@ -105,7 +130,6 @@ export class ZoneManager {
         if (zone.origin) mesh.position.set(...zone.origin);
 
         group.add(mesh);
-        if (zone.debugCollision) this.buildCollisionDebug(group, zone);
         console.info(
           `Loaded splat for zone "${zone.id}" from ${zone.splat}`,
           `(scale=${scale}, rotation=[${rx}, ${ry}, ${rz}]deg, origin=${JSON.stringify(zone.origin ?? [0, 0, 0])})`
@@ -118,10 +142,16 @@ export class ZoneManager {
       this.buildPlaceholder(group, zone);
     }
 
+    if (zone.debugCollision || (this.debugEquipment && zone.id === 'printing-room')) {
+      this.buildCollisionDebug(group, zone);
+    }
     this.buildSigns(group, zone);
     this.scene.add(group);
     this.current = zone;
     this.currentGroup = group;
+    if (this.debugEquipment && zone.id === 'printing-room') {
+      this.setEquipmentDrafts(this.equipmentDrafts, this.testEquipmentCollisions);
+    }
     return zone;
   }
 
@@ -177,9 +207,9 @@ export class ZoneManager {
 
   // Temporary alignment overlay: draw the same AABBs used by collision
   // over a loaded splat. These meshes do not participate in movement checks.
-  buildCollisionDebug(group, zone) {
+  buildCollisionDebug(group, zone, color = 0x00ffff) {
     const material = new THREE.MeshBasicMaterial({
-      color: 0x00ffff, transparent: true, opacity: 0.2, wireframe: true,
+      color, transparent: true, opacity: 0.2, wireframe: true,
       depthTest: false, depthWrite: false, side: THREE.DoubleSide
     });
     for (const box of zone.collision ?? []) {
@@ -191,6 +221,7 @@ export class ZoneManager {
         box.min[0] + w / 2, box.min[1] + h / 2, box.min[2] + d / 2
       );
       mesh.renderOrder = 1;
+      mesh.name = box.id ?? 'collision-wall';
       group.add(mesh);
     }
   }
@@ -199,16 +230,21 @@ export class ZoneManager {
   // walls are. Replace by adding a splat file and removing "placeholder".
   buildPlaceholder(group, zone) {
     const size = zone.placeholderSize ?? [12, 12];
+    // Preview metadata is already in world metres, just like the wall boxes.
+    const center = zone.placeholderCenter ?? [0, 0, 0];
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(size[0], size[1]),
       new THREE.MeshStandardMaterial({ color: 0x24242c })
     );
     floor.rotation.x = -Math.PI / 2;
+    floor.position.set(...center);
     group.add(floor);
 
     const grid = new THREE.GridHelper(Math.max(...size), Math.max(...size), 0xcc0033, 0x3a3a44);
-    grid.position.y = 0.01;
+    // Fit the grid to the rectangular floor instead of extending beyond its walls.
+    grid.scale.set(size[0] / Math.max(...size), 1, size[1] / Math.max(...size));
+    grid.position.set(center[0], center[1] + 0.01, center[2]);
     group.add(grid);
 
     const wallMat = new THREE.MeshStandardMaterial({

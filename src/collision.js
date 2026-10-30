@@ -3,7 +3,7 @@
 // (an "AABB" = axis-aligned bounding box: just a min corner and max corner).
 // We never collide with the splat itself — splats have no real geometry.
 
-const PLAYER_RADIUS = 0.35; // meters — how close you can get to a wall
+export const PLAYER_RADIUS = 0.35; // meters — how close you can get to a wall
 
 // Would a player standing at (x, z) overlap this box (expanded by the player radius)?
 function hits(x, z, box) {
