@@ -5,7 +5,8 @@
       "id": "printing-room",
       "label": "3D Printing Room",
       "placeholder": false,
-      "placeholderSize": [12.43584, 4.35864],
+      "placeholderSize": [4.35864, 12.43584],
+      "placeholderCenter": [-2.4469415953942466, 0, 2.3720050580116565],
       "splat":  "./splats/printing-room-updated.compressed.ply",
       "origin": [0.7237599145844933, 0.074344140921842, 2.7959428682414633],
       "rotation": [-180, 1.7888941037375379, 0],
@@ -43,6 +44,7 @@
         {
           "id": "johnny-bambu",
           "name": "Johnny",
+          "trackerLabel": "Bambu Lab Printers",
           "position": [-3.7969415953942462, 1.85, -1.1279949419883435],
           "radius": 2.0,
           "portrait": "./portraits/johnny.jpg",
@@ -52,6 +54,7 @@
         {
           "id": "johnny-ultimaker",
           "name": "Johnny",
+          "trackerLabel": "Ultimaker Printers",
           "markerLabel": "2",
           "position": [-3.7969415953942462, 1.85, -2.6779949419883433],
           "radius": 2.0,
@@ -62,6 +65,7 @@
         {
           "id": "johnny-stratasys",
           "name": "Johnny",
+          "trackerLabel": "Stratasys Printers",
           "markerLabel": "3",
           "position": [-3.7969415953942467, 2, 1.5220050580116564],
           "radius": 2.0,
@@ -72,6 +76,7 @@
         {
           "id": "johnny-sca",
           "name": "Johnny",
+          "trackerLabel": "SCA Support Station",
           "markerLabel": "4",
           "position": [-3.7969415953942462, 1.6, 0.3720050580116565],
           "radius": 2.0,
@@ -82,7 +87,8 @@
         {
           "id": "vishan-ergonomics",
           "name": "Vishan",
-          "position": [1.5530584046057534, 1.6, 0.37200505801165673],
+          "trackerLabel": "Ergonomics Station",
+          "position": [-0.90, 1.80, 0.372],
           "radius": 2.0,
           "portrait": "./portraits/vishan.png",
           "markerImage": "./portraits/vishan.png",
@@ -100,6 +106,7 @@
       "scale": 18.90,
       "debugCollision": false,
       "spawn": [0, 0, 0],
+      "spawnYaw": 180,
       "collision": [
         {
           "min": [-1.15, 0, -20.2],
@@ -111,14 +118,14 @@
         },
         {
           "min": [1.07, 0, -20.2],
-          "max": [1.22, 3.15, 16.33]
+          "max": [1.22, 3.15, 16.1556675816972]
         },
         {
           "min": [-1.44, 0, 16.33],
           "max": [-1.29, 3.15, 19.00]
         },
         {
-          "min": [1.36, 0, 16.33],
+          "min": [1.36, 0, 17.923909531203247],
           "max": [1.51, 3.15, 19.00]
         },
         {
@@ -138,6 +145,14 @@
           "plane": -0.62295043,
           "direction": "negative",
           "range": [4.80, 6.55]
+        },
+        {
+          "id": "project-studio-door",
+          "target": "project-studio",
+          "axis": "x",
+          "plane": 1.2642833297509717,
+          "direction": "positive",
+          "range": [16.505667581697203, 17.573909531203245]
         }
       ],
       "signs": [
@@ -148,9 +163,67 @@
           "position": [-0.985, 1.57, 5.6775],
           "rotation": [0, 90, 0],
           "size": [1.20, 0.42]
+        },
+        {
+          "id": "project-studio-entry-sign",
+          "title": "PROJECT STUDIO — ROOM 116",
+          "subtitle": "Walk through this door to enter",
+          "position": [1.121380892252976, 1.57, 17.039788556450226],
+          "rotation": [0, -90, 0],
+          "size": [1.20, 0.42]
         }
       ],
-      "npcs": []
+      "npcs": [
+        {
+          "id": "hallway-guide",
+          "name": "CORE Guide",
+          "trackerLabel": "Hallway Orientation",
+          "markerLabel": "i",
+          "position": [0, 1.6, -3],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/hallway-guide.json"
+        }
+      ]
+    },
+    {
+      "id": "project-studio",
+      "label": "Project Studio — Room 116",
+      "splat": "./splats/project-studio.compressed.ply",
+      "placeholder": false,
+      "rotation": [-89.93141246341177, -0.02891296431085124, -91.07745603281089],
+      "scale": 5.884697544325829,
+      "origin": [7.005323448976146, 1.3881086328206438, 17.77650375545308],
+      "spawn": [2, 0, -1.5],
+      "walkingBoundary": {
+        "width": 6.0960,
+        "depth": 11.0490,
+        "entranceRight": [1.1679567381989318, 22.17181860228656],
+        "entranceLeft": [1.2825898215842069, 16.07689651449958],
+        "farRight": [12.21500302231283, 22.379591065922373],
+        "farLeft": [12.329636105698105, 16.284668978135393],
+        "doorway": {
+          "transitionId": "hallway-door",
+          "openingZ": [16.1556675816972, 17.923909531203247]
+        },
+        "exclusions": [
+          { "id": "entrance-right", "forward": [0, 1.900], "left": [0.300, 4.236812761805356] },
+          { "id": "right-wall-strip", "forward": [1.900, 11.0490], "left": [0, 1.2192] }
+        ]
+      },
+      "npcs": [],
+      "signs": [],
+      "transitions": [
+        {
+          "id": "hallway-door",
+          "target": "hallway",
+          "axis": "x",
+          "plane": 1.2642833297509717,
+          "direction": "negative",
+          "range": [16.505667581697203, 17.573909531203245]
+        }
+      ],
+      "collision": [],
+      "debugCollision": false
     }
   ]
 }

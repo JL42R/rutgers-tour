@@ -42,6 +42,7 @@
     /* Dialogue panel — plain DOM so it is screen-reader and keyboard friendly */
     #dialogue {
       position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+      z-index: 4;
       width: min(720px, calc(100vw - 32px));
       background: var(--panel); border-radius: 12px;
       border-top: 3px solid var(--scarlet);
@@ -87,6 +88,82 @@
     #dlg-narration:hover, #dlg-narration:focus-visible { background: var(--scarlet); }
     button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
+    /* Tour-wide NPC progress, kept in the top-right away from dialogue. */
+    #tour-progress {
+      position: fixed; top: 16px; right: 16px; z-index: 3;
+      width: min(310px, calc(100vw - 32px));
+      background: rgba(16, 16, 20, 0.97);
+      border: 1px solid #4d4d55; border-top: 3px solid var(--scarlet);
+      border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+      overflow: hidden;
+    }
+    #tour-progress-toggle {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 10px 12px; border: 0; border-radius: 0;
+      background: transparent; color: var(--text); font: inherit; cursor: pointer;
+    }
+    #tour-progress-toggle:hover { background: rgba(204, 0, 51, 0.2); }
+    #tour-progress-title { font-weight: 700; }
+    #tour-progress-compact-count { color: var(--muted); font-size: 13px; margin-left: auto; }
+    #tour-progress-toggle-icon {
+      width: 22px; color: #fff; font-size: 20px; line-height: 1; text-align: center;
+    }
+    #tour-progress-announcement {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+    #tour-progress-body {
+      max-height: min(60vh, 520px); overflow-y: auto;
+      padding: 0 12px 12px; border-top: 1px solid #3a3a42;
+    }
+    #tour-progress-summary { margin: 10px 0 8px; color: var(--muted); font-size: 13px; }
+    #tour-progress-track {
+      height: 8px; overflow: hidden; border-radius: 999px;
+      background: #3a3a42;
+    }
+    #tour-progress-bar { width: 0; height: 100%; background: var(--scarlet); }
+    #tour-progress-zones { margin-top: 12px; }
+    .tour-progress-zone + .tour-progress-zone {
+      margin-top: 12px; padding-top: 10px; border-top: 1px solid #3a3a42;
+    }
+    .tour-progress-zone h3 { margin: 0 0 7px; font-size: 14px; }
+    .tour-progress-zone ul { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+    .tour-progress-zone li {
+      display: grid; grid-template-columns: 18px 1fr auto; align-items: start;
+      gap: 6px; color: var(--muted); font-size: 13px; line-height: 1.35;
+    }
+    .tour-progress-zone li.completed { color: var(--text); }
+    .tour-progress-marker { color: var(--scarlet); font-weight: 700; }
+    .tour-progress-status { color: var(--muted); font-size: 11px; }
+    .tour-progress-empty { margin: 0; color: var(--muted); font-size: 12px; font-style: italic; }
+    #tour-progress-complete {
+      margin: 12px 0 0; padding: 9px 10px; border-left: 3px solid var(--scarlet);
+      background: rgba(204, 0, 51, 0.16); font-size: 13px;
+    }
+    #tour-progress-reset {
+      margin-top: 12px; width: 100%; padding: 7px 12px;
+      border: 1px solid var(--scarlet); border-radius: 999px;
+      background: transparent; color: var(--text); font: inherit; cursor: pointer;
+    }
+    #tour-progress-reset:hover:not(:disabled) { background: var(--scarlet); }
+    #tour-progress-reset:disabled { opacity: 0.5; cursor: default; }
+
+    @media (max-width: 640px) {
+      #hint { top: 12px; left: 12px; right: 12px; max-width: none; }
+      #tour-progress {
+        top: 112px; right: 12px;
+        width: min(310px, calc(100vw - 24px));
+      }
+      #tour-progress-body { max-height: calc(100vh - 148px); }
+    }
+    @media (max-width: 380px) {
+      #tour-progress { top: 132px; }
+      #tour-progress-body { max-height: calc(100vh - 168px); }
+    }
+    @media (max-height: 600px) {
+      #tour-progress-body { max-height: 42vh; }
+    }
+
     /* Loading overlay */
     #loading {
       position: fixed; inset: 0; display: flex; flex-direction: column;
@@ -106,6 +183,24 @@
     <div>Loading tour…</div>
     <div class="bar"><div></div></div>
   </div>
+
+  <aside id="tour-progress" aria-labelledby="tour-progress-title">
+    <button id="tour-progress-toggle" type="button" aria-expanded="true" aria-controls="tour-progress-body">
+      <span id="tour-progress-title" role="heading" aria-level="2">Tour Progress</span>
+      <span id="tour-progress-compact-count" aria-hidden="true">0/0</span>
+      <span id="tour-progress-toggle-icon" aria-hidden="true">−</span>
+    </button>
+    <span id="tour-progress-announcement" aria-live="polite" aria-atomic="true"></span>
+    <div id="tour-progress-body">
+      <p id="tour-progress-summary">0 of 0 NPC conversations completed</p>
+      <div id="tour-progress-track" role="progressbar" aria-label="Tour conversation progress" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+        <div id="tour-progress-bar"></div>
+      </div>
+      <div id="tour-progress-zones"></div>
+      <p id="tour-progress-complete" hidden></p>
+      <button id="tour-progress-reset" type="button">Reset Progress</button>
+    </div>
+  </aside>
 
   <div id="hint">
     <strong>Click to explore.</strong><br />

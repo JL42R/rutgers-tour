@@ -27,8 +27,12 @@ export class Dialogue {
     this.aiSubmitting = false;
     this.choiceShortcutsEnabled = true;
     this.previouslyFocused = null;
+    this.activeNpcId = null;
+    this.completionEligible = false;
+    this.completedNpcIds = new Set();
     this.onOpen = null;   // main.js hooks these to pause/resume movement
     this.onClose = null;
+    this.onComplete = null;
 
     this.narrationButton.disabled = !this.narrationSupported;
     this.narrationButton.setAttribute('aria-pressed', String(this.narrationEnabled));
@@ -111,6 +115,7 @@ export class Dialogue {
   }
 
   async start(npc) {
+    this.resetCompletionState();
     this.resetAIState();
     this.currentNodeId = null;
     if (!this.cache.has(npc.dialogueFile)) {
@@ -122,6 +127,7 @@ export class Dialogue {
       this.cache.set(npc.dialogueFile, await res.json());
     }
     this.data = this.cache.get(npc.dialogueFile);
+    this.activeNpcId = npc.id ?? null;
 
     this.nameEl.textContent = this.data.name ?? npc.name ?? 'Guide';
     this.portraitEl.innerHTML = '';
@@ -170,6 +176,7 @@ export class Dialogue {
     } else if (node.next) {
       addButton('Continue', () => this.showNode(node.next));
     } else {
+      this.completionEligible = true;
       addButton('Close', () => this.close());
     }
     this.choicesEl.firstElementChild?.focus();
@@ -256,6 +263,10 @@ export class Dialogue {
     this.currentText = this.textEl.textContent;
     this.choicesEl.innerHTML = '';
 
+    // Opening or canceling the AI form does not count. Completion becomes
+    // eligible only after a nonempty answered question is displayed.
+    if (question.trim()) this.completionEligible = true;
+
     const addButton = (label, action) => {
       const button = document.createElement('button');
       button.type = 'button';
@@ -280,6 +291,11 @@ export class Dialogue {
     this.aiMode = false;
     this.aiSubmitting = false;
     this.choiceShortcutsEnabled = true;
+  }
+
+  resetCompletionState() {
+    this.activeNpcId = null;
+    this.completionEligible = false;
   }
 
   stopNarration() {
@@ -326,7 +342,14 @@ export class Dialogue {
   }
 
   close() {
+    const completedNpcId = this.completionEligible && this.activeNpcId &&
+      !this.completedNpcIds.has(this.activeNpcId)
+      ? this.activeNpcId
+      : null;
+    if (completedNpcId) this.completedNpcIds.add(completedNpcId);
+
     this.isOpen = false;
+    this.resetCompletionState();
     this.resetAIState();
     this.currentNodeId = null;
     this.stopNarration();
@@ -340,5 +363,7 @@ export class Dialogue {
       : fallback;
     this.previouslyFocused = null;
     focusTarget?.focus({ preventScroll: true });
+
+    if (completedNpcId) this.onComplete?.(completedNpcId);
   }
 }
