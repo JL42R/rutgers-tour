@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "1.0",
+  "evaluationVersion": "fictional-retrieval-holdout-2026-10-25.1",
+  "knowledgeVersion": "fictional-retrieval-quality-2026-10-25.1",
+  "contentClassification": "synthetic_fixture",
+  "description": "Fixed holdout written before execution. These phrasings are separate from the 57-case development evaluation and must not be edited in response to measured failures.",
+  "cases": [
+    {
+      "id": "holdout-folded-articulated-tug",
+      "style": "new-paraphrase",
+      "question": "How does a gentle tug make the articulated paper devices rotate?",
+      "expected": { "outcome": "matched", "topicId": "folded-machines", "factIds": ["fact-folded-motion-primary", "fact-folded-motion-confirmation"], "sourceIds": ["source-folded-handbook-v2", "source-folded-demonstration-log"], "specialistIds": ["npc-folded-machines-guide"], "destinationZoneIds": ["zone-imaginary-workshop"] }
+    },
+    {
+      "id": "holdout-folded-amber-reset",
+      "style": "new-paraphrase",
+      "question": "On folded machines, what purpose do amber tabs serve during a reset?",
+      "expected": { "outcome": "matched", "topicId": "folded-machines", "factIds": ["fact-folded-reset-tabs"], "sourceIds": ["source-folded-handbook-v2"], "specialistIds": ["npc-folded-machines-guide"], "destinationZoneIds": ["zone-imaginary-workshop"] }
+    },
+    {
+      "id": "holdout-glass-scattered-color",
+      "style": "new-paraphrase",
+      "question": "Why do suspended leaves scatter colored light inside the crystal garden?",
+      "expected": { "outcome": "matched", "topicId": "glass-gardens", "factIds": ["fact-glass-colored-light"], "sourceIds": ["source-glass-field-guide-v2"], "specialistIds": ["npc-glass-gardens-guide"], "destinationZoneIds": ["zone-prism-conservatory"] }
+    },
+    {
+      "id": "holdout-cloud-shape-wind",
+      "style": "new-wording-combination",
+      "question": "What helps aerial fabric forms bounce back after strong wind?",
+      "expected": { "outcome": "matched", "topicId": "cloud-kites", "factIds": ["fact-cloud-silver-ribs"], "sourceIds": ["source-cloud-flight-guide-v1"], "specialistIds": ["npc-cloud-kite-guide"], "destinationZoneIds": ["zone-cloud-kite-loft"] }
+    },
+    {
+      "id": "holdout-cloud-anchor-strain",
+      "style": "new-wording-combination",
+      "question": "For windborne kites, how is strain shared among the anchor loops?",
+      "expected": { "outcome": "matched", "topicId": "cloud-kites", "factIds": ["fact-cloud-violet-tether"], "sourceIds": ["source-cloud-flight-guide-v1"], "specialistIds": ["npc-cloud-kite-guide"], "destinationZoneIds": ["zone-cloud-kite-loft"] }
+    },
+    {
+      "id": "holdout-ribbon-secured-ends",
+      "style": "new-paraphrase",
+      "question": "What keeps both ends of a fabric crossing secure?",
+      "expected": { "outcome": "matched", "topicId": "ribbon-bridges", "factIds": ["fact-ribbon-anchor-fans"], "sourceIds": ["source-ribbon-bridge-notes-v1"], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-orchard-token-food",
+      "style": "new-paraphrase",
+      "question": "Could someone snack on the acrylic tokens growing in a light orchard?",
+      "expected": { "outcome": "matched", "topicId": "prism-orchards", "factIds": ["fact-prism-fruit-tokens"], "sourceIds": ["source-prism-orchard-atlas-v1"], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-star-crease-count",
+      "style": "new-paraphrase",
+      "question": "What crease count is needed to make one origami star from a square sheet?",
+      "expected": { "outcome": "matched", "topicId": "folded-stars", "factIds": ["fact-stars-seven-folds"], "sourceIds": ["source-folded-stars-catalog-v1"], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-unsupported-automata-speed",
+      "style": "unsupported-lookalike",
+      "question": "What is the maximum safe speed of paper automata?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-unsupported-prism-chemicals",
+      "style": "unsupported-lookalike",
+      "question": "How often should prism foliage be polished with chemicals?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-unsupported-sky-passengers",
+      "style": "unsupported-lookalike",
+      "question": "Can sky sails carry passengers between cities?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-unsupported-span-emergency-load",
+      "style": "unsupported-lookalike",
+      "question": "What emergency load limit applies to woven spans?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-unsupported-orchard-purchase",
+      "style": "unsupported-lookalike",
+      "question": "Can I buy the acrylic fruit tokens from the light orchard?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-ambiguous-stars-devices",
+      "style": "ambiguous",
+      "question": "Is this about origami stars or articulated paper devices?",
+      "expected": { "outcome": "ambiguous", "topicId": null, "factIds": [], "sourceIds": [], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-ambiguous-foliage-grove",
+      "style": "ambiguous",
+      "question": "Compare prism foliage with mirror groves.",
+      "expected": { "outcome": "ambiguous", "topicId": null, "factIds": [], "sourceIds": [], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-ambiguous-fabric-tension",
+      "style": "ambiguous",
+      "question": "Does tension come from aerial fabric forms or woven spans?",
+      "expected": { "outcome": "ambiguous", "topicId": null, "factIds": [], "sourceIds": [], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-conflict-resonant-duration",
+      "style": "approved-conflict",
+      "question": "The resonant pool reports both four and nine seconds; which duration is correct?",
+      "expected": { "outcome": "conflict", "topicId": null, "factIds": [], "sourceIds": [], "specialistIds": [], "destinationZoneIds": [] }
+    },
+    {
+      "id": "holdout-conversation-cloud-route",
+      "style": "follow-up",
+      "contextQuestion": "What makes aerial fabric forms spring back after a gust?",
+      "question": "How do I get there?",
+      "expected": { "outcome": "answered", "topicId": "cloud-kites", "factIds": ["fact-cloud-silver-ribs", "fact-cloud-violet-tether", "fact-cloud-painted-stars"], "sourceIds": ["source-cloud-flight-guide-v1"], "specialistIds": ["npc-cloud-kite-guide"], "destinationZoneIds": ["zone-cloud-kite-loft"] }
+    },
+    {
+      "id": "holdout-conversation-topic-switch",
+      "style": "topic-switch",
+      "contextQuestion": "How does a gentle tug move articulated paper devices?",
+      "question": "Instead, what makes crystal gardens scatter colored light?",
+      "expected": { "outcome": "answered", "topicId": "glass-gardens", "factIds": ["fact-glass-colored-light"], "sourceIds": ["source-glass-field-guide-v2"], "specialistIds": ["npc-glass-gardens-guide"], "destinationZoneIds": ["zone-prism-conservatory"] }
+    },
+    {
+      "id": "holdout-conversation-no-context",
+      "style": "follow-up-no-context",
+      "contextQuestion": null,
+      "question": "How do I get there?",
+      "expected": { "outcome": "clarify", "topicId": null, "factIds": [], "sourceIds": [], "specialistIds": [], "destinationZoneIds": [] }
+    }
+  ]
+}

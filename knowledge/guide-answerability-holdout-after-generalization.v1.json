@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0",
+  "evaluationVersion": "fictional-answerability-holdout-2026-10-25.1",
+  "knowledgeVersion": "fictional-retrieval-quality-2026-10-25.1",
+  "contentClassification": "synthetic_fixture",
+  "holdoutSha256": "f2cc23c851d43c1d4ff950b458288d2855b53ee3aef12e25e1c7c875c6ecb7fe",
+  "measurement": "after_reviewed_property_generalization_diagnostic_not_unseen",
+  "directCases": 26,
+  "conversationCases": 4,
+  "metrics": {
+    "supported": 10,
+    "top1Correct": 10,
+    "expectedFacts": 11,
+    "recalledFacts": 11,
+    "unsupported": 12,
+    "falseSupported": 0,
+    "ambiguityOrConflict": 4,
+    "ambiguityOrConflictCorrect": 4,
+    "citationCorrect": 10
+  },
+  "directFailures": [],
+  "workerPassed": 30,
+  "workerFailures": [],
+  "notes": [
+    "This 30-case set was examined before the generalization design and is diagnostic development data, not unseen evaluation data.",
+    "The original 14/30 result remains unchanged in guide-answerability-holdout-results.v1.json.",
+    "No expected outcome in the frozen fixture was changed."
+  ]
+}

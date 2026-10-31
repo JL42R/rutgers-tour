@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0",
+  "evaluationVersion": "fictional-retrieval-holdout-2026-10-25.1",
+  "knowledgeVersion": "fictional-retrieval-quality-2026-10-25.1",
+  "contentClassification": "synthetic_fixture",
+  "holdoutSha256": "bb9c93c0524886e9af5beb4f57b069180a707bfb7870d39701d89db0a54f6764",
+  "measurement": "after_answerability_policy_diagnostic_development_set",
+  "directCases": 17,
+  "conversationCases": 3,
+  "metrics": {
+    "supported": 8,
+    "top1Correct": 8,
+    "expectedFacts": 9,
+    "recalledFacts": 9,
+    "unsupported": 5,
+    "falseSupported": 0,
+    "ambiguityOrConflict": 4,
+    "ambiguityOrConflictCorrect": 4,
+    "citationCorrect": 8
+  },
+  "directFailures": [],
+  "workerPassed": 20,
+  "workerFailures": [],
+  "notes": [
+    "This is a post-diagnosis measurement, not an unseen holdout result.",
+    "The original first-run result remains preserved in guide-retrieval-quality-holdout-results.v1.json.",
+    "The answerability policy was developed from the six diagnosed first-run failures and related development cases."
+  ]
+}

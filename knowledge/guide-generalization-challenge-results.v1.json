@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "1.0",
+  "evaluationVersion": "fictional-generalization-challenge-2026-10-27.1",
+  "knowledgeVersion": "fictional-retrieval-quality-2026-10-25.1",
+  "contentClassification": "synthetic_fixture",
+  "challengeSha256": "265966a4ea20466aa16c1a6302f87fb175c263c35a2dc8801d0cf9db25159687",
+  "measurement": "first_run_before_challenge_review_or_tuning",
+  "directCases": 39,
+  "conversationCases": 5,
+  "metrics": {
+    "supported": 20,
+    "top1Correct": 11,
+    "expectedFacts": 30,
+    "recalledFacts": 17,
+    "unsupported": 13,
+    "falseSupported": 0,
+    "ambiguityOrConflict": 6,
+    "ambiguityOrConflictCorrect": 5,
+    "citationCorrect": 9
+  },
+  "directFailures": [
+    "challenge-supported-folded-motion",
+    "challenge-supported-folded-reset",
+    "challenge-supported-folded-frame",
+    "challenge-supported-glass-light",
+    "challenge-supported-glass-still",
+    "challenge-supported-cloud-shape",
+    "challenge-supported-cloud-stars",
+    "challenge-supported-ribbon-anchors",
+    "challenge-ambiguous-paper-light",
+    "challenge-multifact-folded-motion-reset",
+    "challenge-multifact-cloud-shape-tether",
+    "challenge-multifact-orchard-light-token"
+  ],
+  "workerPassed": 30,
+  "workerFailures": [
+    "challenge-supported-folded-motion",
+    "challenge-supported-folded-reset",
+    "challenge-supported-folded-frame",
+    "challenge-supported-glass-light",
+    "challenge-supported-glass-still",
+    "challenge-supported-cloud-shape",
+    "challenge-supported-cloud-stars",
+    "challenge-supported-ribbon-anchors",
+    "challenge-ambiguous-paper-light",
+    "challenge-multifact-folded-motion-reset",
+    "challenge-multifact-cloud-shape-tether",
+    "challenge-multifact-orchard-light-token",
+    "challenge-context-folded-route",
+    "challenge-context-cloud-expertise"
+  ],
+  "notes": [
+    "The property-aware design preserved zero false support across all 13 unsupported direct cases.",
+    "Novel supported descriptive wording and several multi-property questions still over-abstained.",
+    "This Codex-authored set is prospectively frozen synthetic evaluation, not a human-authored blind benchmark.",
+    "No challenge expectation or retrieval rule was changed after this first run."
+  ]
+}

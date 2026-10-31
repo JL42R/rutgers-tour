@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "1.0",
+  "evaluationVersion": "fictional-answerability-holdout-2026-10-25.1",
+  "knowledgeVersion": "fictional-retrieval-quality-2026-10-25.1",
+  "contentClassification": "synthetic_fixture",
+  "description": "Independent synthetic answerability evaluation. Expected outcomes were frozen before the post-diagnosis implementation was executed against this file.",
+  "cases": [
+    {
+      "id": "answer-holdout-supported-folded-pull",
+      "group": "supported",
+      "question": "When the paper joints are tugged, what approved motion follows?",
+      "expected": { "outcome": "matched", "topicId": "folded-machines", "factIds": ["fact-folded-motion-primary", "fact-folded-motion-confirmation"], "sourceIds": ["source-folded-handbook-v2", "source-folded-demonstration-log"] }
+    },
+    {
+      "id": "answer-holdout-supported-folded-reset",
+      "group": "supported",
+      "question": "Which colored tabs identify the repeating fold's reset points?",
+      "expected": { "outcome": "matched", "topicId": "folded-machines", "factIds": ["fact-folded-reset-tabs"], "sourceIds": ["source-folded-handbook-v2"] }
+    },
+    {
+      "id": "answer-holdout-supported-folded-frame",
+      "group": "supported",
+      "question": "What makes the card mechanism light enough to reset between demonstrations?",
+      "expected": { "outcome": "matched", "topicId": "folded-machines", "factIds": ["fact-folded-light-frame"], "sourceIds": ["source-folded-handbook-v2"] }
+    },
+    {
+      "id": "answer-holdout-supported-glass-light",
+      "group": "supported",
+      "question": "What happens to colored light when it meets the suspended prism leaves?",
+      "expected": { "outcome": "matched", "topicId": "glass-gardens", "factIds": ["fact-glass-colored-light"], "sourceIds": ["source-glass-field-guide-v2"] }
+    },
+    {
+      "id": "answer-holdout-supported-glass-frame",
+      "group": "supported",
+      "question": "Does the garden's frame turn when its leaf arrangement changes?",
+      "expected": { "outcome": "matched", "topicId": "glass-gardens", "factIds": ["fact-glass-stationary-frame"], "sourceIds": ["source-glass-field-guide-v2"] }
+    },
+    {
+      "id": "answer-holdout-supported-cloud-ribs",
+      "group": "supported",
+      "question": "Which flexible parts restore the kite's form after a gust?",
+      "expected": { "outcome": "matched", "topicId": "cloud-kites", "factIds": ["fact-cloud-silver-ribs"], "sourceIds": ["source-cloud-flight-guide-v1"] }
+    },
+    {
+      "id": "answer-holdout-supported-cloud-tether",
+      "group": "supported",
+      "question": "What shares tether tension over the three loops?",
+      "expected": { "outcome": "matched", "topicId": "cloud-kites", "factIds": ["fact-cloud-violet-tether"], "sourceIds": ["source-cloud-flight-guide-v1"] }
+    },
+    {
+      "id": "answer-holdout-supported-cloud-stars",
+      "group": "supported",
+      "question": "Are the painted stars steering controls or alignment markers?",
+      "expected": { "outcome": "matched", "topicId": "cloud-kites", "factIds": ["fact-cloud-painted-stars"], "sourceIds": ["source-cloud-flight-guide-v1"] }
+    },
+    {
+      "id": "answer-holdout-supported-ribbon-ends",
+      "group": "supported",
+      "question": "How are the ends of the ribbon bridge held in place?",
+      "expected": { "outcome": "matched", "topicId": "ribbon-bridges", "factIds": ["fact-ribbon-anchor-fans"], "sourceIds": ["source-ribbon-bridge-notes-v1"] }
+    },
+    {
+      "id": "answer-holdout-supported-orchard-light",
+      "group": "supported",
+      "question": "Where do the fixed branches direct the fictional moonlight?",
+      "expected": { "outcome": "matched", "topicId": "prism-orchards", "factIds": ["fact-prism-moonlight"], "sourceIds": ["source-prism-orchard-atlas-v1"] }
+    },
+    {
+      "id": "answer-holdout-unsupported-folded-mass",
+      "group": "unsupported",
+      "question": "What is the mass of one origami mechanism in grams?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-unsupported-folded-runtime",
+      "group": "unsupported",
+      "question": "How many minutes can paper automata operate continuously?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-unsupported-glass-cleaner",
+      "group": "unsupported",
+      "question": "Which cleaning solvent is approved for crystal garden leaves?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-unsupported-glass-heat",
+      "group": "unsupported",
+      "question": "What is the highest heat the glass garden can tolerate?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-unsupported-cloud-capacity",
+      "group": "unsupported",
+      "question": "How many riders may a windborne kite transport?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-unsupported-cloud-range",
+      "group": "unsupported",
+      "question": "What travel range does a sky sail have?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-unsupported-ribbon-rating",
+      "group": "unsupported",
+      "question": "Which certified weight rating applies to fabric crossings?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-unsupported-ribbon-repair",
+      "group": "unsupported",
+      "question": "How frequently must woven spans be repaired?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-unsupported-orchard-price",
+      "group": "unsupported",
+      "question": "What price is charged for a mirror-grove fruit token?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-unsupported-orchard-weight",
+      "group": "unsupported",
+      "question": "How heavy is each acrylic orchard token?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-unsupported-star-time",
+      "group": "unsupported",
+      "question": "How many minutes are required to finish a paper constellation?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-unsupported-echo-depth",
+      "group": "unsupported",
+      "question": "What water depth is maintained in a resonant pool?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-ambiguous-paper-objects",
+      "group": "ambiguous_conflict",
+      "question": "Is the paper object an origami star or an articulated mechanism?",
+      "expected": { "outcome": "ambiguous", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-ambiguous-prism-displays",
+      "group": "ambiguous_conflict",
+      "question": "Compare the prism-leaf display with the mirror-branch display.",
+      "expected": { "outcome": "ambiguous", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-ambiguous-tension-structures",
+      "group": "ambiguous_conflict",
+      "question": "Is the tension carried by kite loops or bridge cables?",
+      "expected": { "outcome": "ambiguous", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-conflict-echo-seconds",
+      "group": "ambiguous_conflict",
+      "question": "Which approved echo study is right about the number of seconds?",
+      "expected": { "outcome": "conflict", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "answer-holdout-context-folded-route",
+      "group": "context",
+      "contextQuestion": "Why do layered paper hinges rotate after a pull?",
+      "question": "What route reaches that guide?",
+      "expected": { "outcome": "answered", "topicId": "folded-machines", "factIds": ["fact-folded-motion-primary", "fact-folded-motion-confirmation", "fact-folded-reset-tabs", "fact-folded-light-frame"], "sourceIds": ["source-folded-handbook-v2", "source-folded-demonstration-log"] }
+    },
+    {
+      "id": "answer-holdout-context-cloud-route",
+      "group": "context",
+      "contextQuestion": "Why do flexible silver ribs recover after wind?",
+      "question": "Where should I go for it?",
+      "expected": { "outcome": "answered", "topicId": "cloud-kites", "factIds": ["fact-cloud-silver-ribs", "fact-cloud-violet-tether", "fact-cloud-painted-stars"], "sourceIds": ["source-cloud-flight-guide-v1"] }
+    },
+    {
+      "id": "answer-holdout-context-topic-switch",
+      "group": "context",
+      "contextQuestion": "What marks the reset points on folded machines?",
+      "question": "Instead, what bends the colored light in crystal gardens?",
+      "expected": { "outcome": "answered", "topicId": "glass-gardens", "factIds": ["fact-glass-colored-light"], "sourceIds": ["source-glass-field-guide-v2"] }
+    },
+    {
+      "id": "answer-holdout-context-unsupported-property",
+      "group": "context",
+      "contextQuestion": "What marks the reset points on folded machines?",
+      "question": "What is their retail price?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    }
+  ]
+}
