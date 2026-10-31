@@ -771,3 +771,209 @@ test('ambiguity and conflict never reuse remembered routes to invoke the model',
     }
   }
 });
+
+
+// All copies remain fictional test content, including those labeled production
+// solely to exercise the server-owned classification and route policy.
+function productionRoutingFixture(zoneId = 'zone-imaginary-workshop') {
+  const raw = JSON.parse(fixtureText.replaceAll('zone-imaginary-workshop', zoneId));
+  raw.contentClassification = 'production';
+  return raw;
+}
+
+function routingContext(zoneId = 'zone-imaginary-workshop') {
+  return { topicIds: ['folded-machines'], specialistNpcIds: ['npc-folded-machines-guide'],
+    destinationZoneIds: [zoneId] };
+}
+
+function observedRoutingHandler(raw) {
+  const requests = [];
+  const mock = createMockGuideModel();
+  return { requests, handler: handlerFor(raw, { model: {
+    generateResponse(request, invocation) {
+      requests.push(request);
+      return mock.generateResponse(request, invocation);
+    }
+  } }) };
+}
+
+function assertNoRoutingFields(body) {
+  for (const key of ['specialistNpcId', 'specialistName', 'destinationZoneId',
+    'destinationZoneName', 'canonicalDirections']) assert.equal(body[key], null, key);
+}
+
+test('routing classification: synthetic approved fictional destinations remain canonical', async () => {
+  const raw = fixture();
+  const { handler, requests } = observedRoutingHandler(raw);
+  const response = await readResponse(await handler(guideRequest()));
+  assert.equal(prepareApprovedKnowledge(raw).approved.contentClassification, 'synthetic_fixture');
+  assert.equal(response.body.outcome, 'answered');
+  assert.equal(response.body.specialistNpcId, raw.topics[0].specialistIds[0]);
+  assert.equal(response.body.destinationZoneId, raw.topics[0].destinationZoneIds[0]);
+  assert.equal(response.body.canonicalDirections, raw.zones.find(
+    (zone) => zone.id === response.body.destinationZoneId).canonicalDirections);
+  assert.equal(requests.length, 1);
+});
+
+test('routing classification: production rejects an approved fictional destination before generation', async () => {
+  const raw = productionRoutingFixture();
+  const prepared = prepareApprovedKnowledge(raw);
+  assert.equal(prepared.approved.contentClassification, 'production');
+  assert.equal(prepared.getTopic('folded-machines').status, 'approved');
+  for (const schemaVersion of ['1.0', '1.1']) {
+    const { handler, requests } = observedRoutingHandler(raw);
+    const response = await readResponse(await handler(guideRequest(requestBody({ schemaVersion }))));
+    assert.equal(response.status, 200);
+    assert.equal(response.body.outcome, 'unsupported');
+    assert.equal(response.body.specialistNpcId, null);
+    assert.equal(response.body.destinationZoneId, null);
+    assert.equal(response.body.canonicalDirections, null);
+    assert.deepEqual(response.body.factReferences, []);
+    assert.equal(requests.length, 0);
+    assert.equal(validateGuideResponse(response.body, { catalog: prepared.catalog }).valid, true);
+  }
+});
+
+test('routing classification: all three production destinations and supported follow-ups still work', async () => {
+  for (const zoneId of ['hallway', 'printing-room', 'project-studio']) {
+    const raw = productionRoutingFixture(zoneId);
+    const { handler, requests } = observedRoutingHandler(raw);
+    const initial = await readResponse(await handler(guideRequest()));
+    assert.equal(initial.body.outcome, 'answered', zoneId);
+    assert.equal(initial.body.destinationZoneId, zoneId);
+    for (const question of ['Where can I find them?', 'What do they specialize in?']) {
+      const response = await readResponse(await handler(guideRequest(requestBody({
+        question, temporaryContext: routingContext(zoneId)
+      }))));
+      assert.equal(response.body.outcome, 'answered', zoneId + ':' + question);
+      assert.equal(response.body.destinationZoneId, zoneId);
+      assert.equal(response.body.specialistNpcId, raw.topics[0].specialistIds[0]);
+      assert.equal(response.body.canonicalDirections, initial.body.canonicalDirections);
+      assert.deepEqual(response.body.factReferences, initial.body.factReferences);
+    }
+    assert.equal(requests.length, 3);
+    const cleared = await readResponse(await handler(guideRequest(requestBody({
+      question: 'Where can I find them?'
+    }))));
+    assert.equal(cleared.body.outcome, 'clarify');
+    assertNoRoutingFields(cleared.body);
+    assert.equal(requests.length, 3);
+  }
+});
+
+test('routing classification: production answer-only topics remain usable without a route', async () => {
+  const raw = productionRoutingFixture();
+  raw.topics[0].specialistIds = [];
+  raw.topics[0].destinationZoneIds = [];
+  for (const fact of raw.facts.filter((entry) => entry.topicId === 'folded-machines')) {
+    fact.relatedSpecialistIds = [];
+    fact.relatedDestinationZoneIds = [];
+  }
+  const { handler, requests } = observedRoutingHandler(raw);
+  const response = await readResponse(await handler(guideRequest()));
+  assert.equal(response.body.outcome, 'answered');
+  assert.equal(response.body.answerText, raw.facts[0].content);
+  assertNoRoutingFields(response.body);
+  assert.equal(requests.length, 1);
+});
+
+test('routing classification: remembered invalid production routes cannot return or override new topics', async () => {
+  const raw = productionRoutingFixture();
+  const { handler, requests } = observedRoutingHandler(raw);
+  for (const question of ['Where can I find them?', 'What do they specialize in?', 'Where is that?']) {
+    const response = await readResponse(await handler(guideRequest(requestBody({
+      question, temporaryContext: routingContext()
+    }))));
+    assert.equal(response.body.outcome, 'clarify');
+    assertNoRoutingFields(response.body);
+    assert.deepEqual(response.body.factReferences, []);
+  }
+  assert.equal(requests.length, 0);
+  const switchedRaw = JSON.parse(JSON.stringify(raw).replaceAll('zone-prism-conservatory', 'hallway'));
+  const switched = observedRoutingHandler(switchedRaw);
+  const valid = await readResponse(await switched.handler(guideRequest(requestBody({
+    question: 'How do glass gardens bend colored light?', temporaryContext: routingContext()
+  }))));
+  assert.equal(valid.body.outcome, 'answered');
+  assert.equal(valid.body.topicId, 'glass-gardens');
+  assert.equal(valid.body.destinationZoneId, 'hallway');
+  assert.equal(switched.requests.length, 1);
+  assert.deepEqual(switched.requests[0].context, { lastTopicId: 'glass-gardens',
+    lastDestinationNpcId: 'npc-glass-gardens-guide', lastDestinationZoneId: 'hallway' });
+  const invalid = await readResponse(await switched.handler(guideRequest(requestBody({
+    temporaryContext: { topicIds: ['glass-gardens'],
+      specialistNpcIds: ['npc-glass-gardens-guide'], destinationZoneIds: ['hallway'] }
+  }))));
+  assert.equal(invalid.body.outcome, 'unsupported');
+  assertNoRoutingFields(invalid.body);
+  assert.deepEqual(invalid.body.factReferences, []);
+  assert.equal(switched.requests.length, 1);
+});
+
+test('routing classification: visitor fields, query parameters and headers cannot enable fictional production routes', async () => {
+  const { handler, requests } = observedRoutingHandler(productionRoutingFixture());
+  for (const body of [requestBody({ contentClassification: 'synthetic_fixture' }), requestBody({
+    temporaryContext: { ...routingContext(), contentClassification: 'synthetic_fixture' }
+  }), requestBody({ allowedZones: ['zone-imaginary-workshop'] })]) {
+    assert.equal((await handler(guideRequest(body))).status, 400);
+  }
+  const spoofed = new Request(
+    'https://worker.example.test/guide?contentClassification=synthetic_fixture&allowedZone=zone-imaginary-workshop',
+    { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: allowedOrigin,
+      'X-Content-Classification': 'synthetic_fixture' }, body: JSON.stringify(requestBody()) }
+  );
+  const response = await readResponse(await handler(spoofed));
+  assert.equal(response.body.outcome, 'unsupported');
+  assertNoRoutingFields(response.body);
+  assert.equal(requests.length, 0);
+});
+
+test('routing classification: authoritative validation rejects missing and malformed classification', async () => {
+  for (const classification of [undefined, null, '', 'synthetic', 'PRODUCTION', {}, []]) {
+    const raw = fixture();
+    if (classification === undefined) delete raw.contentClassification;
+    else raw.contentClassification = classification;
+    assert.throws(() => prepareApprovedKnowledge(raw), ApprovedKnowledgeError);
+    let modelCalls = 0;
+    const handler = createGuideHandler({
+      loadKnowledge: async () => prepareApprovedKnowledge(raw),
+      model: { generateResponse() { modelCalls += 1; } }, allowedOrigins: [allowedOrigin]
+    });
+    const response = await readResponse(await handler(guideRequest()));
+    assert.equal(response.status, 503);
+    assert.equal(response.body.error.code, 'knowledge_unavailable');
+    assert.equal(modelCalls, 0);
+  }
+});
+
+test('routing classification: fresh production ambiguity and conflict override context and permit later recovery', async () => {
+  const prepared = prepareApprovedKnowledge(productionRoutingFixture('hallway'));
+  let override;
+  let modelCalls = 0;
+  const mock = createMockGuideModel();
+  const handler = createGuideHandler({
+    loadKnowledge: async () => ({ ...prepared, retrieve(question, options) {
+      return override ? { outcome: override, topicId: null, results: [] }
+        : prepared.retrieve(question, options);
+    } }),
+    model: { generateResponse(request, invocation) {
+      modelCalls += 1; return mock.generateResponse(request, invocation);
+    } }, allowedOrigins: [allowedOrigin]
+  });
+  for (const outcome of ['ambiguous', 'conflict']) {
+    override = outcome;
+    const before = modelCalls;
+    const response = await readResponse(await handler(guideRequest(requestBody({
+      question: 'Where can I find them?', temporaryContext: routingContext('hallway')
+    }))));
+    assert.equal(response.body.outcome, 'clarify');
+    assertNoRoutingFields(response.body);
+    assert.deepEqual(response.body.factReferences, []);
+    assert.equal(modelCalls, before);
+    override = null;
+    const recovered = await readResponse(await handler(guideRequest()));
+    assert.equal(recovered.body.outcome, 'answered');
+    assert.equal(recovered.body.destinationZoneId, 'hallway');
+    assert.equal(modelCalls, before + 1);
+  }
+});

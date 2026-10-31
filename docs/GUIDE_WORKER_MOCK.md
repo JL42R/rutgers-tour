@@ -30,8 +30,17 @@ converting the approved view for the existing Stage 2–4 modules. The original 
 remains a fallback when no reviewed profile explicitly abstains. Current-main conversation memory
 and orchestrator retain their three-zone production gate. The offline Worker has a narrow
 catalog-based route resolver for fictional backend fixtures: it first uses current memory, then
-accepts only an exact canonical topic/specialist/zone relationship from the injected approved
-knowledge. Explicit supported follow-ups can reuse that validated relationship. No browser route
+permits its compatibility fallback only when the validated approved knowledge view has
+`contentClassification: 'synthetic_fixture'`. It accepts only exact canonical topic/specialist/zone
+relationships from that view. Explicit supported follow-ups can reuse those validated relationships.
+For `production` knowledge, the fallback is disabled and existing conversation validation remains
+in charge of selection and context clearing. Before model invocation, canonical route validation
+also permits production destinations only in `hallway`, `printing-room`, and `project-studio`.
+Blocked initial routes return citation-free `unsupported`; invalid remembered production routes
+cannot be restored by follow-ups. Legitimate production routes and informational answers still work.
+Classification comes exclusively from the trusted loader's approved view, never request bodies,
+headers, query parameters, or a caller-selected zone list. Missing/malformed classification fails
+authoritative knowledge validation. No browser route
 policy, production zone, NPC placement, or navigation behavior is changed. The browser never supplies facts, approval state,
 specialist mappings, destination mappings, or directions.
 
@@ -203,7 +212,7 @@ model, lifecycle test, and 15-case fixture retain their original Git blobs. This
 current scope instead of presenting future browser/provider work as integrated. Full verification
 results are local Node/build checks, not automated GitHub test CI.
 
-Final local verification: handler 45/45 top-level tests; document retrieval 3/3 top-level tests
+Original Stage 69D.1 local verification at c31ad94: handler 45/45 top-level tests; document retrieval 3/3 top-level tests
 plus 15/15 nested scenarios (18 Node results); retrieval quality 7/7 top-level tests including all
 57 fixed Worker scenarios. Complete tracked suite: 372/372 results, zero failures or skips
 (357 top-level tests plus 15 nested subtests; previous main baseline 302).
@@ -213,3 +222,32 @@ build: SHA-256 `B677EC177A8123E6555171833D77B12E2EA478A13EDC4ACA3B4355518C833AD9
 The existing 5,456.72 kB minified chunk warning and four high-severity dependency advisories remain;
 no dependencies or lockfiles were changed. Whitespace checks passed. No frozen hash normalization
 or Windows LF/CRLF workaround was needed for these eight files.
+
+## Production routing classification security correction
+
+Final review reproduced a classification bypass at the original local commit: validated synthetic
+fixture copies labeled `production` still received a fictional route and started model generation.
+The compatibility resolver checked canonical relationships but did not restrict its fallback to
+synthetic knowledge. Canonical route validation also lacked a production zone policy check.
+
+The correction is confined to the Worker handler, its test file, and this document. It preserves
+all shared matcher, memory, orchestrator, schema and production tour files. Eight new top-level
+regressions cover synthetic canonical routes, production rejection before generation (v1.0/v1.1),
+all three real destination IDs and their follow-ups, answer-only topics, invalid remembered routes,
+topic switching, caller classification/allowlist spoofing, malformed authoritative classification,
+and ambiguity/conflict followed by recovery. Before the fix, three of these eight tests failed;
+after the fix, all eight pass. Frozen evaluation datasets and expected outcomes remain untouched.
+
+These are synthetic policy tests, including the copies carrying the `production` classification;
+they are not real Rutgers facts, source approval, reviewer authentication or a backend activation.
+The origin, distributed control, body buffering and noncooperative callback limitations documented
+above remain. This correction does not establish public backend deployment readiness.
+
+Correction verification: the eight new classification tests pass; the full handler has 53/53
+top-level tests. Document retrieval remains 3/3 top-level plus 15/15 nested scenarios, and Worker
+retrieval quality remains 7/7 top-level tests with all 57 fixed development cases unchanged.
+Complete tracked Node suite: 380/380 results (365 top-level plus 15 nested), zero failures,
+cancellations or skips. The production build passed and its JS SHA-256 remains
+`B677EC177A8123E6555171833D77B12E2EA478A13EDC4ACA3B4355518C833AD9`.
+These are local checks, not GitHub CI. The existing large-chunk warning remains. No dependency,
+production source, frozen fixture or lockfile was changed; whitespace checks passed.

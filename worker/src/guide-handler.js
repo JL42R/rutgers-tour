@@ -16,6 +16,7 @@ import {
 const DEFAULT_MAX_BODY_BYTES = 4096;
 const DEFAULT_MODEL_TIMEOUT_MS = 2000;
 const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
+const PRODUCTION_TOUR_ZONES = new Set(['hallway', 'printing-room', 'project-studio']);
 
 class ModelInvocationError extends Error {
   constructor(code, message) {
@@ -214,6 +215,9 @@ function canonicalRoute(result, knowledge) {
     };
   }
   if (specialistId === null || zoneId === null) return null;
+  const classification = knowledge.approved?.contentClassification;
+  if (classification !== 'synthetic_fixture' &&
+      (classification !== 'production' || !PRODUCTION_TOUR_ZONES.has(zoneId))) return null;
 
   const specialist = knowledge.getSpecialist(specialistId);
   const zone = knowledge.getZone(zoneId);
@@ -269,8 +273,8 @@ function matchedRetrievalResult(retrieval, knowledge) {
 }
 
 // The browser conversation module deliberately accepts only the three tour zones.
-// This offline backend may instead receive a validated fictional catalog. Keep
-// its routes local to the Worker; never relax or rewrite the browser zone gate.
+// Only validated synthetic fixtures may use fictional catalog routes here.
+// Production resolution retains the browser's existing three-zone policy.
 function resolveWorkerQuestion(question, knowledge, context, matcher) {
   let matched;
   const resolution = handleGuideQuestion(question, knowledge.legacy, context, {
@@ -284,6 +288,8 @@ function resolveWorkerQuestion(question, knowledge, context, matcher) {
   if (resolution.result.type === 'answer' || resolution.result.type === 'route') {
     return resolution;
   }
+
+  if (knowledge.approved?.contentClassification !== 'synthetic_fixture') return resolution;
 
   let result = matched;
   if (matched?.type !== 'answer' && matched?.type !== 'route') {
