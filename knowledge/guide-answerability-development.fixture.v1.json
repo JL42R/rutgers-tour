@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "1.0",
+  "evaluationVersion": "fictional-answerability-development-2026-10-25.1",
+  "knowledgeVersion": "fictional-retrieval-quality-2026-10-25.1",
+  "contentClassification": "synthetic_fixture",
+  "description": "Diagnostic development set created from the six examined holdout failures plus principled fictional variations. It is not an unseen holdout.",
+  "cases": [
+    {
+      "id": "dev-original-folded-amber-reset",
+      "originCaseId": "holdout-folded-amber-reset",
+      "question": "On folded machines, what purpose do amber tabs serve during a reset?",
+      "expected": { "outcome": "matched", "topicId": "folded-machines", "factIds": ["fact-folded-reset-tabs"], "sourceIds": ["source-folded-handbook-v2"] }
+    },
+    {
+      "id": "dev-original-orchard-token-food",
+      "originCaseId": "holdout-orchard-token-food",
+      "question": "Could someone snack on the acrylic tokens growing in a light orchard?",
+      "expected": { "outcome": "matched", "topicId": "prism-orchards", "factIds": ["fact-prism-fruit-tokens"], "sourceIds": ["source-prism-orchard-atlas-v1"] }
+    },
+    {
+      "id": "dev-original-unsupported-automata-speed",
+      "originCaseId": "holdout-unsupported-automata-speed",
+      "question": "What is the maximum safe speed of paper automata?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "dev-original-unsupported-prism-chemicals",
+      "originCaseId": "holdout-unsupported-prism-chemicals",
+      "question": "How often should prism foliage be polished with chemicals?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "dev-original-unsupported-span-load",
+      "originCaseId": "holdout-unsupported-span-emergency-load",
+      "question": "What emergency load limit applies to woven spans?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "dev-original-unsupported-orchard-purchase",
+      "originCaseId": "holdout-unsupported-orchard-purchase",
+      "question": "Can I buy the acrylic fruit tokens from the light orchard?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "dev-supported-folded-motion",
+      "question": "Could you explain why articulated paper devices rotate after a gentle tug?",
+      "expected": { "outcome": "matched", "topicId": "folded-machines", "factIds": ["fact-folded-motion-primary", "fact-folded-motion-confirmation"], "sourceIds": ["source-folded-handbook-v2", "source-folded-demonstration-log"] }
+    },
+    {
+      "id": "dev-supported-glass-color",
+      "question": "Why do crystal plants cast colors across the display?",
+      "expected": { "outcome": "matched", "topicId": "glass-gardens", "factIds": ["fact-glass-colored-light"], "sourceIds": ["source-glass-field-guide-v2"] }
+    },
+    {
+      "id": "dev-supported-orchard-edibility",
+      "question": "Are the acrylic fruit markers edible as a snack?",
+      "expected": { "outcome": "matched", "topicId": "prism-orchards", "factIds": ["fact-prism-fruit-tokens"], "sourceIds": ["source-prism-orchard-atlas-v1"] }
+    },
+    {
+      "id": "dev-supported-cloud-tether",
+      "question": "How does the violet tether spread strain across its anchor loops?",
+      "expected": { "outcome": "matched", "topicId": "cloud-kites", "factIds": ["fact-cloud-violet-tether"], "sourceIds": ["source-cloud-flight-guide-v1"] }
+    },
+    {
+      "id": "dev-supported-ribbon-anchors",
+      "question": "Which anchors keep the two ends of a fabric crossing secure?",
+      "expected": { "outcome": "matched", "topicId": "ribbon-bridges", "factIds": ["fact-ribbon-anchor-fans"], "sourceIds": ["source-ribbon-bridge-notes-v1"] }
+    },
+    {
+      "id": "dev-unsupported-folded-weight",
+      "question": "How much does an articulated paper device weigh?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "dev-unsupported-glass-temperature",
+      "question": "What temperature should optical plants be kept at?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "dev-unsupported-cloud-altitude",
+      "question": "What altitude can a sky sail safely reach?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "dev-unsupported-ribbon-cost",
+      "question": "How much does a woven span cost to build?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "dev-unsupported-star-duration",
+      "question": "How long does it take to fold an origami star?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "dev-ambiguous-paper-light",
+      "question": "How do paper light patterns work?",
+      "expected": { "outcome": "ambiguous", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "dev-conflict-echo-duration",
+      "question": "How many seconds does the resonant pool repeat its note?",
+      "expected": { "outcome": "conflict", "topicId": null, "factIds": [], "sourceIds": [] }
+    },
+    {
+      "id": "dev-context-route-preserved",
+      "contextQuestion": "How does a gentle tug move articulated paper devices?",
+      "question": "Where can I find them?",
+      "expected": { "outcome": "answered", "topicId": "folded-machines", "factIds": ["fact-folded-motion-primary", "fact-folded-motion-confirmation", "fact-folded-reset-tabs", "fact-folded-light-frame"], "sourceIds": ["source-folded-handbook-v2", "source-folded-demonstration-log"] }
+    },
+    {
+      "id": "dev-context-unsupported-property",
+      "contextQuestion": "How does a gentle tug move articulated paper devices?",
+      "question": "How much do they weigh?",
+      "expected": { "outcome": "unsupported", "topicId": null, "factIds": [], "sourceIds": [] }
+    }
+  ]
+}

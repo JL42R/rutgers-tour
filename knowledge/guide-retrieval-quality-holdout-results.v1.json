@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "1.0",
+  "evaluationVersion": "fictional-retrieval-holdout-2026-10-25.1",
+  "knowledgeVersion": "fictional-retrieval-quality-2026-10-25.1",
+  "contentClassification": "synthetic_fixture",
+  "holdoutSha256": "bb9c93c0524886e9af5beb4f57b069180a707bfb7870d39701d89db0a54f6764",
+  "measurement": "first_run_before_holdout_review_or_retrieval_tuning",
+  "directCases": 17,
+  "conversationCases": 3,
+  "metrics": {
+    "supported": 8,
+    "top1Correct": 7,
+    "expectedFacts": 9,
+    "recalledFacts": 8,
+    "unsupported": 5,
+    "falseSupported": 4,
+    "ambiguityOrConflict": 4,
+    "ambiguityOrConflictCorrect": 4,
+    "citationCorrect": 6
+  },
+  "directFailures": [
+    "holdout-folded-amber-reset",
+    "holdout-orchard-token-food",
+    "holdout-unsupported-automata-speed",
+    "holdout-unsupported-prism-chemicals",
+    "holdout-unsupported-span-emergency-load",
+    "holdout-unsupported-orchard-purchase"
+  ],
+  "workerPassed": 14,
+  "workerFailures": [
+    "holdout-folded-amber-reset",
+    "holdout-orchard-token-food",
+    "holdout-unsupported-automata-speed",
+    "holdout-unsupported-prism-chemicals",
+    "holdout-unsupported-span-emergency-load",
+    "holdout-unsupported-orchard-purchase"
+  ],
+  "notes": [
+    "The amber-reset paraphrase was rejected because specific-term coverage was too conservative.",
+    "The orchard-food question returned the correct fact plus an extra same-topic passage, reducing citation precision.",
+    "Four unsupported lookalikes containing strong reviewed aliases were falsely supported despite unmatched requested attributes.",
+    "No aliases, expectations, or retrieval thresholds were changed after this run."
+  ]
+}
