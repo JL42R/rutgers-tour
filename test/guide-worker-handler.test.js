@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { handleGuideQuestion } from '../src/guide-conversation.js';
+import { classifyFollowUp, handleGuideQuestion } from '../src/guide-conversation.js';
+import { retrievalQualityFixture } from '../test-support/guide-retrieval-quality-fixture.js';
 import { orchestrateGuideQuestion } from '../src/guide-ai-orchestrator.js';
 import { validateGuideResponse } from '../src/guide-api-contract.js';
 import {
@@ -976,4 +977,211 @@ test('routing classification: fresh production ambiguity and conflict override c
     assert.equal(recovered.body.destinationZoneId, 'hallway');
     assert.equal(modelCalls, before + 1);
   }
+});
+
+
+function followupCompatibilityHarness() {
+  const { knowledge, profile } = retrievalQualityFixture();
+  const prepared = prepareApprovedKnowledge(knowledge, { retrievalProfile: profile });
+  const requests = [];
+  return { prepared, requests, handler: createGuideHandler({
+    loadKnowledge: async () => prepared,
+    model: { generateResponse(request) {
+      requests.push(request);
+      return { answerText: 'Invented compatibility directions.', supported: true,
+        topicId: request.topicId, usedFactIds: request.allowedFactIds };
+    } }, allowedOrigins: [allowedOrigin]
+  }) };
+}
+
+function followupResponseContext(body) {
+  return { topicIds: body.topicId ? [body.topicId] : [],
+    specialistNpcIds: body.specialistNpcId ? [body.specialistNpcId] : [],
+    destinationZoneIds: body.destinationZoneId ? [body.destinationZoneId] : [] };
+}
+
+async function assertCanonicalCompatibilityFollowup(setupQuestion, question, topicId) {
+  const { prepared, requests, handler } = followupCompatibilityHarness();
+  const setup = await readResponse(await handler(guideRequest(requestBody({ question: setupQuestion }))));
+  assert.equal(setup.body.outcome, 'answered');
+  assert.equal(setup.body.topicId, topicId);
+  assert.equal(requests.length, 1);
+  const response = await readResponse(await handler(guideRequest(requestBody({
+    question, temporaryContext: followupResponseContext(setup.body)
+  }))));
+  const topic = prepared.getTopic(topicId);
+  const specialist = prepared.getSpecialist(topic.specialistIds[0]);
+  const zone = prepared.getZone(specialist.destinationZoneId);
+  const expectedReferences = prepared.createFactReferences(topic.factIds);
+  assert.equal(response.status, 200);
+  assert.equal(response.body.outcome, 'answered');
+  assert.equal(response.body.topicId, topicId);
+  assert.equal(response.body.specialistNpcId, specialist.id);
+  assert.equal(response.body.destinationZoneId, zone.id);
+  assert.equal(response.body.canonicalDirections, zone.canonicalDirections);
+  assert.deepEqual(response.body.factReferences, expectedReferences);
+  assert.equal(response.body.answerText, prepared.createEvidenceBoundAnswer(topic.factIds));
+  assert.doesNotMatch(response.body.answerText, /Invented compatibility directions/);
+  assert.equal(requests.length, 2);
+  assert.deepEqual(requests[1].allowedFactIds, topic.factIds);
+  assert.equal(requests[1].context.lastDestinationZoneId, zone.id);
+}
+
+test('synthetic follow-up compatibility: folded-machine route form restores canonical remembered evidence', async () => {
+  await assertCanonicalCompatibilityFollowup('How do folded machines create rotational motion?',
+    'What route reaches that guide?', 'folded-machines');
+});
+
+test('synthetic follow-up compatibility: cloud route form restores only approved cloud facts', async () => {
+  await assertCanonicalCompatibilityFollowup('Why do flexible silver ribs recover after wind?',
+    'Where should I go for it?', 'cloud-kites');
+});
+
+test('synthetic follow-up compatibility: five exact forms normalize consistently without broad guessing', async () => {
+  const { handler, requests } = observedRoutingHandler(fixture());
+  const forms = ['what route reaches that guide', 'what route reaches them',
+    'where can i find that', 'where should i go', 'where should i go for it'];
+  for (const question of forms) assert.equal(classifyFollowUp(question), null);
+  for (const question of [...forms, '  Ｗｈａｔ—ＲＯＵＴＥ reaches thát GUIDE?!  ',
+    'WHERE\tSHOULD I\nGO FOR IT???']) {
+    const response = await readResponse(await handler(guideRequest(requestBody({
+      question, temporaryContext: routingContext()
+    }))));
+    assert.equal(response.body.outcome, 'answered', question);
+    assert.equal(response.body.specialistNpcId, 'npc-folded-machines-guide');
+    assert.equal(response.body.destinationZoneId, 'zone-imaginary-workshop');
+  }
+  const before = requests.length;
+  for (const question of ['what route reaches that guide tomorrow', 'what about that',
+    'where is it', 'where should i go for its price', 'tell me where should i go']) {
+    const response = await readResponse(await handler(guideRequest(requestBody({
+      question, temporaryContext: routingContext()
+    }))));
+    assert.equal(response.body.outcome, 'unsupported', question);
+    assertNoRoutingFields(response.body);
+    assert.deepEqual(response.body.factReferences, []);
+  }
+  assert.equal(requests.length, before);
+});
+
+test('synthetic follow-up compatibility: missing stale and inconsistent context cannot invent routes', async () => {
+  const { handler, requests } = observedRoutingHandler(fixture());
+  for (const question of ['what route reaches that guide', 'what route reaches them',
+    'where can i find that', 'where should i go', 'where should i go for it']) {
+    const response = await readResponse(await handler(guideRequest(requestBody({ question }))));
+    assert.equal(response.body.outcome, 'unsupported');
+    assertNoRoutingFields(response.body);
+    assert.deepEqual(response.body.factReferences, []);
+  }
+  const inconsistent = { topicIds: ['folded-machines'],
+    specialistNpcIds: ['npc-glass-gardens-guide'], destinationZoneIds: ['zone-prism-conservatory'] };
+  assert.equal((await handler(guideRequest(requestBody({ question: 'Where should I go for it?',
+    temporaryContext: inconsistent })))).status, 400);
+  assert.equal(requests.length, 0);
+  const retired = fixture();
+  retired.knowledgeVersion = 'fictional-followup-retired-1';
+  retired.topics.find(x => x.id === 'folded-machines').status = 'retired';
+  retired.facts.find(x => x.id === 'fact-folded-machines-motion').status = 'retired';
+  retired.specialists.find(x => x.id === 'npc-folded-machines-guide').status = 'retired';
+  const stale = observedRoutingHandler(retired);
+  const response = await readResponse(await stale.handler(guideRequest(requestBody({
+    question: 'What route reaches that guide?', temporaryContext: routingContext()
+  }))));
+  assert.equal(response.status, 400);
+  assert.equal(response.body.error.code, 'invalid_request');
+  assert.equal(stale.requests.length, 0);
+});
+
+test('synthetic follow-up compatibility: fresh explicit topics ambiguity and conflict take precedence', async () => {
+  const prepared = prepareApprovedKnowledge(fixture());
+  const glass = prepared.retrieve('Tell me about fictional glass gardens.');
+  assert.equal(glass.outcome, 'matched');
+  assert.equal(glass.topicId, 'glass-gardens');
+  for (const fresh of [glass, { outcome: 'ambiguous', topicId: null, results: [] },
+    { outcome: 'conflict', topicId: null, results: [] }]) {
+    let modelCalls = 0;
+    const mock = createMockGuideModel();
+    const handler = createGuideHandler({
+      loadKnowledge: async () => ({ ...prepared, retrieve: () => fresh }),
+      model: { generateResponse(request, invocation) {
+        modelCalls++; return mock.generateResponse(request, invocation);
+      } }, allowedOrigins: [allowedOrigin]
+    });
+    const response = await readResponse(await handler(guideRequest(requestBody({
+      question: 'What route reaches that guide?', temporaryContext: routingContext()
+    }))));
+    if (fresh.outcome === 'matched') {
+      assert.equal(response.body.outcome, 'answered');
+      assert.equal(response.body.topicId, 'glass-gardens');
+      assert.equal(response.body.specialistNpcId, 'npc-glass-gardens-guide');
+      assert.equal(response.body.destinationZoneId, 'zone-prism-conservatory');
+      assert.equal(modelCalls, 1);
+    } else {
+      assert.equal(response.body.outcome, 'clarify');
+      assertNoRoutingFields(response.body);
+      assert.deepEqual(response.body.factReferences, []);
+      assert.equal(modelCalls, 0);
+    }
+  }
+});
+
+test('synthetic follow-up compatibility: unsupported property questions remain citation-free', async () => {
+  const { handler, requests } = followupCompatibilityHarness();
+  const setup = await readResponse(await handler(guideRequest()));
+  assert.equal(setup.body.outcome, 'answered');
+  const before = requests.length;
+  const response = await readResponse(await handler(guideRequest(requestBody({
+    question: 'What is their retail price?', temporaryContext: followupResponseContext(setup.body)
+  }))));
+  assert.equal(response.body.outcome, 'unsupported');
+  assertNoRoutingFields(response.body);
+  assert.deepEqual(response.body.factReferences, []);
+  assert.equal(requests.length, before);
+});
+
+test('synthetic follow-up compatibility: production classification keeps its original follow-up and zone policy', async () => {
+  for (const zoneId of ['zone-imaginary-workshop', 'hallway', 'printing-room', 'project-studio']) {
+    const { handler, requests } = observedRoutingHandler(productionRoutingFixture(zoneId));
+    for (const question of ['what route reaches that guide', 'what route reaches them',
+      'where can i find that', 'where should i go', 'where should i go for it']) {
+      const response = await readResponse(await handler(guideRequest(requestBody({
+        question, temporaryContext: routingContext(zoneId)
+      }))));
+      assert.equal(response.body.outcome, 'unsupported', zoneId + ':' + question);
+      assertNoRoutingFields(response.body);
+      assert.deepEqual(response.body.factReferences, []);
+    }
+    assert.equal(requests.length, 0);
+    const existing = await readResponse(await handler(guideRequest(requestBody({
+      question: 'How do I get there?', temporaryContext: routingContext(zoneId)
+    }))));
+    if (zoneId === 'zone-imaginary-workshop') {
+      assert.equal(existing.body.outcome, 'clarify');
+      assertNoRoutingFields(existing.body);
+      assert.equal(requests.length, 0);
+    } else {
+      assert.equal(existing.body.outcome, 'answered');
+      assert.equal(existing.body.destinationZoneId, zoneId);
+      assert.equal(requests.length, 1);
+    }
+  }
+});
+
+test('synthetic follow-up compatibility: visitor classification spoofing never enables production compatibility', async () => {
+  const { handler, requests } = observedRoutingHandler(productionRoutingFixture('hallway'));
+  const body = requestBody({ question: 'What route reaches that guide?',
+    temporaryContext: routingContext('hallway') });
+  assert.equal((await handler(guideRequest({ ...body, contentClassification: 'synthetic_fixture' }))).status, 400);
+  assert.equal((await handler(guideRequest({ ...body, temporaryContext: {
+    ...body.temporaryContext, contentClassification: 'synthetic_fixture'
+  } }))).status, 400);
+  const request = new Request('https://worker.example.test/guide?contentClassification=synthetic_fixture', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Origin: allowedOrigin,
+      'X-Content-Classification': 'synthetic_fixture' }, body: JSON.stringify(body)
+  });
+  const response = await readResponse(await handler(request));
+  assert.equal(response.body.outcome, 'unsupported');
+  assertNoRoutingFields(response.body);
+  assert.deepEqual(response.body.factReferences, []);
+  assert.equal(requests.length, 0);
 });
