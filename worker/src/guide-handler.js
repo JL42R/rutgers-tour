@@ -6,7 +6,7 @@ import {
   validateGuideRequest,
   validateGuideResponse
 } from '../../src/guide-api-contract.js';
-import { matchQuestion } from '../../src/guide-qa.js';
+import { matchQuestion, normalizeQuestion } from '../../src/guide-qa.js';
 import { classifyFollowUp, handleGuideQuestion } from '../../src/guide-conversation.js';
 import {
   createModelRequest,
@@ -17,6 +17,14 @@ const DEFAULT_MAX_BODY_BYTES = 4096;
 const DEFAULT_MODEL_TIMEOUT_MS = 2000;
 const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
 const PRODUCTION_TOUR_ZONES = new Set(['hallway', 'printing-room', 'project-studio']);
+// Original handoff forms, used only after the validated synthetic gate below.
+const SYNTHETIC_DESTINATION_FOLLOW_UPS = new Set([
+  'what route reaches that guide',
+  'what route reaches them',
+  'where can i find that',
+  'where should i go',
+  'where should i go for it'
+]);
 
 class ModelInvocationError extends Error {
   constructor(code, message) {
@@ -295,7 +303,9 @@ function resolveWorkerQuestion(question, knowledge, context, matcher) {
   if (matched?.type !== 'answer' && matched?.type !== 'route') {
     // Only explicit, recognized follow-ups may reuse validated route context.
     // New ambiguity/conflict must never be turned into a confident answer.
-    if (matched?.type === 'clarify' || !classifyFollowUp(question) ||
+    const isFollowUp = Boolean(classifyFollowUp(question)) ||
+      SYNTHETIC_DESTINATION_FOLLOW_UPS.has(normalizeQuestion(question));
+    if (matched?.type === 'clarify' || !isFollowUp ||
         !context.lastDestinationNpcId || !context.lastDestinationZoneId) return resolution;
     const topic = knowledge.legacy.topics.find((entry) => entry.id === context.lastTopicId);
     if (!topic) return resolution;

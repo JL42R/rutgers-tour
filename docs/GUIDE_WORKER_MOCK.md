@@ -251,3 +251,42 @@ cancellations or skips. The production build passed and its JS SHA-256 remains
 `B677EC177A8123E6555171833D77B12E2EA478A13EDC4ACA3B4355518C833AD9`.
 These are local checks, not GitHub CI. The existing large-chunk warning remains. No dependency,
 production source, frozen fixture or lockfile was changed; whitespace checks passed.
+
+## Synthetic destination follow-up compatibility
+
+Stage 69D.2 exposed two contextual integration mismatches: the frozen answerability diagnostic
+returned 28/30 instead of its stored 30/30 because current production conversation memory does
+not recognize two destination follow-up forms from the original handoff. The production module
+is intentionally unchanged. The Worker restores only these five original exact forms for
+validated `synthetic_fixture` knowledge:
+
+- `what route reaches that guide`
+- `what route reaches them`
+- `where can i find that`
+- `where should i go`
+- `where should i go for it`
+
+The Worker reuses `normalizeQuestion`, which matches conversation follow-up normalization for
+Unicode decomposition, diacritics, case, punctuation and whitespace. It uses exact set membership,
+not semantic guessing. Existing `classifyFollowUp` behavior remains available. The extra set is
+consulted only after the trusted synthetic-classification gate, and only when a fresh explicit
+topic or ambiguity/conflict has not already resolved the request. Valid canonical topic,
+specialist and destination context is still required, and canonical route validation precedes
+model invocation. Production-classified knowledge retains its existing follow-up allowlist and
+three-zone policy. Visitor metadata cannot activate this compatibility path.
+
+Eight self-contained regressions cover both previously failing forms, all five phrases and
+normalization, near-match rejection, missing/retired/inconsistent context, resolution precedence,
+unsupported properties, production isolation and classification spoofing. Answers and citations
+remain reconstructed from approved facts. This is offline compatibility, not a live AI feature.
+The 13 frozen Stage 69D.2 evaluation files and reports remain in their separate worktree; none
+are imported, changed or rerun here. The full 30-case diagnostic will need its own resumed
+verification after this fix is integrated; this branch does not claim a new 30/30 frozen run.
+
+Local compatibility-fix verification: handler 61/61 top-level tests; existing document retrieval
+3/3 top-level plus 15/15 nested scenarios; existing retrieval quality 7/7 top-level tests with all
+57 fixed development cases unchanged. Complete tracked suite: 388/388 results (373 top-level plus
+15 nested), zero failures or skips. Production build passed; JS SHA-256 remains
+`B677EC177A8123E6555171833D77B12E2EA478A13EDC4ACA3B4355518C833AD9`.
+These are local checks, not GitHub CI. The existing large-chunk warning and dependency advisories
+remain. No dependency, production conversation, retrieval, zone or frozen-evaluation changes.
