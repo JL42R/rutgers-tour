@@ -2,6 +2,13 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `docs/PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-10-31
+
+### In-zone unvisited guide indicator (Issue #15)
+- Added a small camera-relative HUD pointer to the nearest unfinished guide in the current zone, using the existing tracker completion state and configured tracker labels.
+- The pointer yields to the existing proximity prompt and dialogue, advances after a guide is completed, disappears when no unfinished current-zone guide remains, and returns when progress is reset.
+- Preserved guide coordinates, interaction radii, marker scaling, E-key behavior, dialogue, automatic hallway welcome, zone transitions and Room 116 geometry. Cold first-time-user observation remains required before Issue #15 can close.
+
 ## 2026-10-30
 
 ### PR #46 discoverability review corrections
