@@ -63,6 +63,20 @@ dialogue.onComplete = (npcId) => {
 };
 tracker.onReset = () => dialogue.completedNpcIds.clear();
 
+// The localhost provider and fictional catalogs are never imported by a production build.
+if (import.meta.env.DEV) {
+  const guideParams = new URLSearchParams(window.location.search);
+  if (guideParams.get('guideMock') === '1' && guideParams.get('guideBackend') === 'local') {
+    void import('./guide-hallway-local.js').then((local) => {
+      const provider = local.createHallwayLocalQuestionProvider({ search: window.location.search });
+      dialogue.registerQuestionProvider(local.HALLWAY_GUIDE_ID, provider);
+      local.installLocalGuideDisclosure();
+    }).catch(() => {
+      console.warn('The local Guide development preview could not be enabled.');
+    });
+  }
+}
+
 let initialWelcomeStarted = false;
 
 async function startInitialWelcome(startZone) {
@@ -77,7 +91,7 @@ async function startInitialWelcome(startZone) {
   // Set this before loading the dialogue so a slow or failed request cannot trigger a second attempt.
   initialWelcomeStarted = true;
   try {
-    await dialogue.start(hallwayGuide);
+    await dialogue.start(hallwayGuide, { allowQuestionProvider: false });
     if (!dialogue.isOpen) console.warn('The hallway welcome could not be opened.');
   } catch (err) {
     console.error('Could not open the hallway welcome:', err);
