@@ -39,6 +39,26 @@
       padding: 1px 8px; font-family: inherit; font-weight: 700;
     }
 
+    /* Gentle current-zone pointer to the nearest guide not yet completed. */
+    #guide-direction {
+      position: fixed; left: 50%; bottom: 24px; z-index: 2;
+      transform: translateX(-50%); display: flex; align-items: center; gap: 9px;
+      max-width: min(360px, calc(100vw - 32px)); padding: 7px 12px;
+      border: 1px solid rgba(255,255,255,0.22); border-radius: 999px;
+      background: rgba(16,16,20,0.82); color: var(--muted);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3); font-size: 13px;
+      pointer-events: none;
+    }
+    #guide-direction[hidden] { display: none; }
+    #guide-direction-arrow {
+      flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%;
+      display: grid; place-items: center; background: var(--scarlet); color: #fff;
+      font-size: 19px; font-weight: 700; line-height: 1;
+    }
+    #guide-direction-copy { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #guide-direction-name { color: var(--text); }
+    #guide-direction-distance::before { content: " · "; }
+
     /* Dialogue panel — plain DOM so it is screen-reader and keyboard friendly */
     #dialogue {
       position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
@@ -208,6 +228,14 @@
   </div>
 
   <div id="interact-prompt">Press <kbd>E</kbd> to talk</div>
+
+  <div id="guide-direction" hidden aria-hidden="true">
+    <span id="guide-direction-arrow">↑</span>
+    <span id="guide-direction-copy">
+      Unvisited guide: <strong id="guide-direction-name"></strong>
+      <span id="guide-direction-distance"></span>
+    </span>
+  </div>
 
   <div id="dialogue" role="dialog" aria-modal="true" aria-labelledby="dlg-name" aria-describedby="dlg-text">
     <div id="dlg-portrait"></div>

@@ -44,8 +44,10 @@ scene.add(dir);
 const dialogue = new Dialogue();
 const controls = new PlayerControls(camera, renderer.domElement);
 const zones = new ZoneManager(scene, { debugEquipment, equipmentPlaceholder });
-const npcs = new NPCManager(scene, dialogue);
 const tracker = new InteractionTracker();
+const npcs = new NPCManager(scene, dialogue, {
+  isCompleted: (npcId) => tracker.completedNpcIds.has(npcId),
+});
 installEquipmentDebug({ camera, controls, zones, dialogue });
 
 // While a dialogue is open, freeze movement so buttons are usable.
@@ -177,7 +179,7 @@ renderer.setAnimationLoop(() => {
     if (transition) void switchZone(transition.target, transition, previousPosition);
   }
 
-  npcs.update(camera.position);
+  npcs.update(camera.position, controls.yaw);
   renderer.render(scene, camera);
 });
 

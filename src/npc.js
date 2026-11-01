@@ -29,14 +29,22 @@ function makeBadgeTexture(label) {
 }
 
 export class NPCManager {
-  constructor(scene, dialogue) {
+  constructor(scene, dialogue, { isCompleted = () => false } = {}) {
     this.scene = scene;
     this.dialogue = dialogue;
+    this.isCompleted = isCompleted;
     this.group = new THREE.Group();
     this.scene.add(this.group);
     this.npcs = [];
     this.nearest = null;
     this.promptEl = document.getElementById('interact-prompt');
+    this.directionEl = document.getElementById('guide-direction');
+    this.directionArrowEl = document.getElementById('guide-direction-arrow');
+    this.directionNameEl = document.getElementById('guide-direction-name');
+    this.directionDistanceEl = document.getElementById('guide-direction-distance');
+    this.directionTargetId = null;
+    this.directionDistance = null;
+    this.directionAngle = null;
     this.time = 0;
 
     document.addEventListener('keydown', (e) => {
@@ -52,6 +60,10 @@ export class NPCManager {
       npc.sprite.material.dispose();
     }
     this.group.clear();
+    this.directionEl.hidden = true;
+    this.directionTargetId = null;
+    this.directionDistance = null;
+    this.directionAngle = null;
     this.npcs = list.map((data) => {
       const markerLabel = data.markerLabel ?? (data.name ?? '?')[0].toUpperCase();
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -76,10 +88,12 @@ export class NPCManager {
     });
   }
 
-  update(playerPos) {
+  update(playerPos, viewYaw = 0) {
     this.time += 0.016;
     this.nearest = null;
     let best = Infinity;
+    let nextUnvisited = null;
+    let nextUnvisitedDistance = Infinity;
 
     for (const npc of this.npcs) {
       // Gentle bob so markers are easy to spot (an accessibility requirement:
@@ -89,6 +103,10 @@ export class NPCManager {
       const dx = npc.sprite.position.x - playerPos.x;
       const dz = npc.sprite.position.z - playerPos.z;
       const dist = Math.hypot(dx, dz);
+      if (!this.isCompleted(npc.data.id) && dist < nextUnvisitedDistance) {
+        nextUnvisited = npc;
+        nextUnvisitedDistance = dist;
+      }
       const markerScale = THREE.MathUtils.clamp(
         MIN_MARKER_SCALE + dist * MARKER_SCALE_PER_METER,
         MIN_MARKER_SCALE,
@@ -105,5 +123,34 @@ export class NPCManager {
 
     this.promptEl.style.display =
       this.nearest && !this.dialogue.isOpen ? 'block' : 'none';
+
+    const showDirection = nextUnvisited && !this.nearest && !this.dialogue.isOpen;
+    const directionHidden = !showDirection;
+    if (this.directionEl.hidden !== directionHidden) {
+      this.directionEl.hidden = directionHidden;
+    }
+    if (!showDirection) return;
+
+    const dx = nextUnvisited.sprite.position.x - playerPos.x;
+    const dz = nextUnvisited.sprite.position.z - playerPos.z;
+    const relativeAngle = Math.atan2(dx, -dz)
+      + (Number.isFinite(viewYaw) ? viewYaw : 0);
+    const wrappedAngle = Math.atan2(Math.sin(relativeAngle), Math.cos(relativeAngle));
+    if (this.directionAngle === null || Math.abs(wrappedAngle - this.directionAngle) > 0.001) {
+      this.directionArrowEl.style.transform = `rotate(${wrappedAngle}rad)`;
+      this.directionAngle = wrappedAngle;
+    }
+
+    if (this.directionTargetId !== nextUnvisited.data.id) {
+      this.directionNameEl.textContent =
+        nextUnvisited.data.trackerLabel ?? nextUnvisited.data.name ?? 'Guide';
+      this.directionTargetId = nextUnvisited.data.id;
+    }
+
+    const roundedDistance = Math.max(1, Math.round(nextUnvisitedDistance));
+    if (this.directionDistance !== roundedDistance) {
+      this.directionDistanceEl.textContent = `${roundedDistance} m`;
+      this.directionDistance = roundedDistance;
+    }
   }
 }

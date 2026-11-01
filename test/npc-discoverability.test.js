@@ -5,12 +5,39 @@ import * as THREE from 'three';
 import { NPCManager } from '../src/npc.js';
 
 const config = JSON.parse(fs.readFileSync(new URL('../public/zones.json', import.meta.url)));
-function setup(t, { failImages = false } = {}) {
+function trackedText() {
+  let value = '';
+  return {
+    writes: 0,
+    get textContent() { return value; },
+    set textContent(next) { value = next; this.writes++; },
+  };
+}
+function trackedStyle() {
+  let transform = '';
+  return {
+    transformWrites: 0,
+    get transform() { return transform; },
+    set transform(next) { transform = next; this.transformWrites++; },
+  };
+}
+function setup(t, { failImages = false, completedNpcIds = new Set() } = {}) {
   const originalDocument = globalThis.document;
   const handlers = new Map();
   const prompt = { style: {} };
+  const direction = { hidden: true };
+  const directionArrow = { style: trackedStyle() };
+  const directionName = trackedText();
+  const directionDistance = trackedText();
+  const elements = new Map([
+    ['interact-prompt', prompt],
+    ['guide-direction', direction],
+    ['guide-direction-arrow', directionArrow],
+    ['guide-direction-name', directionName],
+    ['guide-direction-distance', directionDistance],
+  ]);
   globalThis.document = {
-    getElementById: () => prompt,
+    getElementById: (id) => elements.get(id),
     addEventListener: (type, handler) => handlers.set(type, handler),
     createElement: () => ({
       width: 0, height: 0,
@@ -24,8 +51,13 @@ function setup(t, { failImages = false } = {}) {
     else loaded(new THREE.Texture());
   });
   const dialogue = { isOpen: false, start(npc) { this.started = npc; } };
-  const manager = new NPCManager(new THREE.Scene(), dialogue);
-  return { manager, dialogue, prompt, handlers };
+  const manager = new NPCManager(new THREE.Scene(), dialogue, {
+    isCompleted: (npcId) => completedNpcIds.has(npcId),
+  });
+  return {
+    manager, dialogue, prompt, handlers, completedNpcIds,
+    direction, directionArrow, directionName, directionDistance,
+  };
 }
 test('hint explains markers/E and preserves movement, mouse-look and Escape', () => {
   const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -44,11 +76,12 @@ test('distance scaling stays bounded and preserves the intended near/far policy'
   }
 });
 test('scaling does not expand the strict interaction radius or change E selection', t => {
-  const { manager, dialogue, prompt, handlers } = setup(t);
+  const { manager, dialogue, prompt, handlers, direction } = setup(t);
   const npc = { id: 'sample', name: 'Guide', position: [0, 1.6, 0], radius: 2 };
   manager.setNPCs([npc]);
   manager.update({ x: 1.999, z: 0 });
   assert.equal(prompt.style.display, 'block');
+  assert.equal(direction.hidden, true);
   handlers.get('keydown')({ code: 'KeyE' });
   assert.equal(dialogue.started, npc);
   dialogue.started = null;
@@ -85,16 +118,17 @@ test('successful portrait loading retains color space and normal occlusion', t =
   assert.equal(sprite.material.depthTest, true);
 });
 test('open dialogue suppresses prompts and E re-entry', t => {
-  const { manager, dialogue, handlers, prompt } = setup(t);
+  const { manager, dialogue, handlers, prompt, direction } = setup(t);
   manager.setNPCs([{ id: 'sample', name: 'Guide', position: [0, 1.6, 0], radius: 2 }]);
   dialogue.isOpen = true;
   manager.update({ x: 0, z: 0 });
   assert.equal(prompt.style.display, 'none');
+  assert.equal(direction.hidden, true);
   handlers.get('keydown')({ code: 'KeyE' });
   assert.equal(dialogue.started, undefined);
 });
 test('all three current zone configurations preserve NPC data and positions', t => {
-  const { manager, prompt } = setup(t);
+  const { manager, prompt, direction } = setup(t);
   const snapshot = JSON.stringify(config);
   for (const zone of config.zones) {
     manager.setNPCs(zone.npcs);
@@ -107,7 +141,99 @@ test('all three current zone configurations preserve NPC data and positions', t 
     if (!zone.npcs.length) {
       assert.equal(manager.nearest, null);
       assert.equal(prompt.style.display, 'none');
+      assert.equal(direction.hidden, true);
     }
   }
   assert.equal(JSON.stringify(config), snapshot);
+});
+
+test('indicator points toward the nearest unvisited guide using camera-relative yaw', t => {
+  const completedNpcIds = new Set(['completed-nearby']);
+  const {
+    manager, direction, directionArrow, directionName, directionDistance,
+  } = setup(t, { completedNpcIds });
+  manager.setNPCs([
+    { id: 'completed-nearby', name: 'Completed', position: [0, 1.6, -3], radius: 2 },
+    { id: 'next-guide', name: 'Guide', trackerLabel: 'Next Station', position: [5, 1.6, 0], radius: 2 },
+    { id: 'far-guide', name: 'Far', position: [0, 1.6, -8], radius: 2 },
+  ]);
+
+  manager.update({ x: 0, z: 0 }, 0);
+  assert.equal(direction.hidden, false);
+  assert.equal(directionName.textContent, 'Next Station');
+  assert.equal(directionDistance.textContent, '5 m');
+  assert.equal(directionArrow.style.transform, `rotate(${Math.PI / 2}rad)`);
+
+  manager.update({ x: 0, z: 0 }, -Math.PI / 2);
+  assert.equal(directionArrow.style.transform, 'rotate(0rad)');
+});
+
+test('indicator advances through completion state and returns after progress reset', t => {
+  const completedNpcIds = new Set();
+  const { manager, direction, directionName } = setup(t, { completedNpcIds });
+  manager.setNPCs([
+    { id: 'first', name: 'First', position: [3, 1.6, 0], radius: 2 },
+    { id: 'second', name: 'Second', position: [5, 1.6, 0], radius: 2 },
+  ]);
+
+  manager.update({ x: 0, z: 0 });
+  assert.equal(directionName.textContent, 'First');
+
+  completedNpcIds.add('first');
+  manager.update({ x: 0, z: 0 });
+  assert.equal(directionName.textContent, 'Second');
+
+  completedNpcIds.add('second');
+  manager.update({ x: 0, z: 0 });
+  assert.equal(direction.hidden, true);
+
+  completedNpcIds.clear();
+  manager.update({ x: 0, z: 0 });
+  assert.equal(direction.hidden, false);
+  assert.equal(directionName.textContent, 'First');
+});
+
+test('indicator updates only DOM values that actually changed', t => {
+  const { manager, directionArrow, directionName, directionDistance } = setup(t);
+  manager.setNPCs([
+    { id: 'guide', name: 'Guide', trackerLabel: 'Stable Station', position: [5, 1.6, 0] },
+  ]);
+
+  manager.update({ x: 0, z: 0 }, 0);
+  assert.equal(directionName.writes, 1);
+  assert.equal(directionDistance.writes, 1);
+  assert.equal(directionArrow.style.transformWrites, 1);
+
+  manager.update({ x: 0, z: 0 }, 0);
+  assert.equal(directionName.writes, 1);
+  assert.equal(directionDistance.writes, 1);
+  assert.equal(directionArrow.style.transformWrites, 1);
+
+  manager.update({ x: .6, z: 0 }, 0);
+  assert.equal(directionName.writes, 1);
+  assert.equal(directionDistance.writes, 2);
+  assert.equal(directionArrow.style.transformWrites, 1);
+
+  manager.update({ x: .6, z: 0 }, .1);
+  assert.equal(directionName.writes, 1);
+  assert.equal(directionDistance.writes, 2);
+  assert.equal(directionArrow.style.transformWrites, 2);
+});
+
+test('zone NPC replacement immediately updates or hides the current target', t => {
+  const { manager, direction, directionName } = setup(t);
+
+  manager.setNPCs([{ id: 'zone-a', name: 'Zone A Guide', position: [4, 1.6, 0] }]);
+  manager.update({ x: 0, z: 0 });
+  assert.equal(direction.hidden, false);
+  assert.equal(directionName.textContent, 'Zone A Guide');
+
+  manager.setNPCs([{ id: 'zone-b', name: 'Zone B Guide', position: [0, 1.6, -4] }]);
+  manager.update({ x: 0, z: 0 });
+  assert.equal(direction.hidden, false);
+  assert.equal(directionName.textContent, 'Zone B Guide');
+
+  manager.setNPCs([]);
+  manager.update({ x: 0, z: 0 });
+  assert.equal(direction.hidden, true);
 });
