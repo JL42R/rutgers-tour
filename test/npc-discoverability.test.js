@@ -1,11 +1,47 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import * as THREE from 'three';
 import { NPCManager } from '../src/npc.js';
 import { RoomRoute } from '../src/room-navigation.js';
 
 const config = JSON.parse(fs.readFileSync(new URL('../public/zones.json', import.meta.url)));
+
+test('printing markers preserve main configuration except three subsection visuals', t => {
+  const baseline = JSON.parse(execFileSync('git', ['show', 'main:public/zones.json'], { encoding: 'utf8' }));
+  const printing = baseline.zones.find(z => z.id === 'printing-room');
+  for (const [id, label] of [['johnny-ultimaker', 'J1'], ['johnny-stratasys', 'J2'], ['johnny-sca', 'J3']]) {
+    const npc = printing.npcs.find(n => n.id === id);
+    npc.markerLabel = label;
+    delete npc.markerImage;
+  }
+  assert.deepEqual(config, baseline);
+  const { manager, handlers, dialogue } = setup(t, { failImages: true });
+  manager.setNPCs(printing.npcs, printing.id);
+  assert.equal(manager.npcs.length, 5);
+  assert.equal(manager.group.children.length, 5);
+  assert.equal(manager.group.parent, manager.scene);
+  for (const { data, sprite, baseY } of manager.npcs) {
+    assert.equal(sprite.parent, manager.group);
+    assert.equal(sprite.visible, true);
+    assert.equal(sprite.material.depthTest, true);
+    assert.equal(sprite.material.depthWrite, true);
+    assert.deepEqual([sprite.position.x, baseY, sprite.position.z], data.position);
+    for (const [dx, dz, yaw] of [[1, 0, 0], [-1, 0, Math.PI], [0, 3, Math.PI / 2], [0, -8, -Math.PI / 2]]) {
+      manager.update({ x: data.position[0] + dx, z: data.position[2] + dz }, yaw);
+      const expected = Math.min(.65, .32 + Math.hypot(dx, dz) * .04);
+      assert.equal(sprite.scale.x, expected);
+    }
+    if (data.markerLabel?.startsWith('J')) {
+      assert.equal(sprite.material.map.isCanvasTexture, true);
+      assert.equal(sprite.material.alphaTest, .1);
+    }
+    manager.update({ x: data.position[0], z: data.position[2] });
+    handlers.get('keydown')({ code: 'KeyE' });
+    assert.equal(dialogue.started.id, data.id);
+  }
+});
 
 test('destination guidance suppresses only NPC arrow; modal also blocks E and prompt', t => {
   const { manager, handlers, dialogue, direction, prompt } = setup(t);
@@ -132,6 +168,39 @@ test('successful portrait loading retains color space and normal occlusion', t =
   const sprite = manager.npcs[0].sprite;
   assert.equal(sprite.material.map.colorSpace, THREE.SRGBColorSpace);
   assert.equal(sprite.material.depthTest, true);
+});
+
+test('picture markers clip corners before depth writes with original images and scale', t => {
+  const { manager } = setup(t);
+  const printing = config.zones.find(z => z.id === 'printing-room');
+  manager.setNPCs(printing.npcs, printing.id);
+  const loaded = THREE.TextureLoader.prototype.load.mock.calls.map(call => call.arguments[0]);
+  assert.deepEqual(loaded, printing.npcs.filter(n => n.markerImage).map(n => n.markerImage));
+  for (const npc of manager.npcs.filter(n => n.data.markerImage)) {
+    const shader = { fragmentShader: THREE.ShaderLib.sprite.fragmentShader };
+    npc.sprite.material.onBeforeCompile(shader);
+    assert.match(shader.fragmentShader, /vec2 markerOffset = vMapUv - vec2\(0\.5\)/);
+    assert.match(shader.fragmentShader, /if \(dot\(markerOffset, markerOffset\) > 0\.25\) discard;/);
+    assert(shader.fragmentShader.indexOf('markerOffset') < shader.fragmentShader.indexOf('#include <map_fragment>'));
+    assert.equal(npc.sprite.material.depthTest, true);
+    assert.equal(npc.sprite.material.depthWrite, true);
+    assert.deepEqual(npc.sprite.scale.toArray(), [.32, .32, .32]);
+    assert.deepEqual(npc.sprite.position.toArray(), npc.data.position);
+    assert.equal(npc.sprite.material.map.colorSpace, THREE.SRGBColorSpace);
+  }
+});
+
+test('missing Vishan image retains circular mask on the existing V badge', t => {
+  const { manager } = setup(t, { failImages: true });
+  const vishan = config.zones.find(z => z.id === 'printing-room').npcs.find(n => n.id === 'vishan-ergonomics');
+  manager.setNPCs([vishan]);
+  const { material } = manager.npcs[0].sprite;
+  assert.equal(material.map.isCanvasTexture, true);
+  const shader = { fragmentShader: THREE.ShaderLib.sprite.fragmentShader };
+  material.onBeforeCompile(shader);
+  assert.match(shader.fragmentShader, /markerOffset/);
+  assert.equal(material.depthWrite, true);
+  assert.equal(material.depthTest, true);
 });
 test('open dialogue suppresses prompts and E re-entry', t => {
   const { manager, dialogue, handlers, prompt, direction } = setup(t);

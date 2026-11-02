@@ -55,33 +55,30 @@
           "id": "johnny-ultimaker",
           "name": "Johnny",
           "trackerLabel": "Ultimaker Printers",
-          "markerLabel": "2",
+          "markerLabel": "J1",
           "position": [-3.7969415953942462, 1.85, -2.6779949419883433],
           "radius": 2.0,
           "portrait": "./portraits/johnny2.jpeg",
-          "markerImage": "./portraits/johnny2.jpeg",
           "dialogueFile": "./dialogue/johnny-ultimaker.json"
         },
         {
           "id": "johnny-stratasys",
           "name": "Johnny",
           "trackerLabel": "Stratasys Printers",
-          "markerLabel": "3",
+          "markerLabel": "J2",
           "position": [-3.7969415953942467, 2, 1.5220050580116564],
           "radius": 2.0,
           "portrait": "./portraits/johnny3.jpeg",
-          "markerImage": "./portraits/johnny3.jpeg",
           "dialogueFile": "./dialogue/johnny-stratasys.json"
         },
         {
           "id": "johnny-sca",
           "name": "Johnny",
           "trackerLabel": "SCA Support Station",
-          "markerLabel": "4",
+          "markerLabel": "J3",
           "position": [-3.7969415953942462, 1.6, 0.3720050580116565],
           "radius": 2.0,
           "portrait": "./portraits/johnny4.jpeg",
-          "markerImage": "./portraits/johnny4.jpeg",
           "dialogueFile": "./dialogue/johnny-sca.json"
         },
         {
