@@ -29,10 +29,16 @@ function makeBadgeTexture(label) {
 }
 
 export class NPCManager {
-  constructor(scene, dialogue, { isCompleted = () => false } = {}) {
+  constructor(scene, dialogue, {
+    isCompleted = () => false,
+    isInteractionBlocked = () => false,
+    isDirectionSuppressed = () => false,
+  } = {}) {
     this.scene = scene;
     this.dialogue = dialogue;
     this.isCompleted = isCompleted;
+    this.isInteractionBlocked = isInteractionBlocked;
+    this.isDirectionSuppressed = isDirectionSuppressed;
     this.group = new THREE.Group();
     this.scene.add(this.group);
     this.npcs = [];
@@ -48,7 +54,7 @@ export class NPCManager {
     this.time = 0;
 
     document.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyE' && this.nearest && !this.dialogue.isOpen) {
+      if (e.code === 'KeyE' && this.nearest && !this.dialogue.isOpen && !this.isInteractionBlocked()) {
         this.dialogue.start(this.nearest.data);
       }
     });
@@ -122,9 +128,9 @@ export class NPCManager {
     }
 
     this.promptEl.style.display =
-      this.nearest && !this.dialogue.isOpen ? 'block' : 'none';
+      this.nearest && !this.dialogue.isOpen && !this.isInteractionBlocked() ? 'block' : 'none';
 
-    const showDirection = nextUnvisited && !this.nearest && !this.dialogue.isOpen;
+    const showDirection = nextUnvisited && !this.nearest && !this.dialogue.isOpen && !this.isDirectionSuppressed();
     const directionHidden = !showDirection;
     if (this.directionEl.hidden !== directionHidden) {
       this.directionEl.hidden = directionHidden;

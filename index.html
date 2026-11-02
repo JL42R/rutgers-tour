@@ -184,6 +184,36 @@
       #tour-progress-body { max-height: 42vh; }
     }
 
+    /* Optional room routing occupies the bottom HUD slot used by the NPC pointer. */
+    #room-select-open { position: fixed; bottom: 16px; left: 16px; z-index: 3; }
+    #room-direction {
+      position: fixed; bottom: 64px; left: 50%; transform: translateX(-50%);
+      z-index: 2; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+      width: max-content; max-width: calc(100vw - 32px); padding: 10px 12px;
+      background: var(--panel); border-left: 3px solid var(--scarlet); border-radius: 8px;
+      font-size: 13px;
+    }
+    #room-direction[hidden], #room-select-open[hidden], #room-direction-arrow[hidden] { display: none; }
+    #room-direction-arrow { font-size: 26px; color: #fff; background: var(--scarlet); border-radius: 50%; padding: 0 6px; }
+    #room-direction-instruction { display: block; color: var(--muted); }
+    #room-selector {
+      background: #101014; color: var(--text); border: 1px solid var(--scarlet);
+      border-top-width: 3px; border-radius: 12px; padding: 24px;
+      width: min(420px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto;
+    }
+    #room-selector::backdrop { background: rgba(0,0,0,0.65); }
+    #room-selector h2 { font-size: 20px; margin: 0 0 18px; }
+    #room-options { display: grid; gap: 12px; margin-bottom: 12px; }
+    .room-button {
+      background: var(--panel); color: var(--text); border: 1px solid var(--scarlet);
+      border-radius: 999px; padding: 7px 12px; font: inherit; cursor: pointer;
+    }
+    #room-options button, #room-explore {
+      width: 100%; background: transparent; color: var(--text); border: 1px solid var(--scarlet);
+      border-radius: 8px; padding: 12px; font: inherit; cursor: pointer;
+    }
+    .room-button:hover, #room-options button:hover, #room-explore:hover { background: var(--scarlet); }
+
     /* Loading overlay */
     #loading {
       position: fixed; inset: 0; display: flex; flex-direction: column;
@@ -228,6 +258,20 @@
   </div>
 
   <div id="interact-prompt">Press <kbd>E</kbd> to talk</div>
+
+  <button id="room-select-open" class="room-button" type="button" hidden>Choose a room</button>
+  <dialog id="room-selector" aria-labelledby="room-selector-title" aria-describedby="room-selector-help">
+    <h2 id="room-selector-title">Where would you like to visit first?</h2>
+    <div id="room-options"></div>
+    <button id="room-explore" type="button">Just Explore</button>
+    <p id="room-selector-help">Choose a room for directions, or skip with Just Explore or Escape.</p>
+  </dialog>
+  <div id="room-direction" hidden role="region" aria-label="Room directions">
+    <span id="room-direction-arrow" aria-hidden="true">↑</span>
+    <span><strong id="room-direction-name"></strong><span id="room-direction-instruction"></span></span>
+    <button id="room-change" class="room-button" type="button">Change</button>
+    <button id="room-cancel" class="room-button" type="button">Cancel</button>
+  </div>
 
   <div id="guide-direction" hidden aria-hidden="true">
     <span id="guide-direction-arrow">↑</span>

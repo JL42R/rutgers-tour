@@ -2,6 +2,14 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `docs/PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-11-02
+
+### Optional hallway room navigation (Issue #81; local review)
+- Added room selection after the automatic CORE Guide welcome reaches its ending and closes, independently of saved tracker completion. Early dismissal and manual guide reopening do not trigger it.
+- Added camera-relative directions using configured hallway transitions and room labels: corridor alignment first, doorway second. Arrival ends guidance; entering another room pauses the arrow until returning to the hallway.
+- Added an optional Choose a room control, Change/Cancel actions, and Just Explore. The native modal contains keyboard focus and pauses movement; destination routing suppresses the unvisited-NPC arrow while preserving NPC interaction.
+- Preserved zone data, splats, collision, Room 116 arrival/boundaries, dialogue text, tracker and narration. Automated route/lifecycle/welcome and regression checks accompany this change; manual browser acceptance remains pending. No commit, push or publication.
+
 ## 2026-10-31
 
 ### In-zone unvisited guide indicator (Issue #15)
