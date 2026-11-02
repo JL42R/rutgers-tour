@@ -2,13 +2,15 @@
 // between visits. Storage failures are non-fatal; the in-memory Set remains
 // usable for the rest of the current page session.
 
+import { isComingSoon } from './npc-availability.js';
+
 export const TOUR_PROGRESS_STORAGE_KEY = 'rutgers-tour.completed-npc-ids';
 export const TOUR_COMPLETE_MESSAGE = 'Tour complete! You visited every guide.';
 
 // Use the same room subsection that render() displays, without distance sorting.
 export function firstUnfinishedNPCInZone(zones, zoneId, isCompleted) {
   const zone = zones.find(candidate => candidate.id === zoneId);
-  const npc = zone?.npcs.find(candidate => !isCompleted(candidate.id));
+  const npc = zone?.npcs.find(candidate => !isComingSoon(candidate) && !isCompleted(candidate.id));
   return npc ? {
     zoneId: zone.id, npcId: npc.id,
     label: npc.label ?? npc.trackerLabel ?? npc.name ?? npc.id,
@@ -51,9 +53,11 @@ export class InteractionTracker {
       npcs: (zone.npcs ?? []).map((npc) => ({
         id: npc.id,
         label: npc.trackerLabel ?? npc.name ?? npc.id,
+        availability: npc.availability,
       })),
     }));
-    this.npcIds = new Set(this.zones.flatMap((zone) => zone.npcs.map((npc) => npc.id)));
+    this.npcIds = new Set(this.zones.flatMap((zone) =>
+      zone.npcs.filter(npc => !isComingSoon(npc)).map(npc => npc.id)));
 
     const savedNpcIds = this.loadSavedProgress();
     this.completedNpcIds = new Set(
@@ -169,7 +173,8 @@ export class InteractionTracker {
       section.className = 'tour-progress-zone';
 
       const heading = document.createElement('h3');
-      heading.textContent = `${zone.label} — ${zoneCompleted}/${zone.npcs.length}`;
+      const requiredCount = zone.npcs.filter(npc => !isComingSoon(npc)).length;
+      heading.textContent = `${zone.label} — ${zoneCompleted}/${requiredCount}`;
       section.appendChild(heading);
 
       if (zone.npcs.length === 0) {
@@ -180,7 +185,8 @@ export class InteractionTracker {
       } else {
         const list = document.createElement('ul');
         for (const npc of zone.npcs) {
-          const isComplete = this.completedNpcIds.has(npc.id);
+          const comingSoon = isComingSoon(npc);
+          const isComplete = !comingSoon && this.completedNpcIds.has(npc.id);
           const item = document.createElement('li');
           item.classList.toggle('completed', isComplete);
 
@@ -194,7 +200,7 @@ export class InteractionTracker {
 
           const status = document.createElement('span');
           status.className = 'tour-progress-status';
-          status.textContent = isComplete ? 'Completed' : 'Remaining';
+          status.textContent = comingSoon ? 'Coming Soon' : isComplete ? 'Completed' : 'Remaining';
 
           item.append(marker, label, status);
           list.appendChild(item);

@@ -4,6 +4,18 @@ Newest entry first. This records what changed and when — for schedule and gate
 
 ## 2026-11-02
 
+### Room 116 project placeholders (local review)
+- Added five provisional P1–P5 canvas-badge NPCs inside the approved Room 116
+  walking boundary, with separate placeholder dialogue files and no project claims.
+- Added shared `availability: "coming-soon"` handling: placeholders appear in Tour
+  Progress but cannot earn completion credit, increase required counts or become
+  room-local guidance targets. Existing NPC behavior and saved progress remain.
+- Added an opt-in, development-only `?debugRoom116NPCs=1` P-key world-coordinate
+  and heading recorder, scoped to Room 116. Instructions live in
+  `docs/ROOM116_NPC_POSITIONING.md`. Geometry, transitions, splats, and existing
+  printing-room NPC data/rendering remain unchanged. Physical project alignment
+  and browser visual acceptance are pending; no commit, push or PR.
+
 ### Room-local checklist-ordered NPC guidance (corrected after manual review)
 - Changed the NPC direction indicator to use only the first unfinished entry under the current room in Tour Progress, through `getNextUnfinishedNpcInZone(zoneId)`. The global checklist still displays all zones and completion status; saved progress, out-of-order conversations and Reset Progress use the same existing completion state.
 - Kept E interaction proximity-based. Being near another guide no longer redirects or hides the checklist arrow; entering the target's interaction radius hides it in favor of the existing prompt.

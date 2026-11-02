@@ -7,6 +7,7 @@ import { NPCManager } from '../src/npc.js';
 import { InteractionTracker, TOUR_PROGRESS_STORAGE_KEY } from '../src/interaction-tracker.js';
 import { RoomNavigation } from '../src/room-navigation.js';
 import { npcGuidance } from '../src/npc-guidance.js';
+import { createRoom116Boundary, isRoom116PositionAllowed, resolveRoom116Movement } from '../src/room116-boundary.js';
 
 const hallway = JSON.parse(readFileSync(new URL('../public/dialogue/hallway-guide.json', import.meta.url)));
 const guide = { id: 'hallway-guide', name: 'CORE Guide', dialogueFile: '/hallway.json' };
@@ -16,6 +17,84 @@ const ordinaryScript = { name: 'Ordinary', nodes: {
   done: { text: 'Scripted ending' }
 } };
 const tick = () => new Promise(resolve => setImmediate(resolve));
+
+test('Room 116 placeholders attach, interact, and never complete or guide the tour', async t => {
+  const { dialogue, doc, storage } = setup(t);
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const studio = config.zones.find(z => z.id === 'project-studio');
+  const boundary = createRoom116Boundary(studio);
+  assert.equal(studio.npcs.length, 5);
+  const tracker = new InteractionTracker(); tracker.setConfig(config);
+  dialogue.onComplete = id => { assert.fail('Placeholder reported completion: ' + id); };
+  const manager = new NPCManager(new THREE.Scene(), dialogue, {
+    getGuidance: () => npcGuidance(tracker.getNextUnfinishedNpcInZone(studio.id), studio),
+  });
+  manager.setNPCs(studio.npcs, studio.id);
+  assert.equal(manager.group.children.length, 5);
+  assert.equal(manager.group.parent, manager.scene);
+  const expectedText = "Hi! I'll be showing you one of the student projects in Room 116. More information about this project is coming soon!";
+  for (const [i, npc] of studio.npcs.entries()) {
+    assert.equal(npc.id, `room116-project-${i + 1}`);
+    assert.equal(npc.markerLabel, `P${i + 1}`);
+    assert.equal(npc.availability, 'coming-soon');
+    assert.equal(npc.portrait, undefined);
+    const point = { x: npc.position[0], z: npc.position[2] };
+    assert(isRoom116PositionAllowed(point, boundary));
+    // A full standing disk and a short approach on all sides fit the solver.
+    for (const step of [{ x: .2, z: 0 }, { x: -.2, z: 0 }, { x: 0, z: .2 }, { x: 0, z: -.2 }]) {
+      const moved = resolveRoom116Movement(point, step, boundary);
+      assert(Math.abs(moved.x - point.x - step.x) < 1e-9);
+      assert(Math.abs(moved.z - point.z - step.z) < 1e-9);
+    }
+    const script = JSON.parse(readFileSync(new URL('../public/' + npc.dialogueFile.slice(2), import.meta.url)));
+    dialogue.cache.set(npc.dialogueFile, script);
+    manager.update(point);
+    const sprite = manager.npcs[i].sprite;
+    assert.equal(sprite.parent, manager.group);
+    assert.equal(sprite.material.map.isCanvasTexture, true);
+    assert.equal(sprite.material.depthTest, true);
+    assert.equal(sprite.material.depthWrite, true);
+    assert.equal(sprite.material.alphaTest, .1);
+    assert.equal(manager.directionEl.hidden, true);
+    doc.emitKey({ code: 'KeyE' }); await tick();
+    assert.equal(dialogue.activeNpcId, npc.id);
+    assert.equal(dialogue.textEl.textContent, expectedText);
+    assert.equal(dialogue.isOpen, true);
+    if (i % 2) doc.emitKey({ key: 'Escape', code: 'Escape' });
+    else dialogue.choicesEl.firstElementChild.click();
+    assert.equal(dialogue.isOpen, false);
+    assert.equal(dialogue.completedNpcIds.has(npc.id), false);
+    assert.equal(tracker.complete(npc.id), false);
+    assert.equal(npcGuidance({ zoneId: studio.id, npcId: npc.id }, studio), null);
+  }
+  assert.equal(tracker.npcIds.size, 6);
+  assert.equal(tracker.completedNpcIds.size, 0);
+  assert.equal(tracker.completionMessageEl.hidden, true);
+  assert.equal(storage.has(TOUR_PROGRESS_STORAGE_KEY), false);
+  const section = tracker.zonesEl.children[2];
+  assert.match(section.children[0].textContent, /0\/0/);
+  assert.equal(section.children[1].children.length, 5);
+  for (const item of section.children[1].children) assert.equal(item.children[2].textContent, 'Coming Soon');
+  for (const id of tracker.npcIds) tracker.complete(id);
+  assert.equal(tracker.completedNpcIds.size, 6);
+  assert.equal(tracker.completionMessageEl.hidden, false);
+  const saved = JSON.parse(storage.get(TOUR_PROGRESS_STORAGE_KEY));
+  assert(saved.every(id => !studio.npcs.some(npc => npc.id === id)));
+  storage.set(TOUR_PROGRESS_STORAGE_KEY, JSON.stringify([...saved, studio.npcs[0].id]));
+  const restored = new InteractionTracker(); restored.setConfig(config);
+  assert.equal(restored.completedNpcIds.size, 6);
+  restored.reset(); assert.equal(restored.completedNpcIds.size, 0);
+  assert.equal(restored.getNextUnfinishedNpcInZone(studio.id), null);
+  // Availability promotion requires only data changes and restores normal completion.
+  const promoted = structuredClone(config);
+  delete promoted.zones[2].npcs[0].availability;
+  restored.setConfig(promoted);
+  assert.equal(restored.npcIds.size, 7);
+  assert.equal(restored.getNextUnfinishedNpcInZone(studio.id).npcId, studio.npcs[0].id);
+  dialogue.onComplete = id => restored.complete(id);
+  await dialogue.start(promoted.zones[2].npcs[0]); dialogue.close();
+  assert(restored.completedNpcIds.has(studio.npcs[0].id));
+});
 
 function setup(t) {
   const previous = { document: globalThis.document, window: globalThis.window,

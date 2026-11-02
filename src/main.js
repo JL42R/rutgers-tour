@@ -74,6 +74,11 @@ tracker.onReset = () => dialogue.completedNpcIds.clear();
 
 // The localhost provider and fictional catalogs are never imported by a production build.
 if (import.meta.env.DEV) {
+  if (new URLSearchParams(window.location.search).get('debugRoom116NPCs') === '1') {
+    void import('./room116-npc-debug.js').then(({ installRoom116NPCDebug }) => {
+      installRoom116NPCDebug({ camera, controls, zones, dialogue });
+    });
+  }
   const guideParams = new URLSearchParams(window.location.search);
   if (guideParams.get('guideMock') === '1' && guideParams.get('guideBackend') === 'local') {
     void import('./guide-hallway-local.js').then((local) => {

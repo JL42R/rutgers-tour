@@ -207,7 +207,58 @@
           { "id": "right-wall-strip", "forward": [1.900, 11.0490], "left": [0, 1.2192] }
         ]
       },
-      "npcs": [],
+      "npcs": [
+        {
+          "id": "room116-project-1",
+          "name": "Room 116 Project 1",
+          "trackerLabel": "Project 1",
+          "availability": "coming-soon",
+          "markerLabel": "P1",
+          "position": [4.205036, 1.65, 20.228586],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/room116-project-1.json"
+        },
+        {
+          "id": "room116-project-2",
+          "name": "Room 116 Project 2",
+          "trackerLabel": "Project 2",
+          "availability": "coming-soon",
+          "markerLabel": "P2",
+          "position": [4.261449, 1.65, 17.229117],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/room116-project-2.json"
+        },
+        {
+          "id": "room116-project-3",
+          "name": "Room 116 Project 3",
+          "trackerLabel": "Project 3",
+          "availability": "coming-soon",
+          "markerLabel": "P3",
+          "position": [7.204505, 1.65, 20.285],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/room116-project-3.json"
+        },
+        {
+          "id": "room116-project-4",
+          "name": "Room 116 Project 4",
+          "trackerLabel": "Project 4",
+          "availability": "coming-soon",
+          "markerLabel": "P4",
+          "position": [7.260919, 1.65, 17.285531],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/room116-project-4.json"
+        },
+        {
+          "id": "room116-project-5",
+          "name": "Room 116 Project 5",
+          "trackerLabel": "Project 5",
+          "availability": "coming-soon",
+          "markerLabel": "P5",
+          "position": [10.232182, 1.65, 18.841679],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/room116-project-5.json"
+        }
+      ],
       "signs": [],
       "transitions": [
         {

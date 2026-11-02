@@ -16,7 +16,11 @@ test('printing markers preserve main configuration except three subsection visua
     npc.markerLabel = label;
     delete npc.markerImage;
   }
-  assert.deepEqual(config, baseline);
+  // Room 116 may add guides independently; all existing room data stays locked.
+  const withoutStudioNPCs = structuredClone(config);
+  withoutStudioNPCs.zones.find(z => z.id === 'project-studio').npcs =
+    baseline.zones.find(z => z.id === 'project-studio').npcs;
+  assert.deepEqual(withoutStudioNPCs, baseline);
   const { manager, handlers, dialogue } = setup(t, { failImages: true });
   manager.setNPCs(printing.npcs, printing.id);
   assert.equal(manager.npcs.length, 5);
