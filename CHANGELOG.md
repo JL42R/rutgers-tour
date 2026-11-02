@@ -4,6 +4,13 @@ Newest entry first. This records what changed and when — for schedule and gate
 
 ## 2026-11-02
 
+### Room-local checklist-ordered NPC guidance (corrected after manual review)
+- Changed the NPC direction indicator to use only the first unfinished entry under the current room in Tour Progress, through `getNextUnfinishedNpcInZone(zoneId)`. The global checklist still displays all zones and completion status; saved progress, out-of-order conversations and Reset Progress use the same existing completion state.
+- Kept E interaction proximity-based. Being near another guide no longer redirects or hides the checklist arrow; entering the target's interaction radius hides it in favor of the existing prompt.
+- Removed cross-zone NPC routing. NPC directions are always hidden in the hallway, in rooms without NPCs and once all current-room NPCs are completed. Leaving a room clears its indicator immediately; returning resumes that room's first unfinished guide. Future Room 116 NPCs use their own room's checklist order.
+- Preserved PR #82 manual destination priority and room-selection implementation, welcome, unrestricted E interaction, NPC data, dialogue, assets and transitions. Reused only its camera-yaw math for NPC arrows. Updated regression coverage for zone filtering, ordering, persistence/reset, transitions and room-navigation priority. Manual browser acceptance of this correction remains pending; no commit, push or PR.
+- Validation: production build passes with the existing bundle-size warning; full suite reports 534/538 passing, including all NPC/room-navigation/Room 116 checks. The same four unrelated failures remain: three fixture byte-hash tests affected by Windows CRLF checkout and the local-guide source assertion expecting the pre-PR #82 welcome call. Those tests and fixtures remain unchanged.
+
 ### Optional hallway room navigation (Issue #81; local review)
 - Added room selection after the automatic CORE Guide welcome reaches its ending and closes, independently of saved tracker completion. Early dismissal and manual guide reopening do not trigger it.
 - Added camera-relative directions using configured hallway transitions and room labels: corridor alignment first, doorway second. Arrival ends guidance; entering another room pauses the arrow until returning to the hallway.

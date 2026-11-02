@@ -4,6 +4,8 @@
 // appears -> pressing E opens its dialogue.
 
 import * as THREE from 'three';
+import { firstUnfinishedNPCInZone } from './interaction-tracker.js';
+import { directionAngle } from './room-navigation.js';
 
 const MIN_MARKER_SCALE = 0.32;
 const MAX_MARKER_SCALE = 0.65;
@@ -33,12 +35,14 @@ export class NPCManager {
     isCompleted = () => false,
     isInteractionBlocked = () => false,
     isDirectionSuppressed = () => false,
+    getGuidance = null,
   } = {}) {
     this.scene = scene;
     this.dialogue = dialogue;
     this.isCompleted = isCompleted;
     this.isInteractionBlocked = isInteractionBlocked;
     this.isDirectionSuppressed = isDirectionSuppressed;
+    this.getGuidance = getGuidance;
     this.group = new THREE.Group();
     this.scene.add(this.group);
     this.npcs = [];
@@ -60,12 +64,14 @@ export class NPCManager {
     });
   }
 
-  setNPCs(list) {
+  setNPCs(list, zoneId = null) {
     for (const npc of this.npcs) {
       npc.sprite.material.map?.dispose();
       npc.sprite.material.dispose();
     }
     this.group.clear();
+    this.zoneId = zoneId;
+    this.nearest = null;
     this.directionEl.hidden = true;
     this.directionTargetId = null;
     this.directionDistance = null;
@@ -98,8 +104,6 @@ export class NPCManager {
     this.time += 0.016;
     this.nearest = null;
     let best = Infinity;
-    let nextUnvisited = null;
-    let nextUnvisitedDistance = Infinity;
 
     for (const npc of this.npcs) {
       // Gentle bob so markers are easy to spot (an accessibility requirement:
@@ -109,10 +113,6 @@ export class NPCManager {
       const dx = npc.sprite.position.x - playerPos.x;
       const dz = npc.sprite.position.z - playerPos.z;
       const dist = Math.hypot(dx, dz);
-      if (!this.isCompleted(npc.data.id) && dist < nextUnvisitedDistance) {
-        nextUnvisited = npc;
-        nextUnvisitedDistance = dist;
-      }
       const markerScale = THREE.MathUtils.clamp(
         MIN_MARKER_SCALE + dist * MARKER_SCALE_PER_METER,
         MIN_MARKER_SCALE,
@@ -130,33 +130,43 @@ export class NPCManager {
     this.promptEl.style.display =
       this.nearest && !this.dialogue.isOpen && !this.isInteractionBlocked() ? 'block' : 'none';
 
-    const showDirection = nextUnvisited && !this.nearest && !this.dialogue.isOpen && !this.isDirectionSuppressed();
+    let target;
+    if (this.zoneId === 'hallway') target = null;
+    else if (this.getGuidance) target = this.getGuidance(playerPos);
+    else {
+      // Standalone callers use the shared ordering helper too.
+      const next = firstUnfinishedNPCInZone(
+        [{ id: this.zoneId, npcs: this.npcs.map(npc => npc.data) }], this.zoneId, this.isCompleted
+      );
+      const npc = this.npcs.find(candidate => candidate.data.id === next?.npcId);
+      if (npc) target = { id: next.npcId, label: next.label, position: npc.sprite.position, radius: npc.data.radius ?? 2 };
+    }
+    if (target && !this.npcs.some(npc => npc.data.id === target.id)) target = null;
+    const distance = target ? Math.hypot(target.position.x - playerPos.x, target.position.z - playerPos.z) : 0;
+    const showDirection = target && distance >= target.radius && !this.dialogue.isOpen
+      && !this.isDirectionSuppressed() && !this.isInteractionBlocked();
     const directionHidden = !showDirection;
     if (this.directionEl.hidden !== directionHidden) {
       this.directionEl.hidden = directionHidden;
     }
     if (!showDirection) return;
 
-    const dx = nextUnvisited.sprite.position.x - playerPos.x;
-    const dz = nextUnvisited.sprite.position.z - playerPos.z;
-    const relativeAngle = Math.atan2(dx, -dz)
-      + (Number.isFinite(viewYaw) ? viewYaw : 0);
-    const wrappedAngle = Math.atan2(Math.sin(relativeAngle), Math.cos(relativeAngle));
+    const wrappedAngle = directionAngle(playerPos, target.position, Number.isFinite(viewYaw) ? viewYaw : 0);
     if (this.directionAngle === null || Math.abs(wrappedAngle - this.directionAngle) > 0.001) {
       this.directionArrowEl.style.transform = `rotate(${wrappedAngle}rad)`;
       this.directionAngle = wrappedAngle;
     }
 
-    if (this.directionTargetId !== nextUnvisited.data.id) {
-      this.directionNameEl.textContent =
-        nextUnvisited.data.trackerLabel ?? nextUnvisited.data.name ?? 'Guide';
-      this.directionTargetId = nextUnvisited.data.id;
+    if (this.directionTargetId !== target.id) {
+      this.directionNameEl.textContent = target.label;
+      this.directionTargetId = target.id;
     }
 
-    const roundedDistance = Math.max(1, Math.round(nextUnvisitedDistance));
-    if (this.directionDistance !== roundedDistance) {
-      this.directionDistanceEl.textContent = `${roundedDistance} m`;
-      this.directionDistance = roundedDistance;
+    const roundedDistance = Math.max(1, Math.round(distance));
+    const distanceText = `${roundedDistance} m`;
+    if (this.directionDistance !== distanceText) {
+      this.directionDistanceEl.textContent = distanceText;
+      this.directionDistance = distanceText;
     }
   }
 }
