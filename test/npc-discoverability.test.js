@@ -5,6 +5,21 @@ import * as THREE from 'three';
 import { NPCManager } from '../src/npc.js';
 
 const config = JSON.parse(fs.readFileSync(new URL('../public/zones.json', import.meta.url)));
+
+test('destination guidance suppresses only NPC arrow; modal also blocks E and prompt', t => {
+  const { manager, handlers, dialogue, direction, prompt } = setup(t);
+  manager.setNPCs([{ id: 'test-guide', name: 'Guide', position: [0, 1.6, -5], radius: 2 }]);
+  manager.isDirectionSuppressed = () => true;
+  manager.update({ x: 0, z: 0 }); assert.equal(direction.hidden, true);
+  manager.isDirectionSuppressed = () => false;
+  manager.update({ x: 0, z: 0 }); assert.equal(direction.hidden, false);
+  manager.isInteractionBlocked = () => true;
+  manager.update({ x: 0, z: -4 }); assert.equal(prompt.style.display, 'none');
+  handlers.get('keydown')({ code: 'KeyE' }); assert.equal(dialogue.started, undefined);
+  manager.isInteractionBlocked = () => false;
+  manager.update({ x: 0, z: -4 });
+  handlers.get('keydown')({ code: 'KeyE' }); assert.equal(dialogue.started.id, 'test-guide');
+});
 function trackedText() {
   let value = '';
   return {

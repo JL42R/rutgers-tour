@@ -142,6 +142,7 @@ export class Dialogue {
     if (this.aiRequestVersion !== startVersion) return;
     this.data = this.cache.get(npc.dialogueFile);
     this.activeNpcId = npc.id ?? null;
+    this.initialWelcome = options.initialWelcome === true;
     if (options.allowQuestionProvider !== false) {
       this.activeQuestionProvider = this.questionProviders.get(this.activeNpcId) ?? null;
       this.activeQuestionProvider?.reset();
@@ -412,6 +413,12 @@ export class Dialogue {
   }
 
   close() {
+    const session = {
+      npcId: this.activeNpcId,
+      initialWelcome: this.initialWelcome === true,
+      reachedEnding: this.completionEligible,
+    };
+    this.initialWelcome = false;
     const completedNpcId = this.completionEligible && this.activeNpcId &&
       !this.completedNpcIds.has(this.activeNpcId)
       ? this.activeNpcId
@@ -440,5 +447,7 @@ export class Dialogue {
     focusTarget?.focus({ preventScroll: true });
 
     if (completedNpcId) this.onComplete?.(completedNpcId);
+    // Unlike tracker completion, this reports every closed conversation, after focus restoration.
+    this.onSessionClosed?.(session);
   }
 }

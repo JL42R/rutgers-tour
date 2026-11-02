@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { Dialogue } from '../src/dialogue.js';
 import { NPCManager } from '../src/npc.js';
 import { InteractionTracker, TOUR_PROGRESS_STORAGE_KEY } from '../src/interaction-tracker.js';
+import { RoomNavigation } from '../src/room-navigation.js';
 
 const hallway = JSON.parse(readFileSync(new URL('../public/dialogue/hallway-guide.json', import.meta.url)));
 const guide = { id: 'hallway-guide', name: 'CORE Guide', dialogueFile: '/hallway.json' };
@@ -131,6 +132,21 @@ function beginQuestion(dialogue, question = 'A fictional question?') {
   return { input, pending: dialogue.submitAIQuestion(input, ask, cancel) };
 }
 function finishScript(dialogue) { while (dialogue.data.nodes[dialogue.currentNodeId].next) dialogue.showNode(dialogue.data.nodes[dialogue.currentNodeId].next); }
+
+test('room selector follows only a finished automatic welcome, including previously saved completion', async t => {
+  const { dialogue, app } = setup(t);
+  let shown = 0;
+  const navigation = { open() { assert.equal(dialogue.isOpen, false); assert.equal(document.activeElement, app); shown++; } };
+  dialogue.onSessionClosed = session => RoomNavigation.prototype.welcomeClosed.call(navigation, session);
+  await dialogue.start(guide, { initialWelcome: true, allowQuestionProvider: false });
+  dialogue.close(); assert.equal(shown, 0);
+  await dialogue.start(guide); finishScript(dialogue); dialogue.close(); assert.equal(shown, 0);
+  assert(dialogue.completedNpcIds.has(guide.id));
+  await dialogue.start(guide, { initialWelcome: true, allowQuestionProvider: false });
+  finishScript(dialogue); assert.equal(shown, 0);
+  dialogue.close(); assert.equal(shown, 1);
+  await dialogue.start(guide); finishScript(dialogue); dialogue.close(); assert.equal(shown, 1);
+});
 
 test('Dialogue local: no provider preserves scripted buttons, completion and focus restoration', async t => {
   const { dialogue, app } = setup(t); const completions = [];

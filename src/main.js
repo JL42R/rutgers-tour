@@ -8,6 +8,7 @@ import { ZoneManager } from './zones.js';
 import { NPCManager } from './npc.js';
 import { Dialogue } from './dialogue.js';
 import { InteractionTracker } from './interaction-tracker.js';
+import { RoomNavigation } from './room-navigation.js';
 import { room116ArrivalPosition } from './room116-arrival.js';
 import { debugEquipment, equipmentPlaceholder, installEquipmentDebug } from './equipment-debug.js';
 
@@ -45,8 +46,11 @@ const dialogue = new Dialogue();
 const controls = new PlayerControls(camera, renderer.domElement);
 const zones = new ZoneManager(scene, { debugEquipment, equipmentPlaceholder });
 const tracker = new InteractionTracker();
+const roomNavigation = new RoomNavigation({ controls, dialogue, tracker });
 const npcs = new NPCManager(scene, dialogue, {
   isCompleted: (npcId) => tracker.completedNpcIds.has(npcId),
+  isInteractionBlocked: () => roomNavigation.isOpen,
+  isDirectionSuppressed: () => roomNavigation.active || roomNavigation.isOpen,
 });
 installEquipmentDebug({ camera, controls, zones, dialogue });
 
@@ -57,6 +61,7 @@ dialogue.onOpen = () => {
   tracker.collapse();
 };
 dialogue.onClose = () => { controls.enabled = true; };
+dialogue.onSessionClosed = (session) => roomNavigation.welcomeClosed(session);
 dialogue.onComplete = (npcId) => {
   console.log('[NPC completed]', npcId);
   tracker.complete(npcId);
@@ -91,7 +96,7 @@ async function startInitialWelcome(startZone) {
   // Set this before loading the dialogue so a slow or failed request cannot trigger a second attempt.
   initialWelcomeStarted = true;
   try {
-    await dialogue.start(hallwayGuide, { allowQuestionProvider: false });
+    await dialogue.start(hallwayGuide, { allowQuestionProvider: false, initialWelcome: true });
     if (!dialogue.isOpen) console.warn('The hallway welcome could not be opened.');
   } catch (err) {
     console.error('Could not open the hallway welcome:', err);
@@ -104,6 +109,7 @@ async function init() {
   try {
     const config = await zones.loadConfig('./zones.json');
     tracker.setConfig(config);
+    roomNavigation.configure(config);
     for (const npcId of tracker.completedNpcIds) dialogue.completedNpcIds.add(npcId);
     const startZone = config.zones.find(z => z.id === config.startZone) ?? config.zones[0];
     await zones.loadZone(startZone.id);
@@ -193,6 +199,7 @@ renderer.setAnimationLoop(() => {
     if (transition) void switchZone(transition.target, transition, previousPosition);
   }
 
+  roomNavigation.update(camera.position, controls.yaw, zones.current?.id, zoneSwitchInProgress);
   npcs.update(camera.position, controls.yaw);
   renderer.render(scene, camera);
 });
