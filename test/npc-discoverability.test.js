@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as THREE from 'three';
 import { NPCManager } from '../src/npc.js';
+import { RoomRoute } from '../src/room-navigation.js';
 
 const config = JSON.parse(fs.readFileSync(new URL('../public/zones.json', import.meta.url)));
 
@@ -162,7 +163,7 @@ test('all three current zone configurations preserve NPC data and positions', t 
   assert.equal(JSON.stringify(config), snapshot);
 });
 
-test('indicator points toward the nearest unvisited guide using camera-relative yaw', t => {
+test('indicator points toward the first unfinished guide using camera-relative yaw', t => {
   const completedNpcIds = new Set(['completed-nearby']);
   const {
     manager, direction, directionArrow, directionName, directionDistance,
@@ -181,6 +182,54 @@ test('indicator points toward the nearest unvisited guide using camera-relative 
 
   manager.update({ x: 0, z: 0 }, -Math.PI / 2);
   assert.equal(directionArrow.style.transform, 'rotate(0rad)');
+});
+
+test('checklist target stays first even beside another guide; E still talks to the nearest', t => {
+  const { manager, direction, directionName, handlers, dialogue, prompt, completedNpcIds } = setup(t);
+  manager.setNPCs([
+    { id: 'first', name: 'First', position: [0, 1.6, -9], radius: 2 },
+    { id: 'closer', name: 'Closer', position: [0, 1.6, -1], radius: 2 },
+  ]);
+  manager.update({ x: 0, z: 0 });
+  assert.equal(directionName.textContent, 'First');
+  assert.equal(direction.hidden, false);
+  assert.equal(prompt.style.display, 'block');
+  handlers.get('keydown')({ code: 'KeyE' }); assert.equal(dialogue.started.id, 'closer');
+  completedNpcIds.add('closer');
+  manager.update({ x: 0, z: 0 }); assert.equal(directionName.textContent, 'First');
+  manager.update({ x: 0, z: -8 }); assert.equal(direction.hidden, true);
+  assert.equal(prompt.style.display, 'block');
+  manager.isInteractionBlocked = () => true;
+  manager.update({ x: 0, z: 0 }); assert.equal(direction.hidden, true);
+});
+
+test('manual room route keeps priority until cancel or arrival; blocking UI and dialogue hide NPC guidance', t => {
+  const { manager, direction, dialogue } = setup(t);
+  const route = new RoomRoute(config);
+  let modalOpen = false;
+  manager.setNPCs([{ id: 'first', name: 'First', position: [0, 1.6, -9] }]);
+  manager.isDirectionSuppressed = () => !!route.destination || modalOpen;
+  manager.isInteractionBlocked = () => modalOpen;
+  const update = () => manager.update({ x: 0, z: 0 });
+  update(); assert.equal(direction.hidden, false);
+  route.select('project-studio'); update(); assert.equal(direction.hidden, true);
+  route.enter('printing-room'); update(); assert.equal(direction.hidden, true);
+  route.cancel(); update(); assert.equal(direction.hidden, false);
+  route.select('project-studio'); route.enter('project-studio'); update(); assert.equal(direction.hidden, false);
+  modalOpen = true; update(); assert.equal(direction.hidden, true);
+  modalOpen = false; dialogue.isOpen = true; update(); assert.equal(direction.hidden, true);
+  dialogue.isOpen = false; update(); assert.equal(direction.hidden, false);
+});
+
+test('hallway keeps E interaction without an NPC arrow and rejects stale foreign-room targets', t => {
+  const { manager, direction, prompt, handlers, dialogue } = setup(t);
+  manager.setNPCs([{ id: 'hallway-guide', name: 'CORE Guide', position: [0, 1.6, -3] }], 'hallway');
+  manager.update({ x: 0, z: 0 }); assert.equal(direction.hidden, true);
+  manager.update({ x: 0, z: -2 }); assert.equal(prompt.style.display, 'block');
+  handlers.get('keydown')({ code: 'KeyE' }); assert.equal(dialogue.started.id, 'hallway-guide');
+  manager.setNPCs([{ id: 'local', name: 'Local', position: [0, 1.6, -8] }], 'printing-room');
+  manager.getGuidance = () => ({ id: 'foreign', label: 'Foreign', position: { x: 9, z: 9 }, radius: 2 });
+  manager.update({ x: 0, z: 0 }); assert.equal(direction.hidden, true);
 });
 
 test('indicator advances through completion state and returns after progress reset', t => {

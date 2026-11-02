@@ -39,7 +39,7 @@
       padding: 1px 8px; font-family: inherit; font-weight: 700;
     }
 
-    /* Gentle current-zone pointer to the nearest guide not yet completed. */
+    /* Pointer to the first unfinished guide in Tour Progress display order. */
     #guide-direction {
       position: fixed; left: 50%; bottom: 24px; z-index: 2;
       transform: translateX(-50%); display: flex; align-items: center; gap: 9px;
@@ -276,7 +276,7 @@
   <div id="guide-direction" hidden aria-hidden="true">
     <span id="guide-direction-arrow">↑</span>
     <span id="guide-direction-copy">
-      Unvisited guide: <strong id="guide-direction-name"></strong>
+      Next guide: <strong id="guide-direction-name"></strong>
       <span id="guide-direction-distance"></span>
     </span>
   </div>

@@ -5,6 +5,16 @@
 export const TOUR_PROGRESS_STORAGE_KEY = 'rutgers-tour.completed-npc-ids';
 export const TOUR_COMPLETE_MESSAGE = 'Tour complete! You visited every guide.';
 
+// Use the same room subsection that render() displays, without distance sorting.
+export function firstUnfinishedNPCInZone(zones, zoneId, isCompleted) {
+  const zone = zones.find(candidate => candidate.id === zoneId);
+  const npc = zone?.npcs.find(candidate => !isCompleted(candidate.id));
+  return npc ? {
+    zoneId: zone.id, npcId: npc.id,
+    label: npc.label ?? npc.trackerLabel ?? npc.name ?? npc.id,
+  } : null;
+}
+
 export class InteractionTracker {
   constructor() {
     this.el = document.getElementById('tour-progress');
@@ -64,6 +74,10 @@ export class InteractionTracker {
       console.warn('Could not load saved tour progress:', error);
       return [];
     }
+  }
+
+  getNextUnfinishedNpcInZone(zoneId) {
+    return firstUnfinishedNPCInZone(this.zones, zoneId, id => this.completedNpcIds.has(id));
   }
 
   saveProgress() {

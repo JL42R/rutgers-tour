@@ -6,6 +6,7 @@ import { Dialogue } from '../src/dialogue.js';
 import { NPCManager } from '../src/npc.js';
 import { InteractionTracker, TOUR_PROGRESS_STORAGE_KEY } from '../src/interaction-tracker.js';
 import { RoomNavigation } from '../src/room-navigation.js';
+import { npcGuidance } from '../src/npc-guidance.js';
 
 const hallway = JSON.parse(readFileSync(new URL('../public/dialogue/hallway-guide.json', import.meta.url)));
 const guide = { id: 'hallway-guide', name: 'CORE Guide', dialogueFile: '/hallway.json' };
@@ -146,6 +147,55 @@ test('room selector follows only a finished automatic welcome, including previou
   finishScript(dialogue); assert.equal(shown, 0);
   dialogue.close(); assert.equal(shown, 1);
   await dialogue.start(guide); finishScript(dialogue); dialogue.close(); assert.equal(shown, 1);
+});
+
+test('room-local guidance preserves global checklist, saved progress, room transitions, completion and reset', t => {
+  const { dialogue, storage } = setup(t);
+  t.mock.method(THREE.TextureLoader.prototype, 'load', (url, loaded) => loaded(new THREE.Texture()));
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const printing = config.zones.find(zone => zone.id === 'printing-room');
+  let currentZone = config.zones.find(zone => zone.id === 'hallway');
+  let tracker = new InteractionTracker(); tracker.setConfig(config);
+  const manager = new NPCManager(new THREE.Scene(), dialogue, {
+    getGuidance: () => npcGuidance(tracker.getNextUnfinishedNpcInZone(currentZone.id), currentZone),
+  });
+  const enter = id => {
+    currentZone = config.zones.find(zone => zone.id === id);
+    manager.setNPCs([...currentZone.npcs].reverse(), id); // Sprite order is not tracker order.
+    assert.equal(manager.directionEl.hidden, true); // Previous room directions disappear immediately.
+  };
+  const position = { x: -0.9, z: 0.372 }; // Beside Vishan, far from Bambu.
+  const check = id => { manager.update(position); assert.equal(manager.directionTargetId, id); assert.equal(manager.directionEl.hidden, false); };
+  enter('hallway'); manager.update(position); assert.equal(manager.directionEl.hidden, true);
+  enter('printing-room');
+  assert.equal(tracker.zonesEl.children[0].children[1].children[0].children[1].textContent, 'Bambu Lab Printers');
+  check('johnny-bambu');
+  tracker.complete('vishan-ergonomics'); check('johnny-bambu');
+  tracker.complete('johnny-bambu'); check('johnny-ultimaker');
+  tracker.complete('johnny-ultimaker'); check('johnny-stratasys');
+  assert(storage.has(TOUR_PROGRESS_STORAGE_KEY));
+  tracker = new InteractionTracker(); tracker.setConfig(config); check('johnny-stratasys');
+  enter('hallway'); manager.update(position); assert.equal(manager.directionEl.hidden, true);
+  enter('project-studio'); manager.update(position); assert.equal(manager.directionEl.hidden, true);
+  enter('printing-room'); check('johnny-stratasys');
+  tracker.complete('johnny-stratasys'); check('johnny-sca');
+  tracker.complete('johnny-sca');
+  manager.update(position);
+  assert.equal(tracker.getNextUnfinishedNpcInZone('printing-room'), null);
+  assert.equal(manager.directionEl.hidden, true);
+  assert.equal(tracker.getNextUnfinishedNpcInZone('hallway').npcId, 'hallway-guide');
+  assert.equal(tracker.zonesEl.children.length, config.zones.length);
+  assert.equal(tracker.npcIds.size, 6); // Hallway guide still appears in global progress.
+  tracker.reset(); check('johnny-bambu'); assert.equal(storage.has(TOUR_PROGRESS_STORAGE_KEY), false);
+  enter('hallway'); manager.update(position); assert.equal(manager.directionEl.hidden, true);
+  enter('project-studio'); manager.update(position); assert.equal(manager.directionEl.hidden, true);
+  enter('printing-room'); check('johnny-bambu');
+  // Other room ordering never changes this room's recommendation.
+  const changed = structuredClone(config); changed.zones.reverse();
+  tracker.setConfig(changed); check('johnny-bambu');
+  changed.zones.find(zone => zone.id === printing.id).npcs.reverse();
+  tracker.setConfig(changed);
+  assert.equal(tracker.getNextUnfinishedNpcInZone(printing.id).npcId, 'vishan-ergonomics');
 });
 
 test('Dialogue local: no provider preserves scripted buttons, completion and focus restoration', async t => {

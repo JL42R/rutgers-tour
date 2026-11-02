@@ -9,6 +9,7 @@ import { NPCManager } from './npc.js';
 import { Dialogue } from './dialogue.js';
 import { InteractionTracker } from './interaction-tracker.js';
 import { RoomNavigation } from './room-navigation.js';
+import { npcGuidance } from './npc-guidance.js';
 import { room116ArrivalPosition } from './room116-arrival.js';
 import { debugEquipment, equipmentPlaceholder, installEquipmentDebug } from './equipment-debug.js';
 
@@ -49,8 +50,11 @@ const tracker = new InteractionTracker();
 const roomNavigation = new RoomNavigation({ controls, dialogue, tracker });
 const npcs = new NPCManager(scene, dialogue, {
   isCompleted: (npcId) => tracker.completedNpcIds.has(npcId),
-  isInteractionBlocked: () => roomNavigation.isOpen,
-  isDirectionSuppressed: () => roomNavigation.active || roomNavigation.isOpen,
+  isInteractionBlocked: () => roomNavigation.isOpen || !controls.enabled,
+  isDirectionSuppressed: () => roomNavigation.active || roomNavigation.isOpen || !controls.enabled,
+  getGuidance: () => npcGuidance(
+    tracker.getNextUnfinishedNpcInZone(zones.current?.id), zones.current
+  ),
 });
 installEquipmentDebug({ camera, controls, zones, dialogue });
 
@@ -113,7 +117,7 @@ async function init() {
     for (const npcId of tracker.completedNpcIds) dialogue.completedNpcIds.add(npcId);
     const startZone = config.zones.find(z => z.id === config.startZone) ?? config.zones[0];
     await zones.loadZone(startZone.id);
-    npcs.setNPCs(startZone.npcs ?? []);
+    npcs.setNPCs(startZone.npcs ?? [], startZone.id);
     if (startZone.spawn) {
       camera.position.set(startZone.spawn[0], (startZone.spawn[1] ?? 0) + EYE_HEIGHT, startZone.spawn[2]);
     }
@@ -155,7 +159,7 @@ async function switchZone(zoneId, transition = null, previousPosition = null) {
         console.warn('D3 inward arrival was unsafe; retaining the original crossing position.');
       }
     }
-    npcs.setNPCs(newZone.npcs ?? []);
+    npcs.setNPCs(newZone.npcs ?? [], newZone.id);
     console.info(`Switched zone from "${oldZoneId}" to "${newZone.id}".`);
   } catch (err) {
     console.error(`Could not switch from zone "${oldZoneId}" to "${zoneId}".`, err);
