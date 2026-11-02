@@ -23,7 +23,7 @@ function makeBadgeTexture(label) {
   ctx.lineWidth = 10;
   ctx.stroke();
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 120px system-ui, sans-serif';
+  ctx.font = label.length > 1 ? 'bold 94px system-ui, sans-serif' : 'bold 120px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(label, 128, 136);
@@ -81,9 +81,24 @@ export class NPCManager {
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
         map: makeBadgeTexture(markerLabel),
         transparent: true,
+        // Clip badge corners without dropping the original depth footprint:
+        // Spark's later splats must still respect the visible badge pixels.
+        ...(!data.markerImage && markerLabel.length > 1 ? { alphaTest: 0.1 } : {}),
         depthTest: true
       }));
       if (data.markerImage) {
+        // Clip the sprite itself so both portraits and failed-image badges have
+        // transparent corners that cannot write a square into the depth buffer.
+        // Keep the original image/UVs and the existing depth test/write behavior.
+        sprite.material.onBeforeCompile = (shader) => {
+          shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <clipping_planes_fragment>',
+            `#include <clipping_planes_fragment>
+            vec2 markerOffset = vMapUv - vec2(0.5);
+            if (dot(markerOffset, markerOffset) > 0.25) discard;`
+          );
+        };
+        sprite.material.customProgramCacheKey = () => 'circular-npc-marker-v1';
         new THREE.TextureLoader().load(data.markerImage, (texture) => {
           texture.colorSpace = THREE.SRGBColorSpace;
           sprite.material.map.dispose();
