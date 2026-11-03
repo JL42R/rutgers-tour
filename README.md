@@ -56,7 +56,7 @@ npm.cmd run build
 
 The tracked Room 116 suite has **55 tests**. Run it explicitly: there is no package test script or CI test step yet ([#68](https://github.com/JL42R/rutgers-tour/issues/68)). A successful build is not browser or accessibility acceptance.
 
-Room 116 NPCs remain priority 1 (#56); Vishan's interactive guide is priority 2 (#47). PRs #46, #48, #59 and #61 are still open, not production functionality. Johnny's typed-question form currently returns an **AI TEST echo**. Other outstanding work: missing Vishan portrait/marker image (#67), permanent printing-room equipment collision boxes (#66), actual NVDA acceptance failure (#33), and three-zone quality/SH-band/performance comparisons (#8/#23/#24/#25/#34). Existing scripts do not by themselves establish faculty/content approval (#20).
+Room 116 NPCs remain priority 1 (#56). The AI guide, a single NPC that supplements the scripted guides, is priority 2 (#47, led by Hamza and Vishan). Its pipeline (PRs #46/#48/#59/#61 and #70–#80) is merged but runs offline only, with synthetic knowledge, a fake provider and a development-only preview (`docs/GUIDE_LOCAL_BROWSER.md`). It is not production functionality. Johnny Bambu's typed-question form still returns an **AI TEST echo**. Other outstanding work: missing Vishan portrait/marker image (#67), permanent printing-room equipment collision boxes (#66), actual NVDA acceptance failure (#33), and three-zone quality/SH-band/performance comparisons (#8/#23/#24/#25/#34). Existing scripts do not by themselves establish faculty/content approval (#20).
 
 ## Pipeline reference for future cohorts
 

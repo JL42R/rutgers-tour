@@ -1,5 +1,7 @@
 # Offline Guide document ingestion and approved retrieval
 
+> **Status (2026-11-02).** Every #47 stage is merged into main: contracts/schema (#70), ingestion (#71), retrieval (#72), Worker handler (#73/#74), evaluations (#75), OpenAI adapter (#78), localhost bridge (#79) and development browser preview (#80). Wording below such as "this stage", "not integrated" or "remains in the handoff" describes this document's original checkpoint. Still true: all knowledge is synthetic, the provider is fake, nothing is deployed, and the production build excludes the preview. The AI guide is now a required single NPC that supplements the scripted guides; see `docs/PLAN.md` (2026-11-02 addendum).
+
 This Issue #47 milestone demonstrates how reviewed fictional documents can expand the local Guide
 without model training. It does not ingest Rutgers CORE material, expose an upload endpoint, create
 authentication, deploy a backend, call OpenAI, collect visitor questions, or change the production
@@ -357,7 +359,7 @@ The earlier Worker lifecycle tests above remain in the handoff. Run this stage's
 `package.json` has no test script and no Worker is required:
 
 ```powershell
-Set-Location C:\dev\rutgers-tour-pr69-retrieval
+Set-Location C:\dev\rutgers-tour
 node --test test/guide-knowledge-retrieval.test.js
 node --test test/guide-retrieval-offline-quality.test.js
 node --test test/guide-knowledge-retrieval.test.js test/guide-retrieval-offline-quality.test.js

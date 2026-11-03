@@ -1,5 +1,7 @@
 # Offline CORE Guide Worker handoff
 
+> **Status (2026-11-02).** Every #47 stage is merged into main: contracts/schema (#70), ingestion (#71), retrieval (#72), Worker handler (#73/#74), evaluations (#75), OpenAI adapter (#78), localhost bridge (#79) and development browser preview (#80). Wording below such as "this stage", "not integrated" or "remains in the handoff" describes this document's original checkpoint. Still true: all knowledge is synthetic, the provider is fake, nothing is deployed, and the production build excludes the preview. The AI guide is now a required single NPC that supplements the scripted guides; see `docs/PLAN.md` (2026-11-02 addendum).
+
 This stage proves the future backend boundary without deploying a Worker or calling an AI provider.
 All knowledge is fictional, all model behavior is local, and no visitor questions are persisted.
 This is Stage 69D.1: an offline JavaScript module, not a deployed Cloudflare Worker.
@@ -180,7 +182,7 @@ Until those decisions are recorded, this Worker remains a local testable module 
 
 ## Local verification and handoff differences
 
-Run from this worktree in PowerShell:
+Run from the repository root (`C:\dev\rutgers-tour`) in PowerShell:
 
 ```powershell
 node --test test/guide-worker-handler.test.js

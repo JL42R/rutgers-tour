@@ -50,7 +50,7 @@ facing positive Z toward the 3D Printing Room doorway.
 
 ## Opening beat — hallway guide
 
-The hallway guide from Issue #54 is implemented on main and introduces the visitor using the existing dialogue-node system. Its automatic welcome and replay do not depend on question answering. Vishan's typed-guide work is tracked separately in #47; main's current Johnny prototype only echoes AI TEST, and PRs #48/#59/#61 remain standalone/unmerged. Coordinate future integration with the existing welcome rather than assuming a functioning hallway AI already exists.
+The hallway guide from Issue #54 is implemented on main and introduces the visitor using the existing dialogue-node system. Its automatic welcome and replay do not depend on question answering. The AI guide is tracked separately in #47, led by Hamza and Vishan. It is a single NPC that supplements the scripted guides and never replaces them. Its offline pipeline is merged, and a development-only preview attaches it to this hallway guide's normal ending. There is no live AI for visitors yet, and Johnny Bambu's prototype still echoes AI TEST. Coordinate integration with the existing welcome rather than assuming a functioning hallway AI already exists.
 
 The visitor starts at `[0, 0, 0]`, facing positive Z. The guide is centered behind the visitor at
 `[0, 1.6, -3]`, where it remains reachable for replay without distracting from the route toward the
@@ -176,7 +176,7 @@ review, preserving those interaction patterns.
 ## Follow-up issue boundaries
 
 - **Issue #54 — hallway welcome:** implemented on main; preserve automatic opening, replay and completion behavior.
-- **Issue #47 — interactive guide:** ongoing development by Vishan; approved knowledge, adapters/UI and browser/accessibility acceptance remain. Preserve the existing scripted guides.
+- **Issue #47 — AI guide:** a single NPC that supplements the scripted guides, led by Hamza and Vishan. The offline pipeline and development preview are merged. Remaining: real approved knowledge, the live-backend decision, placement/reach, and browser/accessibility acceptance. Preserve the existing scripted guides.
 - **Issue #56 — project-studio guide:** choose the representative with permission where required,
   collect verified facts, review terminal dialogue paths, place guides within the already-approved walking area, and test tracker/accessibility behavior while preserving D3.
 - **Issue #57 — this document:** documentation proposal is recorded; obtain and record approval of proposed visitor-facing copy/responsibilities before related scripts are finalized. The three-environment scope is already confirmed.

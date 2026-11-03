@@ -1,5 +1,7 @@
 # CORE Guide knowledge intake
 
+> **Status (2026-11-02).** Every #47 stage is merged into main: contracts/schema (#70), ingestion (#71), retrieval (#72), Worker handler (#73/#74), evaluations (#75), OpenAI adapter (#78), localhost bridge (#79) and development browser preview (#80). Wording below such as "this stage", "not integrated" or "remains in the handoff" describes this document's original checkpoint. Still true: all knowledge is synthetic, the provider is fake, nothing is deployed, and the production build excludes the preview. The AI guide is now a required single NPC that supplements the scripted guides; see `docs/PLAN.md` (2026-11-02 addendum).
+
 This is the developer workflow for adding verified Rutgers CORE information to the future Guide.
 It does not approve any fact by itself. The repository's current Guide fixture is synthetic, and
 the team must not copy proposed story text, visitor statements, model output, or assumptions into

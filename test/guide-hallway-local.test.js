@@ -55,7 +55,8 @@ test('local connector: actual main guard never imports or registers in productio
     assert.equal(disclosures, expected);
     if (expected) assert.equal(registrations[0][0], 'hallway-guide');
   }
-  assert.match(main, /dialogue\.start\(hallwayGuide, \{ allowQuestionProvider: false \}\)/);
+  // The automatic welcome must still forbid the question provider; other options (e.g. initialWelcome, PR #82) may follow.
+  assert.match(main, /dialogue\.start\(hallwayGuide, \{ allowQuestionProvider: false(?:, [^}]*)? \}\)/);
 });
 
 test('local connector: only fixed default and advanced catalogs can be selected', () => {

@@ -4,7 +4,7 @@ Welcome! This guide takes you from a blank computer to running the project and m
 
 **What we're building:** a web-based, photorealistic 3D tour of the CORE building first floor, made with 3D Gaussian Splatting (phone video → AI-reconstructed 3D scene → explorable in a browser with NPC guides). You do NOT need to understand the 3D reconstruction to contribute — the app, dialogue, and testing work needs no special hardware.
 
-**Current scope (2026-10-30):** exactly CORE Hallway (`hallway`), 3D Printing Room (`printing-room`) and Project Studio / Room 116 (`project-studio`). Machine Shop and Computer Lab are excluded for this team; older capture/research material remains for future groups. Room 116 NPCs are still #56 work, and Vishan's interactive-guide PRs are unmerged (#47).
+**Current scope (2026-10-30):** exactly CORE Hallway (`hallway`), 3D Printing Room (`printing-room`) and Project Studio / Room 116 (`project-studio`). Machine Shop and Computer Lab are excluded for this team; older capture/research material remains for future groups. Room 116 NPCs are still #56 work. Since 2026-11-02, one AI guide NPC that supplements the scripted guides is also a required deliverable (#47, led by Hamza and Vishan). Its offline pipeline is merged; live use is not yet approved (see `docs/PLAN.md`).
 
 ---
 
@@ -123,7 +123,7 @@ npm.cmd run build
 
 There are 55 tracked Room 116 tests. CI currently runs install/build but not this suite (#68). Historical local equipment/integration probes under ignored `tmp/` are not fresh-clone requirements. The runtime includes `src/interaction-tracker.js`, `src/room116-*.js` and opt-in `src/equipment-*.js` helpers in addition to the core modules listed in README.
 
-Known open work: studio NPCs (#56); interactive-guide integration (#47 — the current Johnny form only echoes AI TEST); missing Vishan portrait/marker image (#67); permanent printing equipment boxes (#66); actual NVDA announcement failure (#33); and visual-quality/SH/load/FPS comparisons (#8/#23/#24/#25/#34). Do not mistake successful tests/builds for those acceptance results.
+Known open work: studio NPCs (#56); AI guide real knowledge, live-backend decision and placement (#47 — the offline pipeline is merged; Johnny Bambu's form still echoes AI TEST); missing Vishan portrait/marker image (#67); permanent printing equipment boxes (#66); actual NVDA announcement failure (#33); and visual-quality/SH/load/FPS comparisons (#8/#23/#24/#25/#34). Do not mistake successful tests/builds for those acceptance results.
 
 ---
 
