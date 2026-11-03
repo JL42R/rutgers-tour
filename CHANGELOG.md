@@ -134,6 +134,14 @@ Newest entry first. This records what changed and when — for schedule and gate
   printing-room NPC data/rendering remain unchanged. Physical project alignment
   and browser visual acceptance are pending; no commit, push or PR.
 
+### AI interaction scope and documentation synchronization
+- Recorded the faculty-directed scope (Dr. Jafari): the three environments only, plus AI interaction. One AI guide NPC answers typed questions and aims to be the single source of tour information. It **supplements** the scripted NPCs and does not replace them. Hamza and Vishan lead it (#47). Open decisions are listed in the new `docs/PLAN.md` 2026-11-02 addendum: backend/provider, real knowledge, placement/reach, and the G4 feature freeze. None is decided here.
+- Corrected statements that were no longer true, verified against full git history. PRs #46, #48, #59, #61, #70–#75 and #78–#80 are merged (2026-10-30 to 2026-11-01), as are #82, #84 and #85 (2026-11-02). The earlier same-day entries below, which say "no commit, push or PR", describe their checkpoints; #82 and #84 were merged afterward. Merging does not by itself record their pending manual browser acceptance.
+- `AGENTS.md`, `DESIGN.md`, `README.md`, `docs/PLAN.md`, `docs/ONBOARDING.md` and `docs/STORY.md` now describe the merged offline AI pipeline (synthetic knowledge, fake provider, development-only preview, excluded from production builds). `DESIGN.md` §3.4 marker scaling now matches `src/npc.js` (distance-based 0.32–0.65) and PR #85's J1–J3 badges. The "no backend" decision is marked under review, not changed, and "no backend" is removed from PLAN §8's definition of done.
+- Added a dated status note to each `docs/GUIDE_*.md` stage handoff, and replaced stage-worktree paths (`C:\dev\rutgers-tour-pr69-*`) with the repository root.
+- Fixed one stale test assertion in `test/guide-hallway-local.test.js`. It required the exact pre-PR #82 welcome call; it now still requires `allowQuestionProvider: false` but permits PR #82's added `initialWelcome` option. No application code changed.
+- Validation (Linux, Node 22): full tracked suite 541/541 passing; production build passes with the existing bundle-size warning; the built `dist/` contains no localhost-guide code. Windows checkouts still show three frozen-fixture hash failures caused by CRLF line endings.
+
 ### Room-local checklist-ordered NPC guidance (corrected after manual review)
 - Changed the NPC direction indicator to use only the first unfinished entry under the current room in Tour Progress, through `getNextUnfinishedNpcInZone(zoneId)`. The global checklist still displays all zones and completion status; saved progress, out-of-order conversations and Reset Progress use the same existing completion state.
 - Kept E interaction proximity-based. Being near another guide no longer redirects or hides the checklist arrow; entering the target's interaction radius hides it in favor of the existing prompt.

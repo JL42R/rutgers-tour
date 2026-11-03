@@ -20,7 +20,7 @@ as if visitors can already experience it.
 | NPC completion reporting | **Implemented** | Dialogue completion is reported once per guide and can be reset. |
 | Tour Progress tracker | **Implemented** | The tracker reads every configured zone and NPC, preserves progress, and works in any visit order. |
 | Hallway welcome guide | **Implemented on main** | The scripted welcome, one-time automatic opening, and tracker entry use the existing NPC systems. |
-| Project-studio guide(s) | **Outstanding current priority — #56** | Room 116 exists, but its NPC list is empty. Identity/permission, facts, scripts, placement and tracker/accessibility tests remain. |
+| Project-studio guide(s) | **Placed; content outstanding — #56** | Six project guides (P1–P6) are placed, tracked and have portraits (PR #87). Each dialogue is a one-node "coming soon" placeholder; verified facts, scripts and accessibility acceptance remain. |
 | Hand-off lines in this document | **Proposed** | Existing dialogue JSON is unchanged by Issue #57. |
 | Final tracker message in this document | **Proposed** | The tracker works, but its current shorter message must be updated separately after approval. |
 
@@ -43,14 +43,14 @@ tracker must continue to calculate completion from the configured NPC list rathe
 2. **3D Printing Room — prototyping through post-processing.** Visit the four numbered Johnny
    stations, then Vishan's ergonomics station. The printing room is on the hallway's negative-x wall.
 3. **Project Studio / Room 116.** Return to the hallway and continue to D3 near the far positive-Z end on the positive-X wall. The environment is implemented; its guide identity, facts and dialogue remain #56 work.
-4. **Tour completion.** The tracker displays its implemented message when every currently configured NPC is completed. Room 116 has no NPCs yet, so that message currently reflects the hallway and five printing-room guides, not completed future studio content. Visitors remain free to explore and replay dialogue.
+4. **Tour completion.** The tracker displays its implemented message when every currently configured NPC is completed. Room 116's six project guides count toward it (PR #87), but their dialogue is still placeholder text, so completion does not yet mean the studio content was delivered. Visitors remain free to explore and replay dialogue.
 
 This route describes the narrative order, not a navigation lock. The hallway starts at its origin,
 facing positive Z toward the 3D Printing Room doorway.
 
 ## Opening beat — hallway guide
 
-The hallway guide from Issue #54 is implemented on main and introduces the visitor using the existing dialogue-node system. Its automatic welcome and replay do not depend on question answering. Vishan's typed-guide work is tracked separately in #47; main's current Johnny prototype only echoes AI TEST, and PRs #48/#59/#61 remain standalone/unmerged. Coordinate future integration with the existing welcome rather than assuming a functioning hallway AI already exists.
+The hallway guide from Issue #54 is implemented on main and introduces the visitor using the existing dialogue-node system. Its automatic welcome and replay do not depend on question answering. The AI guide is tracked separately in #47, led by Hamza and Vishan. It is a single NPC that supplements the scripted guides and never replaces them. Its offline pipeline is merged, and a development-only preview attaches it to this hallway guide's normal ending. There is no live AI for visitors yet, and Johnny Bambu's prototype still echoes AI TEST. Coordinate integration with the existing welcome rather than assuming a functioning hallway AI already exists.
 
 The visitor starts at `[0, 0, 0]`, facing positive Z. The guide is centered behind the visitor at
 `[0, 1.6, -3]`, where it remains reachable for replay without distracting from the route toward the
@@ -98,7 +98,7 @@ take over another guide's main responsibility.
 | Johnny — Stratasys | Implemented | FDM, ABSplus, durable or functional parts, and why soluble support material is used. | The full support-cleaning process, which belongs to the SCA station. |
 | Johnny — SCA | Implemented | Support removal, the cleaning apparatus, and post-processing after compatible prints finish. | Detailed operation of the printers or broader ergonomics content. |
 | Vishan — Ergonomics | Implemented | Human movement, visual attention, ergonomics, and designing work around people. | 3D-printer specifications or manufacturing-equipment descriptions. |
-| Project-studio guide(s) | Current priority, not implemented — #56 | Communicate only room facts and responsibilities verified and approved through #56; no identities or statements are selected here. | Unverified room claims or duplication of printing-room explanations. |
+| Project-studio guide(s) | Current priority; placed with placeholder dialogue (PR #87), content outstanding — #56 | Communicate only room facts and responsibilities verified and approved through #56; no identities or statements are selected here. | Unverified room claims or duplication of printing-room explanations. |
 
 The table describes existing topic assignments and proposed scope, not new factual verification. #20 still needs printing-room content/subject-matter approval evidence. #56 must verify studio facts, permissions and script wording before implementation. Unknown information must not become dialogue by inference. Nonvisual discoverability and actual screen-reader acceptance remain #15/#33; the recorded NVDA failure is unresolved.
 
@@ -176,7 +176,7 @@ review, preserving those interaction patterns.
 ## Follow-up issue boundaries
 
 - **Issue #54 — hallway welcome:** implemented on main; preserve automatic opening, replay and completion behavior.
-- **Issue #47 — interactive guide:** ongoing development by Vishan; approved knowledge, adapters/UI and browser/accessibility acceptance remain. Preserve the existing scripted guides.
+- **Issue #47 — AI guide:** a single NPC that supplements the scripted guides, led by Hamza and Vishan. The offline pipeline and development preview are merged. Remaining: real approved knowledge, the live-backend decision, placement/reach, and browser/accessibility acceptance. Preserve the existing scripted guides.
 - **Issue #56 — project-studio guide:** choose the representative with permission where required,
   collect verified facts, review terminal dialogue paths, place guides within the already-approved walking area, and test tracker/accessibility behavior while preserving D3.
 - **Issue #57 — this document:** documentation proposal is recorded; obtain and record approval of proposed visitor-facing copy/responsibilities before related scripts are finalized. The three-environment scope is already confirmed.

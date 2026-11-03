@@ -9,6 +9,21 @@
 
 ---
 
+## AI interaction addendum — 2026-11-02
+
+After meetings with Dr. Jafari, the team's scope is set to the three environments below plus **AI interaction**. Machine Shop and Computer Lab are cut entirely; they were already excluded on 2026-10-30.
+
+- **What it is:** one AI guide NPC that answers visitors' typed questions. It is meant to fill the knowledge gaps the scripted dialogue boxes leave, and to act as a single source of all tour information.
+- **What it is not:** a replacement for the scripted NPCs. The hallway welcome, the five printing-room guides and the six Room 116 project guides (PR #87; content #56) all stay. Tour Progress continues to track the scripted guides.
+- **Who:** Hamza and Vishan lead the AI guide (#47).
+
+Decisions still open (none is made by this addendum):
+
+1. **Backend/provider.** A live model needs a server to hold the API key. Hosting, provider, model, cost limits and key handling need an explicit team decision recorded in `DESIGN.md`.
+2. **Real knowledge.** All current knowledge is synthetic. The AI's knowledge must include everything the scripted NPCs already say, so it never contradicts them, plus verified gap content. Both go through `docs/GUIDE_KNOWLEDGE_INTAKE.md` and #20.
+3. **Placement and reach.** Where the single AI NPC lives, and whether scripted guides can hand visitors off to it through the existing `ask-ai` choice.
+4. **Schedule.** G4's "no new features after Nov 6" conflicts with live AI integration. The team needs to decide whether the freeze moves or the AI guide is exempt; this file does not change the gate.
+
 ## Final scope addendum — 2026-10-30
 
 The current team's deliverable is **exactly three environments**: CORE Hallway (`hallway`), 3D Printing Room (`printing-room`) and Project Studio / Room 116 (`project-studio`). Machine Shop and Computer Lab are **excluded for this cohort** and retained only as future-group options. Their capture research and earlier schedules are preserved below; neither room blocks current-project completion.
@@ -16,7 +31,7 @@ The current team's deliverable is **exactly three environments**: CORE Hallway (
 Current work, in priority order:
 
 1. **Room 116 NPCs/dialogue (#56).** Navigation, D3, boundaries/exclusions, sign and arrival are published in main `b2a18e5` (feature `bc0b623`). Choose permissioned identities, verify facts, review scripts, place guides and test tracker/accessibility behavior. No studio NPCs are implemented yet.
-2. **Interactive guide (#47), developed by Vishan.** PRs #48/#59/#61 are standalone, unmerged foundations; PR #46's discoverability work is also unmerged. Main's Johnny typed form returns an AI TEST echo. Approved knowledge, component/UI integration and browser/accessibility acceptance remain; preserve existing welcome/printing guides. No live LLM/backend approval is implied.
+2. **AI guide (#47), led by Hamza and Vishan** *(updated 2026-11-02)*. PRs #46/#48/#59/#61 and the #70–#80 guide stages are merged. Main has an offline pipeline and a development-only hallway preview using synthetic knowledge and a fake provider. Johnny Bambu's typed form still returns an AI TEST echo. Remaining: real approved knowledge, the live-backend decision, placement, and browser/accessibility acceptance. Preserve the existing welcome and printing guides. No live LLM/backend approval is implied; see the 2026-11-02 addendum above.
 3. **Quality/performance on these three environments (#8/#23/#24/#25/#34).** Measure the current baseline, compare SH/cleanup copies side by side and get user approval before changing assets; do not initiate additional captures/environments.
 
 Remaining release work includes permanent printing equipment boxes (#66), missing Vishan portrait (#67), CI regression integration (#68), content approvals (#20), NVDA failure (#33), first-time-user recruitment/testing (#29/#16), cross-browser/network acceptance (#11), and final rehearsals/demo preparation (#35). These are separate from the completed Room 116 environment.
@@ -203,5 +218,7 @@ actual point of the project), or the deployed public URL.
 ## 8. What "done" means
 
 A stranger opens a URL in a browser, walks the CORE first floor with WASD, meets NPC guides who
-explain the rooms in real staff-informed copy, and comes away understanding what that building
-does — with no install, no account, and no backend.
+explain the rooms in real staff-informed copy, can ask the AI guide questions the scripts don't
+cover, and comes away understanding what that building does — with no install and no account.
+*(2026-11-02: "no backend" was removed from this sentence because the AI guide needs a server-side
+component; the backend decision itself is still open.)*

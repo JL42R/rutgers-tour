@@ -9,11 +9,13 @@ This document records the final stack decisions and architecture for the project
 
 The current deliverable contains exactly CORE Hallway (`hallway`), 3D Printing Room (`printing-room`) and Project Studio / Room 116 (`project-studio`). Machine Shop and Computer Lab are excluded for this cohort; their earlier plans/research are retained for future groups. This addendum supersedes earlier four/five-zone planning without changing the stack or coordinate system.
 
-Room 116 navigation is published in main `b2a18e5` (feature `bc0b623`); its NPC work remains #56. Vishan's interactive guide (#47) is ongoing: PRs #46/#48/#59/#61 are open and must not be treated as integrated. No real LLM/backend is approved by this documentation update.
+Room 116 navigation is published in main `b2a18e5` (feature `bc0b623`); its NPC work remains #56.
+
+**2026-11-02 update.** Faculty direction makes AI interaction a required deliverable: one AI guide NPC that supplements, never replaces, the scripted NPCs (see `docs/PLAN.md`). Hamza and Vishan lead it (#47). PRs #46/#48/#59/#61 and the #70–#80 guide stages are merged into main as offline, synthetic-knowledge, fake-provider code (§3.4). The "no backend" decision in §2 is now under review, because a live model needs a server to hold its API key. No live LLM, backend or deployment is approved until the team records that decision here.
 
 ## 1. Product summary
 
-A web-based, photorealistic, freely-navigable 3D tour of the CORE building's first floor at Rutgers, reconstructed via 3D Gaussian Splatting. Users navigate with WASD + mouse (click-to-move remains a future option), and interactive NPC guides deliver scripted information about rooms and facilities. Deliverable is a static website — no backend server.
+A web-based, photorealistic, freely-navigable 3D tour of the CORE building's first floor at Rutgers, reconstructed via 3D Gaussian Splatting. Users navigate with WASD + mouse (click-to-move remains a future option), and interactive NPC guides deliver scripted information about rooms and facilities. One AI guide NPC supplements them by answering typed questions from approved knowledge (in development, #47). The deliverable is currently a static website with no backend server; see the §2 note on the AI guide.
 
 ## 2. The locked stack
 
@@ -26,7 +28,7 @@ A web-based, photorealistic, freely-navigable 3D tour of the CORE building's fir
 | Delivery format | **SuperSplat Compressed PLY** (confirmed in Spark 2.1.0), target **< 50 MB per zone** | .sog / .ksplat, supported by renderer. **Not .spz** — see §3.5 |
 | Web renderer | **Spark** (`@sparkjsdev/spark`) on Three.js + WebGL2 | mkkellogg GaussianSplats3D |
 | NPC visuals | **2D character portraits + dialogue box overlay** (visual-novel style) | Simple 3D billboard sprites in-scene |
-| Dialogue logic | **Frontend JSON** — no backend | — |
+| Dialogue logic | **Frontend JSON** for scripted NPCs. AI guide supplement: approved-only retrieval + Worker handler + OpenAI Responses adapter, offline only; live hosting/provider **undecided** | — |
 | Hosting | **GitHub Pages**, via `.github/workflows/deploy.yml` (Settings → Pages → Source: GitHub Actions). Live at https://jl42r.github.io/rutgers-tour/ | Cloudflare Pages, or Vercel/Netlify free tier |
 | Build tooling | Vite + vanilla JS (or TS) | — |
 
@@ -38,7 +40,7 @@ A web-based, photorealistic, freely-navigable 3D tour of the CORE building's fir
 
 **2D NPC overlay as primary (not fallback):** Photoreal environment + low-poly 3D character = uncanny mismatch (we noted this ourselves in the report). A polished 2D portrait + dialogue box reads as an intentional art direction. It uses a DOM interface with keyboard controls and opt-in Web Speech narration. Actual screen-reader acceptance remains unresolved: NVDA failed to announce dialogue/choices (#33). The NPC still has a 3D *presence*: a marker/sprite in the scene at fixed coordinates with a proximity trigger.
 
-**No Python backend:** Scripted dialogue is data, not computation. Storing it as JSON in the frontend means the whole product is static files → free hosting, zero maintenance, infinite scalability, trivially demoable. An interactive guide is now a current priority (#47), with standalone frontend matcher/memory/orchestration PRs under review. The existing typed form only echoes an AI TEST message. This does not approve a live LLM, external service or backend; those still require a separate team architecture/security decision and must never expose secrets in browser code.
+**No Python backend:** Scripted dialogue is data, not computation. Storing it as JSON in the frontend means the whole product is static files → free hosting, zero maintenance, infinite scalability, trivially demoable. This reasoning still holds for scripted dialogue. It does not hold for the AI guide, which faculty direction made required on 2026-11-02 (#47). A live model has to be called from a server, because the provider API key must never appear in browser code. The offline Worker handler in `worker/src/` was built for that role but is not deployed. Choosing the hosting, provider, model, cost limits and key handling is an open team architecture/security decision. Until it is recorded here, the shipped site stays static.
 
 ## 3. Architecture
 
@@ -103,7 +105,7 @@ First-person camera at eye height **1.65 m**; WASD/arrow keys move on the ground
 D1 uses X plane **-0.62295043**, configured trigger Z **[4.80, 6.55]**, hallway crossing negative X / return positive X. D3 uses X plane **1.2642833297509717**, radius-safe trigger Z **[16.505667581697203, 17.573909531203245]**, hallway crossing positive X / return negative X. D3 entry advances to local forward **0.60 m**, with at most **11.1 mm** lateral correction at applicable edge entries; camera height/facing and return crossing positions are preserved. Full unchanged measurements and history are in `docs/ZONES.md` and `docs/ROOM116_INTEGRATION.md`.
 
 ### 3.4 NPC & dialogue system
-Each NPC is an entry inside its zone's `npcs` array: `{ id, position [x,y,z], radius, portrait, markerImage, dialogueFile, trackerLabel }`. It renders as a portrait/badge sprite with normal depth/occlusion behavior and a proximity-based "Press E to talk" prompt. Main currently uses a fixed marker scale of 0.45; PR #46's visibility improvements are not merged. Hallway has one replayable welcome guide, printing room has five guides, and Room 116 has none yet (#56). The configured Vishan portrait/marker image is missing (#67). Dialogue JSON is a simple node graph:
+Each NPC is an entry inside its zone's `npcs` array: `{ id, position [x,y,z], radius, portrait, markerImage, dialogueFile, trackerLabel }`. It renders as a portrait/badge sprite with normal depth/occlusion behavior and a proximity-based "Press E to talk" prompt. Marker scale grows with distance from the player, clamped between 0.32 and 0.65 (PR #46, merged). NPCs without a `markerImage` show a numbered badge (`markerLabel`, e.g. J1–J3 in the printing room, PR #85). Hallway has one replayable welcome guide, printing room has five guides, and Room 116 has six project guides with placeholder dialogue (PR #87; real content is #56). The configured Vishan portrait/marker image is missing (#67). Dialogue JSON is a simple node graph:
 
 ```json
 {
@@ -122,7 +124,11 @@ Each NPC is an entry inside its zone's `npcs` array: `{ id, position [x,y,z], ra
 
 Dialogue UI is DOM over the canvas: portrait, text and choice buttons. Keyboard focus containment/restoration, shortcuts, opt-in Web Speech narration and terminal completion reporting are implemented. `InteractionTracker` reads configured NPC IDs/labels and persists progress; reaching and closing a terminal conversation counts, and conversations remain replayable. Markup and reported visible-keyboard passes do not prove screen-reader access: the recorded NVDA/Chrome announcement failure remains #33. Existing scripts also require factual/subject-matter approval evidence (#20).
 
-Johnny Bambu's `ask-ai` action opens a typed form with submission/follow-up controls, but `showAIResponse` still returns an AI TEST echo. PR #48 supplies a standalone matcher, #59 conversation memory and #61 an injected orchestrator; they are unmerged, use synthetic fixtures and require approved knowledge, adapters, UI integration and browser/accessibility testing (#47).
+**AI guide (#47).** The AI guide supplements the scripted NPCs and does not replace them. The `ask-ai` choice opens a typed form. `Dialogue.registerQuestionProvider(npcId, provider)` attaches an answer source to an NPC. With no provider registered, `showAIResponse` returns an AI TEST echo; that is still what happens for Johnny Bambu.
+
+The following are merged on main: the matcher (#48), conversation memory (#59), orchestrator (#61), contracts/schema (#70), ingestion (#71), approved-only retrieval (#72), Worker handler (#73/#74), evaluations (#75), OpenAI Responses adapter (#78), localhost bridge (#79) and the hallway-guide development preview (#80). The flow is: validated request → approved knowledge → deterministic retrieval → model picks supported fact IDs → the Worker rebuilds the answer text and citations from those canonical facts. The model's own wording is discarded.
+
+All knowledge is synthetic, the provider is fake, and the preview runs only under `npm run dev` with `?guideMock=1&guideBackend=local`; the production build excludes it. Real CORE knowledge, the live-backend decision, final NPC placement/reach and browser/accessibility acceptance remain open. Details are in `docs/GUIDE_*.md`.
 
 ### 3.5 Delivery format: Compressed PLY (resolved 2026-09-15) — and why not .spz
 

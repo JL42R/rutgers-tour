@@ -1,5 +1,7 @@
 # Development-only localhost CORE Guide browser preview
 
+> **Status (2026-11-02).** Every #47 stage is merged into main: contracts/schema (#70), ingestion (#71), retrieval (#72), Worker handler (#73/#74), evaluations (#75), OpenAI adapter (#78), localhost bridge (#79) and development browser preview (#80). Wording below such as "this stage", "not integrated" or "remains in the handoff" describes this document's original checkpoint. Still true: all knowledge is synthetic, the provider is fake, nothing is deployed, and the production build excludes the preview. The AI guide is now a required single NPC that supplements the scripted guides; see `docs/PLAN.md` (2026-11-02 addendum).
+
 Stage 69E.2 connects the existing hallway CORE Guide Dialogue to the localhost Worker bridge and
 its fake Responses-compatible provider. Visitor-to-bridge HTTP is real loopback HTTP; upstream
 provider HTTP is simulated in memory. There is no real OpenAI request, real API key, online search,
@@ -7,17 +9,17 @@ approved real Rutgers CORE knowledge, public backend or public AI activation.
 
 ## Start locally (PowerShell)
 
-Use two terminals in this worktree. Backend:
+Use two terminals in the repository root. Backend:
 
 ```powershell
-Set-Location C:\dev\rutgers-tour-pr69-browser-local
+Set-Location C:\dev\rutgers-tour
 node dev/guide-local-server.js --profile retrieval-quality
 ```
 
 Vite, in the second terminal:
 
 ```powershell
-Set-Location C:\dev\rutgers-tour-pr69-browser-local
+Set-Location C:\dev\rutgers-tour
 npm.cmd run dev -- --host 127.0.0.1 --port 4179 --strictPort
 ```
 
@@ -25,7 +27,7 @@ Open:
 
 [Development preview](http://127.0.0.1:4179/?guideMock=1&guideBackend=local&guideProfile=retrieval-quality)
 
-If dependencies are absent in a fresh worktree, install the existing lockfile with `npm.cmd ci`.
+If dependencies are absent in a fresh clone, install the existing lockfile with `npm.cmd ci`.
 No dependency or package script is added by this stage.
 
 The backend binds only to `127.0.0.1:4188` and allows the fixed normal CLI origin
