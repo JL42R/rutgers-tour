@@ -7,6 +7,9 @@ import { NPCManager } from '../src/npc.js';
 import { InteractionTracker, TOUR_PROGRESS_STORAGE_KEY } from '../src/interaction-tracker.js';
 import { RoomNavigation } from '../src/room-navigation.js';
 import { npcGuidance } from '../src/npc-guidance.js';
+import { room116NpcApproaches } from '../test-support/room116-npc-approaches.js';
+import { installRoom116NPCEditor } from '../src/room116-npc-editor.js';
+import { createRoom116Boundary, isRoom116PositionAllowed, resolveRoom116Movement } from '../src/room116-boundary.js';
 
 const hallway = JSON.parse(readFileSync(new URL('../public/dialogue/hallway-guide.json', import.meta.url)));
 const guide = { id: 'hallway-guide', name: 'CORE Guide', dialogueFile: '/hallway.json' };
@@ -17,7 +20,237 @@ const ordinaryScript = { name: 'Ordinary', nodes: {
 } };
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
+test('Room 116 projects share terminal completion, ordered guidance, persistence and reset', async t => {
+  const { dialogue, doc, storage } = setup(t);
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const studio = config.zones.find(z => z.id === 'project-studio');
+  const boundary = createRoom116Boundary(studio);
+  const approaches = room116NpcApproaches(studio);
+  assert.equal(approaches.size, 6);
+  assert.equal(studio.npcs.length, 6);
+  const tracker = new InteractionTracker(); tracker.setConfig(config);
+  const reported = [];
+  dialogue.onComplete = id => { reported.push(id); tracker.complete(id); };
+  tracker.onReset = () => dialogue.completedNpcIds.clear();
+  const manager = new NPCManager(new THREE.Scene(), dialogue, {
+    getGuidance: () => npcGuidance(tracker.getNextUnfinishedNpcInZone(studio.id), studio),
+  });
+  manager.setNPCs(studio.npcs, studio.id);
+  assert.equal(manager.group.children.length, 6);
+  assert.equal(manager.group.parent, manager.scene);
+  const expectedText = "Hi! I'll be showing you one of the student projects in Room 116. More information about this project is coming soon!";
+  for (const [i, npc] of studio.npcs.filter(npc => npc.position).entries()) {
+    assert.equal(npc.id, `room116-project-${i + 1}`);
+    assert.equal(npc.markerLabel, `P${i + 1}`);
+    assert.equal(npc.availability, undefined);
+    assert.equal(npc.portrait, npc.markerImage);
+    assert.match(npc.portrait, /^\.\/portraits\/room116\//);
+    const { point, distance } = approaches.get(npc.id);
+    assert(isRoom116PositionAllowed(point, boundary));
+    assert(distance < npc.radius, npc.id + ' must be reachable within its strict radius');
+    const script = JSON.parse(readFileSync(new URL('../public/' + npc.dialogueFile.slice(2), import.meta.url)));
+    dialogue.cache.set(npc.dialogueFile, script);
+    manager.update(point);
+    const sprite = manager.npcs[i].sprite;
+    assert.equal(sprite.parent, manager.group);
+    assert.equal(sprite.material.map.colorSpace, THREE.SRGBColorSpace);
+    assert.equal(sprite.material.depthTest, true);
+    assert.equal(sprite.material.depthWrite, true);
+    assert.equal(sprite.material.alphaTest, 0);
+    assert.equal(manager.directionEl.hidden, true);
+    doc.emitKey({ code: 'KeyE' }); await tick();
+    assert.equal(dialogue.activeNpcId, npc.id);
+    assert.equal(dialogue.textEl.textContent, expectedText);
+    assert.equal(dialogue.isOpen, true);
+    if (i % 2) doc.emitKey({ key: 'Escape', code: 'Escape' });
+    else dialogue.choicesEl.firstElementChild.click();
+    assert.equal(dialogue.isOpen, false);
+    assert.equal(dialogue.completedNpcIds.has(npc.id), true);
+    assert.equal(tracker.complete(npc.id), false);
+    assert.equal(npcGuidance({ zoneId: studio.id, npcId: npc.id }, studio).id, npc.id);
+    await dialogue.start(npc); dialogue.close(); // Replay cannot report or count twice.
+    assert.equal(reported.length, i + 1);
+    assert.equal(tracker.completedNpcIds.size, i + 1);
+    assert.equal(tracker.getNextUnfinishedNpcInZone(studio.id)?.npcId, studio.npcs[i + 1]?.id);
+  }
+  assert.equal(tracker.npcIds.size, 12);
+  assert.equal(tracker.completedNpcIds.size, 6);
+  assert.equal(tracker.completionMessageEl.hidden, true);
+  const section = tracker.zonesEl.children[2];
+  assert.match(section.children[0].textContent, /6\/6/);
+  assert.equal(section.children[1].children.length, 6);
+  for (const item of section.children[1].children) {
+    assert.equal(item.children[2].textContent, 'Completed');
+    assert.equal(item.children[0].textContent, '✓');
+  }
+  manager.update({ x: 100, z: 100 });
+  assert.equal(manager.directionEl.hidden, true);
+  const restored = new InteractionTracker(); restored.setConfig(config);
+  assert.equal(restored.completedNpcIds.size, 6);
+  assert.equal(restored.getNextUnfinishedNpcInZone(studio.id), null);
+  assert.equal(restored.getNextUnfinishedNpcInZone('printing-room').npcId, 'johnny-bambu');
+  assert.equal(restored.getNextUnfinishedNpcInZone('hallway').npcId, 'hallway-guide');
+  for (const id of tracker.npcIds) tracker.complete(id);
+  assert.equal(tracker.completedNpcIds.size, 12);
+  assert.equal(tracker.completionMessageEl.hidden, false);
+  tracker.reset();
+  assert.equal(storage.has(TOUR_PROGRESS_STORAGE_KEY), false);
+  assert.equal(dialogue.completedNpcIds.size, 0);
+  assert.equal(tracker.completedNpcIds.size, 0);
+  assert.equal(tracker.compactCountEl.textContent, '0/12');
+  assert.match(tracker.zonesEl.children[2].children[0].textContent, /0\/6/);
+  for (const item of tracker.zonesEl.children[2].children[1].children) {
+    assert.equal(item.children[2].textContent, 'Remaining');
+  }
+  assert.equal(tracker.getNextUnfinishedNpcInZone(studio.id).npcId, studio.npcs[0].id);
+  await dialogue.start(studio.npcs[0]);
+  assert.equal(tracker.completedNpcIds.size, 0); // Reaching the terminal alone is insufficient.
+  dialogue.choicesEl.firstElementChild.click();
+  assert.equal(tracker.completedNpcIds.size, 1);
+
+});
+
+test('Room 116 out-of-order completion survives room changes and refresh; early Escape earns no credit', async t => {
+  const { dialogue, doc, storage } = setup(t);
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const studio = config.zones.find(z => z.id === 'project-studio');
+  let tracker = new InteractionTracker(); tracker.setConfig(config);
+  dialogue.onComplete = id => tracker.complete(id);
+  assert.equal(tracker.compactCountEl.textContent, '0/12');
+  assert.match(tracker.zonesEl.children[2].children[0].textContent, /0\/6/);
+  const third = studio.npcs[2];
+  dialogue.cache.set(third.dialogueFile, JSON.parse(readFileSync(new URL('../public/' + third.dialogueFile.slice(2), import.meta.url))));
+  await dialogue.start(third);
+  assert.equal(tracker.completedNpcIds.size, 0);
+  dialogue.choicesEl.firstElementChild.click();
+  assert.match(tracker.zonesEl.children[2].children[0].textContent, /1\/6/);
+  assert.equal(tracker.getNextUnfinishedNpcInZone(studio.id).npcId, studio.npcs[0].id);
+  const manager = new NPCManager(new THREE.Scene(), dialogue, {
+    getGuidance: () => npcGuidance(tracker.getNextUnfinishedNpcInZone(manager.zoneId), config.zones.find(z => z.id === manager.zoneId)),
+  });
+  const distant = { x: 100, z: 100 };
+  manager.setNPCs(studio.npcs, studio.id); manager.update(distant);
+  assert.equal(manager.directionTargetId, studio.npcs[0].id);
+  const hallwayZone = config.zones.find(z => z.id === 'hallway');
+  t.mock.method(THREE.TextureLoader.prototype, 'load', (url, loaded) => loaded(new THREE.Texture()));
+  manager.setNPCs(hallwayZone.npcs, hallwayZone.id); manager.update(distant);
+  assert.equal(manager.directionEl.hidden, true);
+  manager.setNPCs(studio.npcs, studio.id); manager.update(distant);
+  assert.equal(manager.directionTargetId, studio.npcs[0].id);
+  assert(tracker.completedNpcIds.has(third.id));
+  tracker = new InteractionTracker(); tracker.setConfig(config);
+  assert.deepEqual([...tracker.completedNpcIds], [third.id]);
+  assert.deepEqual(JSON.parse(storage.get(TOUR_PROGRESS_STORAGE_KEY)), [third.id]);
+  manager.update(distant); assert.equal(manager.directionTargetId, studio.npcs[0].id);
+  // The shipped one-node scripts are already terminal. Use a nonterminal fixture
+  // for the same NPC ID to verify dismissal before an ending cannot count.
+  const first = studio.npcs[0];
+  dialogue.cache.set(first.dialogueFile, { nodes: {
+    start: { text: 'Nonterminal test fixture', next: 'done' }, done: { text: 'Ending' },
+  } });
+  await dialogue.start(first);
+  doc.emitKey({ key: 'Escape', code: 'Escape' });
+  assert.equal(tracker.completedNpcIds.has(first.id), false);
+  assert.equal(tracker.completedNpcIds.size, 1);
+});
+
+test('Project 6 stays unplaced until measured and shares completion, persistence, reset and final guidance', async t => {
+  const { dialogue, storage } = setup(t);
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const studio = config.zones.find(z => z.id === 'project-studio');
+  const sixth = studio.npcs[5];
+  assert.equal(sixth.id, 'room116-project-6');
+  sixth.position = null; // Explicit unplaced fixture; production P6 now has a saved position.
+  const tracker = new InteractionTracker(); tracker.setConfig(config);
+  dialogue.onComplete = id => tracker.complete(id);
+  tracker.onReset = () => dialogue.completedNpcIds.clear();
+  const manager = new NPCManager(new THREE.Scene(), dialogue, {
+    getGuidance: () => npcGuidance(tracker.getNextUnfinishedNpcInZone(studio.id), studio),
+  });
+  manager.setNPCs(studio.npcs, studio.id);
+  assert.equal(manager.npcs.some(npc => npc.data.id === sixth.id), false);
+  for (const npc of studio.npcs.slice(0, 5)) tracker.complete(npc.id);
+  assert.equal(tracker.getNextUnfinishedNpcInZone(studio.id).npcId, sixth.id);
+  manager.update({ x: 0, z: 0 }); assert.equal(manager.directionEl.hidden, true);
+  // Synthetic test fixture only, never a proposed equipment coordinate.
+  sixth.position = [0, 1.65, -5];
+  manager.setNPCs(studio.npcs, studio.id);
+  manager.update({ x: 0, z: 0 });
+  assert.equal(manager.directionTargetId, sixth.id);
+  assert.equal(manager.directionEl.hidden, false);
+  dialogue.cache.set(sixth.dialogueFile, JSON.parse(readFileSync(new URL('../public/dialogue/room116-project-6.json', import.meta.url))));
+  await dialogue.start(sixth);
+  assert.equal(tracker.completedNpcIds.has(sixth.id), false);
+  dialogue.choicesEl.firstElementChild.click();
+  assert.equal(tracker.complete(sixth.id), false);
+  assert.match(tracker.zonesEl.children[2].children[0].textContent, /6\/6/);
+  assert.equal(tracker.zonesEl.children[2].children[1].children[5].children[2].textContent, 'Completed');
+  manager.update({ x: 0, z: 0 }); assert.equal(manager.directionEl.hidden, true);
+  const restored = new InteractionTracker(); restored.setConfig(config);
+  assert(restored.completedNpcIds.has(sixth.id));
+  assert.equal(restored.completedNpcIds.size, 6);
+  assert.equal(tracker.getNextUnfinishedNpcInZone(studio.id), null);
+  tracker.resetButton.click();
+  assert.equal(storage.has(TOUR_PROGRESS_STORAGE_KEY), false);
+  assert.equal(dialogue.completedNpcIds.size, 0);
+  assert.match(tracker.zonesEl.children[2].children[0].textContent, /0\/6/);
+  assert.equal(tracker.getNextUnfinishedNpcInZone(studio.id).npcId, studio.npcs[0].id);
+});
+
+test('live Room 116 editor places actual P6, nudges P1, exports originals and preserves dialogue/zone state', async t => {
+  const { dialogue, doc } = setup(t);
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const studio = config.zones.find(z => z.id === 'project-studio');
+  const originals = structuredClone(studio.npcs);
+  const camera = { position: { x: 5, y: 1.65, z: 19 } };
+  const controls = { enabled: true, yaw: Math.PI / 2, keys: new Set(['KeyW']), unlock() { this.unlocked = true; } };
+  const zones = { current: studio };
+  const manager = new NPCManager(new THREE.Scene(), dialogue);
+  manager.setNPCs(studio.npcs, studio.id);
+  const editor = installRoom116NPCEditor({ camera, controls, zones, dialogue, npcs: manager });
+  const panel = doc.body.children.find(el => el.tagName === 'DIALOG');
+  const select = panel.querySelectorAll('select')[0];
+  const click = text => panel.querySelectorAll('button').find(el => el.textContent === text).click();
+  editor.update(); doc.emitKey({ code: 'KeyO' });
+  assert(panel.open); assert.equal(controls.enabled, false); assert.equal(controls.keys.size, 0);
+  assert.equal(controls.unlocked, true);
+  assert.equal(select.children.length, 6);
+  const firstSprite = manager.npcs[0].sprite;
+  click('Place 1 m Ahead'); click('Higher'); click('Right');
+  assert.equal(manager.npcs[0].sprite, firstSprite);
+  assert.deepEqual(studio.npcs[0].position, [4, 1.75, 18.9]);
+  assert.deepEqual(firstSprite.position.toArray(), studio.npcs[0].position);
+  assert.equal(manager.npcs[0].baseY, 1.75);
+  select.value = 'room116-project-6'; select.emit('change');
+  click('Place Here'); click('Lower');
+  assert.deepEqual(studio.npcs[5].position, [5, 1.5499999999999998, 19]);
+  assert(manager.npcs.some(npc => npc.data.id === select.value));
+  click('Save Positions');
+  const saved = JSON.parse(panel.querySelectorAll('textarea')[0].value);
+  assert.equal(saved.npcs.length, 6);
+  assert.deepEqual(saved.npcs[5].originalPosition, originals[5].position);
+  assert.deepEqual(saved.npcs[0].originalPosition, originals[0].position);
+  assert.deepEqual(saved.npcs[5].position, studio.npcs[5].position);
+  click('Walk / Close (Esc)');
+  assert.equal(controls.enabled, true);
+  assert.equal(panel.open, false);
+  zones.current = config.zones.find(z => z.id === 'hallway'); editor.update();
+  doc.emitKey({ code: 'KeyO' }); assert.equal(panel.open, false);
+  zones.current = studio; manager.setNPCs(studio.npcs, studio.id); editor.update();
+  assert.deepEqual(manager.npcs[5].sprite.position.toArray(), saved.npcs[5].position);
+  dialogue.cache.set(studio.npcs[5].dialogueFile, JSON.parse(readFileSync(new URL('../public/dialogue/room116-project-6.json', import.meta.url))));
+  manager.update({ x: 5, z: 19 });
+  doc.emitKey({ code: 'KeyE' }); await tick();
+  assert.equal(dialogue.activeNpcId, 'room116-project-6'); dialogue.close();
+  doc.emitKey({ code: 'KeyO' }); click('Restore Selected');
+  assert.deepEqual(studio.npcs[5].position, originals[5].position);
+  assert.equal(manager.npcs.length, 6);
+  click('Restore All'); assert.deepEqual(studio.npcs, originals);
+  editor.dispose(); assert.equal(controls.enabled, true);
+});
+
 function setup(t) {
+  t.mock.method(THREE.TextureLoader.prototype, 'load', (url, loaded) => loaded(new THREE.Texture()));
   const previous = { document: globalThis.document, window: globalThis.window,
     HTMLElement: globalThis.HTMLElement, fetch: globalThis.fetch };
   let doc;
@@ -70,6 +303,9 @@ function setup(t) {
     emit(type, values = {}) { const event = { type, preventDefault() { this.prevented = true; }, ...values };
       for (const fn of this.handlers.get(type) ?? []) fn(event); return event; }
     click() { if (!this.disabled) this.emit('click'); }
+    showModal() { this.open = true; }
+    close() { this.open = false; this.emit('close'); }
+    remove() { if (this.parentNode) this.parentNode.children.splice(this.parentNode.children.indexOf(this), 1); this.parentNode = null; }
     focus() { if (!this.disabled && this.isConnected) doc.activeElement = this; }
     getClientRects() { return this.hidden || !this.isConnected ? [] : [{}]; }
     setCustomValidity(text) { this.validationMessage = text; }
@@ -86,6 +322,7 @@ function setup(t) {
   doc.addEventListener = (type, fn) => {
     if (!doc.handlers.has(type)) doc.handlers.set(type, []); doc.handlers.get(type).push(fn);
   };
+  doc.removeEventListener = (type, fn) => doc.handlers.set(type, (doc.handlers.get(type) ?? []).filter(handler => handler !== fn));
   doc.emitKey = values => {
     const event = { preventDefault() { this.prevented = true; }, ...values };
     for (const fn of doc.handlers.get('keydown') ?? []) fn(event);
@@ -176,7 +413,7 @@ test('room-local guidance preserves global checklist, saved progress, room trans
   assert(storage.has(TOUR_PROGRESS_STORAGE_KEY));
   tracker = new InteractionTracker(); tracker.setConfig(config); check('johnny-stratasys');
   enter('hallway'); manager.update(position); assert.equal(manager.directionEl.hidden, true);
-  enter('project-studio'); manager.update(position); assert.equal(manager.directionEl.hidden, true);
+  enter('project-studio'); check('room116-project-1');
   enter('printing-room'); check('johnny-stratasys');
   tracker.complete('johnny-stratasys'); check('johnny-sca');
   tracker.complete('johnny-sca');
@@ -185,10 +422,10 @@ test('room-local guidance preserves global checklist, saved progress, room trans
   assert.equal(manager.directionEl.hidden, true);
   assert.equal(tracker.getNextUnfinishedNpcInZone('hallway').npcId, 'hallway-guide');
   assert.equal(tracker.zonesEl.children.length, config.zones.length);
-  assert.equal(tracker.npcIds.size, 6); // Hallway guide still appears in global progress.
+  assert.equal(tracker.npcIds.size, 12); // All rooms still appear in global progress.
   tracker.reset(); check('johnny-bambu'); assert.equal(storage.has(TOUR_PROGRESS_STORAGE_KEY), false);
   enter('hallway'); manager.update(position); assert.equal(manager.directionEl.hidden, true);
-  enter('project-studio'); manager.update(position); assert.equal(manager.directionEl.hidden, true);
+  enter('project-studio'); check('room116-project-1');
   enter('printing-room'); check('johnny-bambu');
   // Other room ordering never changes this room's recommendation.
   const changed = structuredClone(config); changed.zones.reverse();

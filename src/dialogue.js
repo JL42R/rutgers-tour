@@ -4,6 +4,8 @@
 // The UI is plain HTML, so keyboards and screen readers work for free.
 // Press number keys 1-9 to pick a choice, or Escape to close.
 
+import { isComingSoon } from './npc-availability.js';
+
 export class Dialogue {
   constructor() {
     this.el = document.getElementById('dialogue');
@@ -142,6 +144,7 @@ export class Dialogue {
     if (this.aiRequestVersion !== startVersion) return;
     this.data = this.cache.get(npc.dialogueFile);
     this.activeNpcId = npc.id ?? null;
+    this.activeNpcComingSoon = isComingSoon(npc);
     this.initialWelcome = options.initialWelcome === true;
     if (options.allowQuestionProvider !== false) {
       this.activeQuestionProvider = this.questionProviders.get(this.activeNpcId) ?? null;
@@ -366,6 +369,7 @@ export class Dialogue {
 
   resetCompletionState() {
     this.activeNpcId = null;
+    this.activeNpcComingSoon = false;
     this.completionEligible = false;
   }
 
@@ -419,7 +423,7 @@ export class Dialogue {
       reachedEnding: this.completionEligible,
     };
     this.initialWelcome = false;
-    const completedNpcId = this.completionEligible && this.activeNpcId &&
+    const completedNpcId = !this.activeNpcComingSoon && this.completionEligible && this.activeNpcId &&
       !this.completedNpcIds.has(this.activeNpcId)
       ? this.activeNpcId
       : null;
