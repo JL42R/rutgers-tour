@@ -14,7 +14,7 @@
 After meetings with Dr. Jafari, the team's scope is set to the three environments below plus **AI interaction**. Machine Shop and Computer Lab are cut entirely; they were already excluded on 2026-10-30.
 
 - **What it is:** one AI guide NPC that answers visitors' typed questions. It is meant to fill the knowledge gaps the scripted dialogue boxes leave, and to act as a single source of all tour information.
-- **What it is not:** a replacement for the scripted NPCs. The hallway welcome, the five printing-room guides and the planned Room 116 guides (#56) all stay. Tour Progress continues to track the scripted guides.
+- **What it is not:** a replacement for the scripted NPCs. The hallway welcome, the five printing-room guides and the six Room 116 project guides (PR #87; content #56) all stay. Tour Progress continues to track the scripted guides.
 - **Who:** Hamza and Vishan lead the AI guide (#47).
 
 Decisions still open (none is made by this addendum):

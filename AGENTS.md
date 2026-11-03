@@ -15,7 +15,7 @@ You are helping a 4-person senior design team (no prior 3D/web experience) build
 
 - Exactly three active environments: `hallway`, `printing-room`, `project-studio` (Room 116).
 - Machine Shop and Computer Lab are excluded from this team's deliverable. Do not plan, capture, train or implement additional environments. Preserve their historical research for future cohorts.
-- **AI interaction is now a required deliverable (faculty direction, 2026-11-02).** One AI guide NPC answers typed questions and aims to be the single source of all tour information, filling gaps the scripted dialogue boxes leave. It **supplements** the scripted NPCs and never replaces them: existing printing-room guides, the hallway welcome and planned Room 116 guides all stay. Hamza and Vishan lead this work (#47). See `docs/PLAN.md` (2026-11-02 addendum) for open decisions.
+- **AI interaction is now a required deliverable (faculty direction, 2026-11-02).** One AI guide NPC answers typed questions and aims to be the single source of all tour information, filling gaps the scripted dialogue boxes leave. It **supplements** the scripted NPCs and never replaces them: existing printing-room guides, the hallway welcome and the six Room 116 project guides all stay. Hamza and Vishan lead this work (#47). See `docs/PLAN.md` (2026-11-02 addendum) for open decisions.
 - Current priorities: Room 116 NPCs/dialogue (#56), then the AI guide (#47), then quality/performance on the three existing environments. These are ongoing tasks, not completed features.
 - Room 116 navigation/alignment/boundaries/exclusions/sign/arrival are approved and published. **Never alter approved Room 116 transforms, geometry or D3 behavior without explicit authorization.** Future NPC work must preserve D1/D3, the hallway welcome, existing printing-room conversations and Tour Progress.
 
@@ -32,14 +32,14 @@ You are helping a 4-person senior design team (no prior 3D/web experience) build
 
 ## Repo layout
 src/{main,zones,controls,collision,npc,dialogue,interaction-tracker,room-navigation,npc-guidance}.js · src/room116-*.js · src/equipment-*.js · src/guide-*.js (AI guide) · worker/src/ (offline Worker handler and model adapters, not deployed) · dev/guide-local-server.js (localhost bridge) · knowledge/ (synthetic fixtures) · public/{splats,dialogue,portraits,zones.json} · test/ and tests/
-(`public/portraits/` contains four Johnny assets. Printing-room has five NPC placements; hallway has one guide; Room 116 has none yet.)
+(`public/portraits/` contains four Johnny assets. Printing-room has five NPC placements; hallway has one guide; Room 116 has six project guides P1–P6 (PR #87), with portraits in `public/portraits/room116/`.)
 
 ## Current limitations (verified 2026-11-02)
 
-- Room 116 NPCs/content are not implemented (#56); existing script operation does not establish factual/subject-matter approval (#20).
+- Room 116's six project NPCs are placed and tracked (PR #87), but each has a one-node "coming soon" placeholder dialogue; real project content is still outstanding (#56); existing script operation does not establish factual/subject-matter approval (#20).
 - `public/portraits/vishan.png` is referenced but absent (#67). Do not invent a replacement image.
 - Printing-room permanent equipment collision boxes are unfinished (#66); PR #65 shipped mapping/debug/draft tools, not measured production boxes. Preserve its five wall AABBs.
-- The three tracked Room 116 files contain 55 tests; run `node --test tests/room116-boundary.test.js tests/room116-exclusions.test.js tests/room116-entry.test.js`, then `npm.cmd run build`. The full tracked suite (`node --test` over `git ls-files -- 'test/*.test.js' 'tests/*.test.js'`) has 541 tests. On Windows checkouts, three frozen-fixture hash tests fail because Git converts those files to CRLF line endings; that is a checkout artifact, not a code defect. CI currently runs install/build only (#68).
+- The three tracked Room 116 files contain 55 tests; run `node --test tests/room116-boundary.test.js tests/room116-exclusions.test.js tests/room116-entry.test.js`, then `npm.cmd run build`. The full tracked suite (`node --test` over `git ls-files -- 'test/*.test.js' 'tests/*.test.js'`) has 557 tests. On Windows checkouts, three frozen-fixture hash tests fail because Git converts those files to CRLF line endings; that is a checkout artifact, not a code defect. CI currently runs install/build only (#68).
 - The AI guide has no real Rutgers CORE knowledge yet: every knowledge file is `synthetic_fixture`. Real facts must go through `docs/GUIDE_KNOWLEDGE_INTAKE.md` and content approval (#20). Never let model output, visitor text or story drafts become approved knowledge.
 - NVDA/Chrome dialogue announcements failed in the recorded actual screen-reader test (#33); visible keyboard passes and narration do not resolve that failure.
 - Quality, lower-SH visual comparisons and current three-zone load/FPS measurements remain planned (#8/#23/#24/#25/#34). Do not trade image quality for the size target without side-by-side testing and user approval.
