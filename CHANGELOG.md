@@ -157,6 +157,11 @@ Newest entry first. This records what changed and when — for schedule and gate
 
 ## 2026-10-31
 
+### Room 116 regression suite added to deployment CI (Issue #68)
+- Added one cross-platform `npm test` command that explicitly runs all three tracked Room 116 files and their 55 regression checks.
+- Changed the Pages workflow to validate pull requests targeting `main` as well as pushes to `main`; tests run before the production build, and deployment depends on that validation.
+- Kept pull-request runs non-deploying and documented the automated coverage and remaining manual browser, performance, screen-reader and visual checks. A remote nonproduction Actions run still requires a later push/PR and is not claimed by this local work session.
+
 ### In-zone unvisited guide indicator (Issue #15)
 - Added a small camera-relative HUD pointer to the nearest unfinished guide in the current zone, using the existing tracker completion state and configured tracker labels.
 - The pointer yields to the existing proximity prompt and dialogue, advances after a guide is completed, disappears when no unfinished current-zone guide remains, and returns when progress is reset.

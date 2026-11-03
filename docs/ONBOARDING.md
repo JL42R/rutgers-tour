@@ -93,9 +93,10 @@ zone named `<zone>.compressed.ply` is therefore tracked automatically. This is r
 The current static host is **GitHub Pages**. The public tour is available at
 https://jl42r.github.io/rutgers-tour/.
 
-Deployment is automated by `.github/workflows/deploy.yml`. Every push or merged pull request to
-`main` runs `npm ci`, builds the production site with `npm run build`, and publishes the generated
-`dist/` directory. In the repository settings, **Settings → Pages → Source** must remain set to
+Deployment is automated by `.github/workflows/deploy.yml`. Pull requests targeting `main` run
+`npm ci`, the tracked Room 116 regression suite, and the production build without deploying.
+Pushes or merged pull requests to `main` run the same checks, upload `dist/`, and deploy only after
+those checks pass. In the repository settings, **Settings → Pages → Source** must remain set to
 **GitHub Actions**; the workflow cannot publish through the older branch-based Pages setting.
 
 After a deployment:
@@ -117,11 +118,18 @@ requires a teammate with a macOS or iOS device.** These are historical printing-
 From the repository root:
 
 ```powershell
-node --test tests/room116-boundary.test.js tests/room116-exclusions.test.js tests/room116-entry.test.js
+npm.cmd test
 npm.cmd run build
 ```
 
-There are 55 tracked Room 116 tests. CI currently runs install/build but not this suite (#68). Historical local equipment/integration probes under ignored `tmp/` are not fresh-clone requirements. The runtime includes `src/interaction-tracker.js`, `src/room116-*.js` and opt-in `src/equipment-*.js` helpers in addition to the core modules listed in README.
+`npm.cmd test` names the three tracked test files explicitly, so it behaves the same in Windows
+PowerShell and GitHub's Linux runner. There are 55 Room 116 tests covering the approved oriented
+boundary, exclusions, D3 arrival/return behavior, signs, and unchanged D1/legacy AABB behavior.
+The deployment workflow runs this command before the build and does not deploy pull-request runs.
+Historical local equipment/integration probes under ignored `tmp/` are not fresh-clone requirements,
+and browser rendering, performance, screen-reader behavior, and visual walkthroughs remain manual.
+The runtime includes `src/interaction-tracker.js`, `src/room116-*.js` and opt-in
+`src/equipment-*.js` helpers in addition to the core modules listed in README.
 
 Known open work: studio NPCs (#56); AI guide real knowledge, live-backend decision and placement (#47 — the offline pipeline is merged; Johnny Bambu's form still echoes AI TEST); missing Vishan portrait/marker image (#67); permanent printing equipment boxes (#66); actual NVDA announcement failure (#33); and visual-quality/SH/load/FPS comparisons (#8/#23/#24/#25/#34). Do not mistake successful tests/builds for those acceptance results.
 

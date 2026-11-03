@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "test": "node --test tests/room116-boundary.test.js tests/room116-exclusions.test.js tests/room116-entry.test.js",
     "build": "vite build",
     "preview": "vite preview"
   },
