@@ -73,10 +73,11 @@ dialogue.onComplete = (npcId) => {
 tracker.onReset = () => dialogue.completedNpcIds.clear();
 
 // The localhost provider and fictional catalogs are never imported by a production build.
+let room116Editor = null;
 if (import.meta.env.DEV) {
   if (new URLSearchParams(window.location.search).get('debugRoom116NPCs') === '1') {
     void import('./room116-npc-debug.js').then(({ installRoom116NPCDebug }) => {
-      installRoom116NPCDebug({ camera, controls, zones, dialogue });
+      room116Editor = installRoom116NPCDebug({ camera, controls, zones, dialogue, npcs });
     });
   }
   const guideParams = new URLSearchParams(window.location.search);
@@ -210,6 +211,7 @@ renderer.setAnimationLoop(() => {
 
   roomNavigation.update(camera.position, controls.yaw, zones.current?.id, zoneSwitchInProgress);
   npcs.update(camera.position, controls.yaw);
+  room116Editor?.update?.();
   renderer.render(scene, camera);
 });
 

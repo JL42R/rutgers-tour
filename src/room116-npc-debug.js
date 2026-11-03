@@ -1,8 +1,9 @@
 import { createRoom116Boundary, isRoom116PositionAllowed } from './room116-boundary.js';
+import { installRoom116NPCEditor } from './room116-npc-editor.js';
 
 // Imported only in Vite development mode. P is scoped to Room 116 so the
 // printing-room equipment recorder keeps its existing shortcut.
-export function installRoom116NPCDebug({ camera, controls, zones, dialogue,
+export function installRoom116NPCDebug({ camera, controls, zones, dialogue, npcs,
   search = window.location.search, target = document, log = console.info }) {
   if (new URLSearchParams(search).get('debugRoom116NPCs') !== '1') return;
   log('[Room 116 NPC debug] In Project Studio, press P to record world position and heading. No files are changed.');
@@ -22,5 +23,11 @@ export function installRoom116NPCDebug({ camera, controls, zones, dialogue,
       allowed, provisional: true }));
   };
   target.addEventListener('keydown', record);
-  return () => target.removeEventListener('keydown', record);
+  const editor = npcs ? installRoom116NPCEditor({ camera, controls, zones, dialogue, npcs, target }) : null;
+  const dispose = () => {
+    target.removeEventListener('keydown', record);
+    editor?.dispose();
+  };
+  dispose.update = () => editor?.update();
+  return dispose;
 }

@@ -1,0 +1,145 @@
+{
+  "zoneId": "project-studio",
+  "method": "10 cm grid with production swept collision solver from D3; 2 cm clearance probes at interaction points",
+  "scope": "Interaction reachability, not visual occlusion. No coordinates changed under the keep-if-interactable rule.",
+  "report": [
+    {
+      "npcId": "room116-project-1",
+      "original": [
+        2.9760467734269613,
+        1.75,
+        16.30298825508666
+      ],
+      "corrected": [
+        2.9760467734269613,
+        1.75,
+        16.30298825508666
+      ],
+      "distanceMoved": 0,
+      "markerInsidePlayerArea": false,
+      "accessible": true,
+      "manualReview": false,
+      "approach": {
+        "x": 2.97484258539938,
+        "z": 16.504794380070223
+      },
+      "interactionDistance": 0.20180971767902317,
+      "reason": "Keep: outside player area but interactable from the entrance component (requirement 6)."
+    },
+    {
+      "npcId": "room116-project-2",
+      "original": [
+        6.498525114733146,
+        1.65,
+        15.627480887419985
+      ],
+      "corrected": [
+        6.498525114733146,
+        1.65,
+        15.627480887419985
+      ],
+      "distanceMoved": 0,
+      "markerInsidePlayerArea": false,
+      "accessible": true,
+      "manualReview": false,
+      "approach": {
+        "x": 6.474223705355815,
+        "z": 16.570610618890505
+      },
+      "interactionDistance": 0.9434427639668348,
+      "reason": "Keep: outside player area but interactable from the entrance component (requirement 6)."
+    },
+    {
+      "npcId": "room116-project-3",
+      "original": [
+        10.696601570542061,
+        1.65,
+        14.787731603294203
+      ],
+      "corrected": [
+        10.696601570542061,
+        1.65,
+        14.787731603294203
+      ],
+      "distanceMoved": 0,
+      "markerInsidePlayerArea": false,
+      "accessible": true,
+      "manualReview": false,
+      "approach": {
+        "x": 10.673481049303536,
+        "z": 16.64959010547485
+      },
+      "interactionDistance": 1.862002051729456,
+      "reason": "Keep: outside player area but interactable from the entrance component (requirement 6)."
+    },
+    {
+      "npcId": "room116-project-4",
+      "original": [
+        12.665069684308186,
+        1.65,
+        17.297893383059034
+      ],
+      "corrected": [
+        12.665069684308186,
+        1.65,
+        17.297893383059034
+      ],
+      "distanceMoved": 0,
+      "markerInsidePlayerArea": false,
+      "accessible": true,
+      "manualReview": false,
+      "approach": {
+        "x": 11.861986078062264,
+        "z": 17.272049579348625
+      },
+      "interactionDistance": 0.8034993346675385,
+      "reason": "Keep: outside player area but interactable from the entrance component (requirement 6)."
+    },
+    {
+      "npcId": "room116-project-5",
+      "original": [
+        11.359993907018975,
+        1.75,
+        20.47323220715301
+      ],
+      "corrected": [
+        11.359993907018975,
+        1.75,
+        20.47323220715301
+      ],
+      "distanceMoved": 0,
+      "markerInsidePlayerArea": true,
+      "accessible": true,
+      "manualReview": false,
+      "approach": {
+        "x": 11.401881960288694,
+        "z": 20.46396189030076
+      },
+      "interactionDistance": 0.04290160581223038,
+      "reason": "Keep: valid marker with a reachable interaction point."
+    },
+    {
+      "npcId": "room116-project-6",
+      "original": [
+        2.9601283961821645,
+        1.65,
+        19.289295604117655
+      ],
+      "corrected": [
+        2.9601283961821645,
+        1.65,
+        19.289295604117655
+      ],
+      "distanceMoved": 0,
+      "markerInsidePlayerArea": false,
+      "accessible": true,
+      "manualReview": false,
+      "approach": {
+        "x": 3.5220835006213966,
+        "z": 19.31558205983313
+      },
+      "interactionDistance": 0.5625695665065698,
+      "reason": "Keep: outside player area but interactable from the entrance component (requirement 6)."
+    }
+  ]
+}

@@ -35,7 +35,7 @@ test('all cross-zone targets are rejected even with configured doorway connectio
 });
 
 test('empty, missing, fully completed and invalid room targets produce no guidance', () => {
-  assert.equal(next(studio.id), null);
+  assert.equal(next(studio.id, new Set(studio.npcs.map(npc => npc.id))), null);
   assert.equal(next('missing'), null);
   assert.equal(next(undefined), null);
   const completed = new Set(printing.npcs.map(npc => npc.id));

@@ -80,6 +80,7 @@ function trackedStyle() {
 function setup(t, { failImages = false, completedNpcIds = new Set() } = {}) {
   const originalDocument = globalThis.document;
   const handlers = new Map();
+  const drawCalls = [];
   const prompt = { style: {} };
   const direction = { hidden: true };
   const directionArrow = { style: trackedStyle() };
@@ -97,7 +98,8 @@ function setup(t, { failImages = false, completedNpcIds = new Set() } = {}) {
     addEventListener: (type, handler) => handlers.set(type, handler),
     createElement: () => ({
       width: 0, height: 0,
-      getContext: () => ({ beginPath() {}, arc() {}, fill() {}, stroke() {}, fillText() {} })
+      getContext: () => ({ beginPath() {}, arc() {}, fill() {}, stroke() {}, fillText() {}, fillRect() {},
+        drawImage(...args) { drawCalls.push(args); } })
     })
   };
   t.after(() => { globalThis.document = originalDocument; });
@@ -111,7 +113,7 @@ function setup(t, { failImages = false, completedNpcIds = new Set() } = {}) {
     isCompleted: (npcId) => completedNpcIds.has(npcId),
   });
   return {
-    manager, dialogue, prompt, handlers, completedNpcIds,
+    manager, dialogue, prompt, handlers, completedNpcIds, drawCalls,
     direction, directionArrow, directionName, directionDistance,
   };
 }
@@ -194,6 +196,42 @@ test('picture markers clip corners before depth writes with original images and 
   }
 });
 
+test('six Room 116 source portraits map correctly and render square face frames with circular clipping', t => {
+  const { manager, drawCalls } = setup(t);
+  const studio = config.zones.find(zone => zone.id === 'project-studio');
+  const files = ['hamza.png', 'max.jpg', 'Elsayed.jpg', 'rhea.jpeg', 'yulin.jpeg', 'vishan.jpeg'];
+  const dimensions = [[800, 800], [676, 902], [676, 902], [800, 800], [692, 692], [200, 200]];
+  let next = 0;
+  t.mock.method(THREE.TextureLoader.prototype, 'load', (url, loaded) => {
+    const [width, height] = dimensions[next++];
+    loaded(new THREE.Texture({ width, height }));
+  });
+  const before = structuredClone(studio);
+  manager.setNPCs(studio.npcs, studio.id);
+  assert.equal(drawCalls.length, 6);
+  studio.npcs.forEach((npc, index) => {
+    assert.equal(npc.id, `room116-project-${index + 1}`);
+    assert.equal(npc.portrait, `./portraits/room116/${files[index]}`);
+    assert.equal(npc.markerImage, npc.portrait);
+    assert(fs.statSync(new URL('../public/' + npc.portrait.slice(2), import.meta.url)).size > 0);
+    const material = manager.npcs[index].sprite.material;
+    assert.equal(material.map.isCanvasTexture, true);
+    assert.equal(material.map.image.width, 512);
+    assert.equal(material.map.image.height, 512);
+    assert.equal(material.map.colorSpace, THREE.SRGBColorSpace);
+    assert.equal(material.transparent, true);
+    assert.equal(material.depthTest, true);
+    const shader = { fragmentShader: THREE.ShaderLib.sprite.fragmentShader };
+    material.onBeforeCompile(shader);
+    assert.match(shader.fragmentShader, /if \(dot\(markerOffset, markerOffset\) > 0\.25\) discard;/);
+    const [x, y, size] = npc.markerFrame, ratio = 512 / size;
+    assert.deepEqual(drawCalls[index].slice(1), [-x * ratio, -y * ratio,
+      dimensions[index][0] * ratio, dimensions[index][1] * ratio]);
+    assert.deepEqual(manager.npcs[index].sprite.position.toArray(), npc.position);
+  });
+  assert.deepEqual(studio, before);
+});
+
 test('missing Vishan image retains circular mask on the existing V badge', t => {
   const { manager } = setup(t, { failImages: true });
   const vishan = config.zones.find(z => z.id === 'printing-room').npcs.find(n => n.id === 'vishan-ergonomics');
@@ -222,10 +260,11 @@ test('all three current zone configurations preserve NPC data and positions', t 
   for (const zone of config.zones) {
     manager.setNPCs(zone.npcs);
     manager.update({ x: 0, z: 0 });
-    assert.equal(manager.npcs.length, zone.npcs.length);
+    const placed = zone.npcs.filter(npc => npc.position != null);
+    assert.equal(manager.npcs.length, placed.length);
     manager.npcs.forEach((npc, i) => {
-      assert.equal(npc.sprite.position.x, zone.npcs[i].position[0]);
-      assert.equal(npc.sprite.position.z, zone.npcs[i].position[2]);
+      assert.equal(npc.sprite.position.x, placed[i].position[0]);
+      assert.equal(npc.sprite.position.z, placed[i].position[2]);
     });
     if (!zone.npcs.length) {
       assert.equal(manager.nearest, null);
