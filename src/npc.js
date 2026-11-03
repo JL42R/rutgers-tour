@@ -30,6 +30,28 @@ function makeBadgeTexture(label) {
   return new THREE.CanvasTexture(c);
 }
 
+// Optional source-pixel square framing: originals stay unchanged on disk.
+// Negative offsets permit padding a tightly cropped head instead of clipping it.
+function framePortrait(texture, frame) {
+  if (!frame || !texture.image) return texture;
+  const [x, y, size, background] = frame;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  if (background) {
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  const ratio = canvas.width / size;
+  ctx.drawImage(texture.image, -x * ratio, -y * ratio,
+    texture.image.width * ratio, texture.image.height * ratio);
+  const framed = new THREE.CanvasTexture(canvas);
+  texture.dispose();
+  return framed;
+}
+
 export class NPCManager {
   constructor(scene, dialogue, {
     isCompleted = () => false,
@@ -76,7 +98,8 @@ export class NPCManager {
     this.directionTargetId = null;
     this.directionDistance = null;
     this.directionAngle = null;
-    this.npcs = list.map((data) => {
+    // An unmeasured stop can be registered in progress without a guessed marker.
+    this.npcs = list.filter(data => data.position != null).map((data) => {
       const markerLabel = data.markerLabel ?? (data.name ?? '?')[0].toUpperCase();
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
         map: makeBadgeTexture(markerLabel),
@@ -100,6 +123,7 @@ export class NPCManager {
         };
         sprite.material.customProgramCacheKey = () => 'circular-npc-marker-v1';
         new THREE.TextureLoader().load(data.markerImage, (texture) => {
+          texture = framePortrait(texture, data.markerFrame);
           texture.colorSpace = THREE.SRGBColorSpace;
           sprite.material.map.dispose();
           sprite.material.map = texture;
