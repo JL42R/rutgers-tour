@@ -1,0 +1,9 @@
+{
+  "npc": "room116-project-4",
+  "name": "Room 116 Project 4",
+  "nodes": {
+    "start": {
+      "text": "Hi! I'll be showing you one of the student projects in Room 116. More information about this project is coming soon!"
+    }
+  }
+}

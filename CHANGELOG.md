@@ -2,12 +2,162 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `docs/PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-11-03
+
+### Six Room 116 portrait markers (local review)
+- Copied Hamza, Max, Elsayed, Rhea, Yulin and Vishan source images unchanged into
+  `public/portraits/room116/` and assigned both portrait and markerImage paths to
+  P1-P6 in the requested order. The separate Johnny source was not copied.
+- Reused the existing circular shader discard/depth behavior. Added opt-in,
+  source-pixel square framing for these six marker textures so faces are not
+  stretched by differing image proportions; tightly cropped Elsayed uses a green
+  background inside the circle. Source files remain untouched and are not edited
+  or regenerated. Other guides do not opt into framing and retain their rendering.
+- Preserved every position, radius, label, ID, dialogue and tracking/navigation
+  behavior. Added asset mapping/framing/circular clipping regression checks and
+  updated dialogue integration checks for loaded portraits. Visual Chrome review
+  of face framing and source image clarity remains pending; Vishan is 200x200.
+- Validation: all 121 relevant tests pass within the full suite (553/557 pass;
+  same four documented unrelated failures). Production build passes with the
+  existing bundle-size warning. All six copies match their Documents sources
+  byte-for-byte and are included unchanged in the production output.
+
+### One-time Room 116 placement accessibility audit (local review)
+- Rechecked all six saved placements with the production rotated boundary,
+  player-radius/exclusion validator and swept movement solver from D3. Every
+  NPC has a reachable nearest-NPC interaction point within its unchanged 2 m
+  radius, with 2 cm clearance probes. Per the user's keep-if-interactable rule,
+  all original arrays (including Y) remain exactly unchanged; zero corrections.
+- Added a read-only, one-time CLI report and saved its full original/corrected
+  coordinates, zero movement, reason, accessibility and approach points in
+  `docs/ROOM116_NPC_ACCESSIBILITY_REPORT.json`. No tour/editor/frame-loop changes.
+- Added tests for valid, outside-wall, excluded, corner, interactable-outside,
+  disconnected and distant placements. Grid search proves positive paths, not
+  unreachability or a continuous nearest safe projection. Unproven cases are
+  flagged for review without speculative relocation. Visual occlusion remains
+  a Chrome check; P3's sampled approach is 1.862 m from its marker.
+- Validation: all 120 relevant tests pass within the full suite (552/556 pass).
+  The same four documented failures remain: three frozen-fixture hash checks
+  and the outdated local-guide welcome source assertion. Production build passes
+  with the existing bundle-size warning.
+
+### Apply six user-reviewed Room 116 positions (local review)
+- Applied the six exact user-supplied position arrays to the existing P1-P6
+  entries in `public/zones.json`. Only their position fields changed in zone
+  configuration. Dialogue, radii, labels, appearance, editor, geometry, splat
+  transforms, other guides and navigation implementation are unchanged.
+- Added exact-coordinate/unique-ID/reload checks and swept-grid reachability from
+  D3. Updated integration tests to interact from reachable player positions
+  rather than assuming players can stand at the marker centre. All six existing
+  dialogues are exercised through E, tracker completion, ordering and persistence.
+- Placement concerns retained without adjustment: P2/P3 lie beyond the left
+  physical room edge, P4 is 0.354 m beyond the far edge, P1 is outside the player
+  wall inset, and P6 is in the entrance-right exclusion. All six can be selected
+  from reachable positions within their original radii; P3's sampled approach is
+  about 1.862 m away (2 m radius). Visual wall/splat occlusion and actual browser
+  refresh remain manual Chrome checks. No commit, push or PR.
+- Validation: 112 relevant tests pass; production build passes with the existing
+  bundle-size warning. Built `dist/zones.json` matches the saved source exactly.
+
+### Interactive Room 116 NPC positioning editor (local review)
+- Extended the opt-in development recorder with an O-key/native-dialog editor
+  for P1-P6. Camera-based Place Here/Place 1 m Ahead, 10 cm facing-relative nudges
+  and independent height buttons move actual NPC markers and their shared zone
+  positions immediately. P6 can be placed from null; no splat raycasting is used.
+- Added selected/all restore and downloadable/copyable JSON exports containing
+  all six IDs, proposed positions and original positions. Drafts survive editor
+  closing and room changes in memory; reload discards them. Export does not write
+  repository files or change completion storage. Production coordinates remain.
+- Panel pauses controls/E, releases pointer lock, uses native modal keyboard
+  navigation and closes with Escape. Existing P recorder remains available.
+  Dialogue, tracking, room navigation, geometry, alignment and other guides stay
+  unchanged. Manual Chrome placement/keyboard/download acceptance remains pending.
+- Validation: all 111 relevant tests pass; production build passes with the
+  existing bundle-size warning. Editor UI/export strings are absent from the
+  production bundle. Automated coverage includes actual sprite/data updates,
+  P6 placement/removal, E dialogue, exports/originals, room re-entry and controls.
+
+### Room 116 visual placement review workflow (local review)
+- Updated positioning documentation to accept screenshot-based estimates for
+  agent-applied placement, without requiring user coordinate entry. Preserved
+  the original coordinate table as the rollback baseline.
+- Repository inspection found no equipment screenshots or saved camera views
+  locating the six requested targets. All positions remain unchanged, including
+  unplaced P6; visual references are needed before defensible estimates.
+- Validation: 109 relevant tests pass; production build passes with the existing
+  bundle-size warning. No runtime changes in this visual-review documentation step.
+
+### Sixth Room 116 project stop and measurement workflow (local review)
+- Added Project 6 / P6 for the user-identified Cobot stop with the same neutral
+  placeholder script. Existing tracker, completion persistence/reset and checklist
+  order now include six studio stops and 12 total conversations.
+- Left P1-P5 coordinates unchanged. P6 explicitly has no measured position yet;
+  marker creation skips unplaced entries, and existing guidance returns no arrow
+  for them. P6 becomes visible/interactable and follows P5 once measured.
+- Documented all six equipment targets, preserved coordinates and the P recorder
+  workflow. The recorder remains unchanged: camera position/heading only, without
+  selecting/moving markers or measuring equipment surfaces. Exact equipment
+  placement awaits user measurements and Chrome review. No commit, push or PR.
+- Validation: all 109 relevant dialogue/tracker, NPC guidance/rendering, room
+  navigation, positioning-recorder and approved Room 116 geometry tests pass.
+  Production build passes with the existing bundle-size warning. P6 placement
+  coverage uses a synthetic test coordinate, never a production measurement.
+
+### Room 116 Tour Progress and ordered guidance (local review)
+- Removed `availability: "coming-soon"` from the five existing Room 116 NPC
+  entries. That flag excluded them from required registration, terminal dialogue
+  completion and guidance. The existing tracker now counts 11 conversations,
+  including Project 1-5 under Project Studio - Room 116.
+- Reused existing completion callbacks, localStorage, duplicate protection, Reset
+  Progress and room-local checklist ordering. Positions, radii, temporary scripts,
+  visuals, positioning tools, approved geometry and AI Guide code are unchanged.
+- Updated integration/regression coverage for all five completions, counts/status,
+  ordered and out-of-order guidance, replay, persistence, room changes, reset and
+  early Escape. Chrome visual/manual acceptance remains pending. No commit,
+  push, merge or PR.
+- Validation: all 108 relevant tracking/guidance/navigation/Room 116 tests pass
+  within the full suite (540/544 passing). The four previously recorded failures
+  remain: three fixture byte-hash checks and the outdated local-guide welcome
+  source assertion. Production build passes with the existing bundle-size warning.
+
+## 2026-11-02
+
+### Room 116 project placeholders (local review)
+- Added five provisional P1–P5 canvas-badge NPCs inside the approved Room 116
+  walking boundary, with separate placeholder dialogue files and no project claims.
+- Added shared `availability: "coming-soon"` handling: placeholders appear in Tour
+  Progress but cannot earn completion credit, increase required counts or become
+  room-local guidance targets. Existing NPC behavior and saved progress remain.
+- Added an opt-in, development-only `?debugRoom116NPCs=1` P-key world-coordinate
+  and heading recorder, scoped to Room 116. Instructions live in
+  `docs/ROOM116_NPC_POSITIONING.md`. Geometry, transitions, splats, and existing
+  printing-room NPC data/rendering remain unchanged. Physical project alignment
+  and browser visual acceptance are pending; no commit, push or PR.
+
+### Room-local checklist-ordered NPC guidance (corrected after manual review)
+- Changed the NPC direction indicator to use only the first unfinished entry under the current room in Tour Progress, through `getNextUnfinishedNpcInZone(zoneId)`. The global checklist still displays all zones and completion status; saved progress, out-of-order conversations and Reset Progress use the same existing completion state.
+- Kept E interaction proximity-based. Being near another guide no longer redirects or hides the checklist arrow; entering the target's interaction radius hides it in favor of the existing prompt.
+- Removed cross-zone NPC routing. NPC directions are always hidden in the hallway, in rooms without NPCs and once all current-room NPCs are completed. Leaving a room clears its indicator immediately; returning resumes that room's first unfinished guide. Future Room 116 NPCs use their own room's checklist order.
+- Preserved PR #82 manual destination priority and room-selection implementation, welcome, unrestricted E interaction, NPC data, dialogue, assets and transitions. Reused only its camera-yaw math for NPC arrows. Updated regression coverage for zone filtering, ordering, persistence/reset, transitions and room-navigation priority. Manual browser acceptance of this correction remains pending; no commit, push or PR.
+- Validation: production build passes with the existing bundle-size warning; full suite reports 534/538 passing, including all NPC/room-navigation/Room 116 checks. The same four unrelated failures remain: three fixture byte-hash tests affected by Windows CRLF checkout and the local-guide source assertion expecting the pre-PR #82 welcome call. Those tests and fixtures remain unchanged.
+
+### Optional hallway room navigation (Issue #81; local review)
+- Added room selection after the automatic CORE Guide welcome reaches its ending and closes, independently of saved tracker completion. Early dismissal and manual guide reopening do not trigger it.
+- Added camera-relative directions using configured hallway transitions and room labels: corridor alignment first, doorway second. Arrival ends guidance; entering another room pauses the arrow until returning to the hallway.
+- Added an optional Choose a room control, Change/Cancel actions, and Just Explore. The native modal contains keyboard focus and pauses movement; destination routing suppresses the unvisited-NPC arrow while preserving NPC interaction.
+- Preserved zone data, splats, collision, Room 116 arrival/boundaries, dialogue text, tracker and narration. Automated route/lifecycle/welcome and regression checks accompany this change; manual browser acceptance remains pending. No commit, push or publication.
+
 ## 2026-10-31
 
 ### Room 116 regression suite added to deployment CI (Issue #68)
 - Added one cross-platform `npm test` command that explicitly runs all three tracked Room 116 files and their 55 regression checks.
 - Changed the Pages workflow to validate pull requests targeting `main` as well as pushes to `main`; tests run before the production build, and deployment depends on that validation.
 - Kept pull-request runs non-deploying and documented the automated coverage and remaining manual browser, performance, screen-reader and visual checks. A remote nonproduction Actions run still requires a later push/PR and is not claimed by this local work session.
+
+### In-zone unvisited guide indicator (Issue #15)
+- Added a small camera-relative HUD pointer to the nearest unfinished guide in the current zone, using the existing tracker completion state and configured tracker labels.
+- The pointer yields to the existing proximity prompt and dialogue, advances after a guide is completed, disappears when no unfinished current-zone guide remains, and returns when progress is reset.
+- Preserved guide coordinates, interaction radii, marker scaling, E-key behavior, dialogue, automatic hallway welcome, zone transitions and Room 116 geometry. Cold first-time-user observation remains required before Issue #15 can close.
 
 ## 2026-10-30
 

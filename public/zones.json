@@ -55,33 +55,30 @@
           "id": "johnny-ultimaker",
           "name": "Johnny",
           "trackerLabel": "Ultimaker Printers",
-          "markerLabel": "2",
+          "markerLabel": "J1",
           "position": [-3.7969415953942462, 1.85, -2.6779949419883433],
           "radius": 2.0,
           "portrait": "./portraits/johnny2.jpeg",
-          "markerImage": "./portraits/johnny2.jpeg",
           "dialogueFile": "./dialogue/johnny-ultimaker.json"
         },
         {
           "id": "johnny-stratasys",
           "name": "Johnny",
           "trackerLabel": "Stratasys Printers",
-          "markerLabel": "3",
+          "markerLabel": "J2",
           "position": [-3.7969415953942467, 2, 1.5220050580116564],
           "radius": 2.0,
           "portrait": "./portraits/johnny3.jpeg",
-          "markerImage": "./portraits/johnny3.jpeg",
           "dialogueFile": "./dialogue/johnny-stratasys.json"
         },
         {
           "id": "johnny-sca",
           "name": "Johnny",
           "trackerLabel": "SCA Support Station",
-          "markerLabel": "4",
+          "markerLabel": "J3",
           "position": [-3.7969415953942462, 1.6, 0.3720050580116565],
           "radius": 2.0,
           "portrait": "./portraits/johnny4.jpeg",
-          "markerImage": "./portraits/johnny4.jpeg",
           "dialogueFile": "./dialogue/johnny-sca.json"
         },
         {
@@ -210,7 +207,80 @@
           { "id": "right-wall-strip", "forward": [1.900, 11.0490], "left": [0, 1.2192] }
         ]
       },
-      "npcs": [],
+      "npcs": [
+        {
+          "id": "room116-project-1",
+          "name": "Room 116 Project 1",
+          "trackerLabel": "Project 1",
+          "markerLabel": "P1",
+          "portrait": "./portraits/room116/hamza.png",
+          "markerImage": "./portraits/room116/hamza.png",
+          "markerFrame": [140, 0, 520],
+          "position": [2.9760467734269613, 1.75, 16.30298825508666],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/room116-project-1.json"
+        },
+        {
+          "id": "room116-project-2",
+          "name": "Room 116 Project 2",
+          "trackerLabel": "Project 2",
+          "markerLabel": "P2",
+          "portrait": "./portraits/room116/max.jpg",
+          "markerImage": "./portraits/room116/max.jpg",
+          "markerFrame": [0, 0, 676],
+          "position": [6.498525114733146, 1.65, 15.627480887419985],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/room116-project-2.json"
+        },
+        {
+          "id": "room116-project-3",
+          "name": "Room 116 Project 3",
+          "trackerLabel": "Project 3",
+          "markerLabel": "P3",
+          "portrait": "./portraits/room116/Elsayed.jpg",
+          "markerImage": "./portraits/room116/Elsayed.jpg",
+          "markerFrame": [-187, -65, 1050, "#16372c"],
+          "position": [10.696601570542061, 1.65, 14.787731603294203],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/room116-project-3.json"
+        },
+        {
+          "id": "room116-project-4",
+          "name": "Room 116 Project 4",
+          "trackerLabel": "Project 4",
+          "markerLabel": "P4",
+          "portrait": "./portraits/room116/rhea.jpeg",
+          "markerImage": "./portraits/room116/rhea.jpeg",
+          "markerFrame": [100, 40, 600],
+          "position": [12.665069684308186, 1.65, 17.297893383059034],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/room116-project-4.json"
+        },
+        {
+          "id": "room116-project-5",
+          "name": "Room 116 Project 5",
+          "trackerLabel": "Project 5",
+          "markerLabel": "P5",
+          "portrait": "./portraits/room116/yulin.jpeg",
+          "markerImage": "./portraits/room116/yulin.jpeg",
+          "markerFrame": [60, 0, 600],
+          "position": [11.359993907018975, 1.75, 20.47323220715301],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/room116-project-5.json"
+        },
+        {
+          "id": "room116-project-6",
+          "name": "Room 116 Project 6",
+          "trackerLabel": "Project 6",
+          "markerLabel": "P6",
+          "portrait": "./portraits/room116/vishan.jpeg",
+          "markerImage": "./portraits/room116/vishan.jpeg",
+          "markerFrame": [0, 0, 200],
+          "position": [2.9601283961821645, 1.65, 19.289295604117655],
+          "radius": 2.0,
+          "dialogueFile": "./dialogue/room116-project-6.json"
+        }
+      ],
       "signs": [],
       "transitions": [
         {

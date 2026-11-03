@@ -8,6 +8,8 @@ import { ZoneManager } from './zones.js';
 import { NPCManager } from './npc.js';
 import { Dialogue } from './dialogue.js';
 import { InteractionTracker } from './interaction-tracker.js';
+import { RoomNavigation } from './room-navigation.js';
+import { npcGuidance } from './npc-guidance.js';
 import { room116ArrivalPosition } from './room116-arrival.js';
 import { debugEquipment, equipmentPlaceholder, installEquipmentDebug } from './equipment-debug.js';
 
@@ -44,8 +46,16 @@ scene.add(dir);
 const dialogue = new Dialogue();
 const controls = new PlayerControls(camera, renderer.domElement);
 const zones = new ZoneManager(scene, { debugEquipment, equipmentPlaceholder });
-const npcs = new NPCManager(scene, dialogue);
 const tracker = new InteractionTracker();
+const roomNavigation = new RoomNavigation({ controls, dialogue, tracker });
+const npcs = new NPCManager(scene, dialogue, {
+  isCompleted: (npcId) => tracker.completedNpcIds.has(npcId),
+  isInteractionBlocked: () => roomNavigation.isOpen || !controls.enabled,
+  isDirectionSuppressed: () => roomNavigation.active || roomNavigation.isOpen || !controls.enabled,
+  getGuidance: () => npcGuidance(
+    tracker.getNextUnfinishedNpcInZone(zones.current?.id), zones.current
+  ),
+});
 installEquipmentDebug({ camera, controls, zones, dialogue });
 
 // While a dialogue is open, freeze movement so buttons are usable.
@@ -55,11 +65,32 @@ dialogue.onOpen = () => {
   tracker.collapse();
 };
 dialogue.onClose = () => { controls.enabled = true; };
+dialogue.onSessionClosed = (session) => roomNavigation.welcomeClosed(session);
 dialogue.onComplete = (npcId) => {
   console.log('[NPC completed]', npcId);
   tracker.complete(npcId);
 };
 tracker.onReset = () => dialogue.completedNpcIds.clear();
+
+// The localhost provider and fictional catalogs are never imported by a production build.
+let room116Editor = null;
+if (import.meta.env.DEV) {
+  if (new URLSearchParams(window.location.search).get('debugRoom116NPCs') === '1') {
+    void import('./room116-npc-debug.js').then(({ installRoom116NPCDebug }) => {
+      room116Editor = installRoom116NPCDebug({ camera, controls, zones, dialogue, npcs });
+    });
+  }
+  const guideParams = new URLSearchParams(window.location.search);
+  if (guideParams.get('guideMock') === '1' && guideParams.get('guideBackend') === 'local') {
+    void import('./guide-hallway-local.js').then((local) => {
+      const provider = local.createHallwayLocalQuestionProvider({ search: window.location.search });
+      dialogue.registerQuestionProvider(local.HALLWAY_GUIDE_ID, provider);
+      local.installLocalGuideDisclosure();
+    }).catch(() => {
+      console.warn('The local Guide development preview could not be enabled.');
+    });
+  }
+}
 
 let initialWelcomeStarted = false;
 
@@ -75,7 +106,7 @@ async function startInitialWelcome(startZone) {
   // Set this before loading the dialogue so a slow or failed request cannot trigger a second attempt.
   initialWelcomeStarted = true;
   try {
-    await dialogue.start(hallwayGuide);
+    await dialogue.start(hallwayGuide, { allowQuestionProvider: false, initialWelcome: true });
     if (!dialogue.isOpen) console.warn('The hallway welcome could not be opened.');
   } catch (err) {
     console.error('Could not open the hallway welcome:', err);
@@ -88,10 +119,11 @@ async function init() {
   try {
     const config = await zones.loadConfig('./zones.json');
     tracker.setConfig(config);
+    roomNavigation.configure(config);
     for (const npcId of tracker.completedNpcIds) dialogue.completedNpcIds.add(npcId);
     const startZone = config.zones.find(z => z.id === config.startZone) ?? config.zones[0];
     await zones.loadZone(startZone.id);
-    npcs.setNPCs(startZone.npcs ?? []);
+    npcs.setNPCs(startZone.npcs ?? [], startZone.id);
     if (startZone.spawn) {
       camera.position.set(startZone.spawn[0], (startZone.spawn[1] ?? 0) + EYE_HEIGHT, startZone.spawn[2]);
     }
@@ -133,7 +165,7 @@ async function switchZone(zoneId, transition = null, previousPosition = null) {
         console.warn('D3 inward arrival was unsafe; retaining the original crossing position.');
       }
     }
-    npcs.setNPCs(newZone.npcs ?? []);
+    npcs.setNPCs(newZone.npcs ?? [], newZone.id);
     console.info(`Switched zone from "${oldZoneId}" to "${newZone.id}".`);
   } catch (err) {
     console.error(`Could not switch from zone "${oldZoneId}" to "${zoneId}".`, err);
@@ -177,7 +209,9 @@ renderer.setAnimationLoop(() => {
     if (transition) void switchZone(transition.target, transition, previousPosition);
   }
 
-  npcs.update(camera.position);
+  roomNavigation.update(camera.position, controls.yaw, zones.current?.id, zoneSwitchInProgress);
+  npcs.update(camera.position, controls.yaw);
+  room116Editor?.update?.();
   renderer.render(scene, camera);
 });
 
