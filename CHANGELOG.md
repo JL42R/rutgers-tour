@@ -2,6 +2,40 @@
 
 Newest entry first. This records what changed and when — for schedule and gates see `docs/PLAN.md`, for architecture see `DESIGN.md`, for task state see GitHub Issues.
 
+## 2026-11-09
+
+### Room-side stop for disallowed D3 exits (local review)
+- Added a D3-exit-only conditional stop at local forward 0.40 m: the existing
+  0.35 m radius-aware entrance inset plus one configurable 0.05 m clearance.
+  The documented entrance reference is room-side of the measured jamb bases;
+  exact clearance against the rendered splat still needs browser review.
+- Disallowed outward travel stops before the corridor while retaining tangential
+  sliding where safe. Jamb clipping cannot creep outward; existing corridor
+  starts are not snapped inward. Turning and walking forward releases the stop.
+- Shared D3 plane, hallway entry, inward arrival, orientation, spawn values,
+  D1 and approved boundary/exclusion geometry remain unchanged.
+- Validation: 144 feature tests plus 121 existing navigation, collision, Room 116
+  and NPC regressions pass (265/265, zero failures). Production build passes
+  with the existing bundle-size warning. Rendered D3 center/edge, backward,
+  sideways and turn-to-exit acceptance remains pending. No commit, push or merge.
+
+## 2026-11-08
+
+### Door-facing transitions (local review)
+- Added a pure doorway policy at the existing post-collision crossing decision.
+  D1/D3 entry and exit now require enabled movement, net W/Up intent, and
+  horizontal facing and actual travel within 60 degrees of the destination
+  normal; travel must also align with facing. Opposing aliases cancel exactly
+  as in the existing controls. Existing metadata supports both X/Z directions.
+- Rejected crossings restore only the previous frame's X/Z and never start a
+  load. Camera height/orientation, raw crossing detection, loading guard, zone
+  data, collision solvers, spawn behavior and approved D3 arrival are unchanged.
+- Validation: 138 new policy/production-frame tests and 121 existing navigation,
+  Room 116, collision and NPC regressions pass (259/259, zero failures).
+  Production build passes with the existing bundle-size warning. Numerical
+  tests use stub zone loading; D1/D3 rendered Chrome acceptance remains pending.
+  No commit, push or merge.
+
 ## 2026-11-03
 
 ### Six Room 116 portrait markers (local review)
