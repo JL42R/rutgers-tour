@@ -11,6 +11,8 @@ import { InteractionTracker } from './interaction-tracker.js';
 import { RoomNavigation } from './room-navigation.js';
 import { npcGuidance } from './npc-guidance.js';
 import { room116ArrivalPosition } from './room116-arrival.js';
+import { allowsDoorTransition } from './door-transition-policy.js';
+import { room116ExitStop } from './room116-door-stop.js';
 import { debugEquipment, equipmentPlaceholder, installEquipmentDebug } from './equipment-debug.js';
 
 const app = document.getElementById('app');
@@ -200,13 +202,32 @@ const clock = new THREE.Clock();
 renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.05); // clamp so tab-switch doesn't teleport you
   const previousPosition = { x: camera.position.x, z: camera.position.z };
+  const movementEnabled = controls.enabled;
   controls.update(dt, zones.getCollisionBoxes(), zones.current);
 
   if (!zoneSwitchInProgress) {
+    const stopped = room116ExitStop({
+      zone: zones.current, boundary: controls.roomBoundary,
+      previous: previousPosition, current: camera.position,
+      movementEnabled, keys: controls.keys, yaw: controls.yaw,
+    });
+    camera.position.x = stopped.x;
+    camera.position.z = stopped.z;
     const transition = (zones.current?.transitions ?? []).find((candidate) =>
       crossedTransition(previousPosition, camera.position, candidate)
     );
-    if (transition) void switchZone(transition.target, transition, previousPosition);
+    if (transition) {
+      if (allowsDoorTransition({
+        transition, movementEnabled, keys: controls.keys, yaw: controls.yaw,
+        previous: previousPosition, current: camera.position,
+      })) {
+        void switchZone(transition.target, transition, previousPosition);
+      } else {
+        // Keep a rejected crossing in its source zone at the last valid position.
+        camera.position.x = previousPosition.x;
+        camera.position.z = previousPosition.z;
+      }
+    }
   }
 
   roomNavigation.update(camera.position, controls.yaw, zones.current?.id, zoneSwitchInProgress);
