@@ -222,8 +222,8 @@
         },
         {
           "id": "room116-project-2",
-          "name": "Room 116 Project 2",
-          "trackerLabel": "Project 2",
+          "name": "Max Powers",
+          "trackerLabel": "Tennis & Golf Collectors",
           "markerLabel": "P2",
           "portrait": "./portraits/room116/max.jpg",
           "markerImage": "./portraits/room116/max.jpg",
@@ -234,8 +234,8 @@
         },
         {
           "id": "room116-project-3",
-          "name": "Room 116 Project 3",
-          "trackerLabel": "Project 3",
+          "name": "Dr. Elsayed",
+          "trackerLabel": "Continuous Folding Machine",
           "markerLabel": "P3",
           "portrait": "./portraits/room116/Elsayed.jpg",
           "markerImage": "./portraits/room116/Elsayed.jpg",

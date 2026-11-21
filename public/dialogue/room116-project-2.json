@@ -1,9 +1,515 @@
 {
   "npc": "room116-project-2",
-  "name": "Room 116 Project 2",
+  "name": "Max Powers",
   "nodes": {
     "start": {
-      "text": "Hi! I'll be showing you one of the student projects in Room 116. More information about this project is coming soon!"
+      "text": "Hey! I'm Max Powers, the Lab Facilities Specialist for Industrial and Systems Engineering here at Rutgers. Welcome to Room 116!",
+      "choices": [
+        {
+          "label": "What do you do here at Rutgers?",
+          "next": "role"
+        },
+        {
+          "label": "What projects are here?",
+          "next": "overview"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "role": {
+      "text": "I support the department's laboratory facilities, helping keep equipment and workspaces available for student learning and engineering projects.",
+      "choices": [
+        {
+          "label": "What kinds of projects do students explore?",
+          "next": "role_more"
+        },
+        {
+          "label": "Show me the collectors.",
+          "next": "overview"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "role_more": {
+      "text": "Student engineering projects can involve prototyping, automation, and testing ways to make repetitive work easier. Here are two collectors that show those ideas in action.",
+      "choices": [
+        {
+          "label": "Show me the golf collector.",
+          "next": "golf_intro"
+        },
+        {
+          "label": "Show me the tennis collector.",
+          "next": "tennis_intro"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "overview": {
+      "text": "There are two projects here: the blue underwater golf ball collector on your left and the tennis ball collector on your right. Which would you like to learn about first?",
+      "choices": [
+        {
+          "label": "The blue golf collector on my left.",
+          "next": "golf_intro"
+        },
+        {
+          "label": "The tennis collector on my right.",
+          "next": "tennis_intro"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "tennis_intro": {
+      "text": "On your right is the tennis ball collector. Its goal is to gather scattered tennis balls without someone having to pick up each ball by hand.",
+      "choices": [
+        {
+          "label": "How does it pick them up?",
+          "next": "tennis_mech"
+        },
+        {
+          "label": "Why is this helpful?",
+          "next": "tennis_value"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "tennis_value": {
+      "text": "Collecting balls by hand is repetitive, especially during a long practice. An automated collector could give players and coaches more time for training.",
+      "choices": [
+        {
+          "label": "How does the mechanism work?",
+          "next": "tennis_mech"
+        },
+        {
+          "label": "What is challenging about the design?",
+          "next": "tennis_challenge"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "tennis_mech": {
+      "text": "The prototype uses a wheeled platform and a rotating pickup assembly to guide tennis balls toward a collection basket. Its motion and pickup mechanism work together.",
+      "choices": [
+        {
+          "label": "What does the rotating part do?",
+          "next": "tennis_rotating"
+        },
+        {
+          "label": "How does the machine move?",
+          "next": "tennis_motion"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "tennis_rotating": {
+      "text": "A rotating mechanism can move balls into the collector continuously as the machine travels. The spacing and speed would need testing to prevent missed pickups.",
+      "choices": [
+        {
+          "label": "How could you measure pickup success?",
+          "next": "tennis_metrics"
+        },
+        {
+          "label": "What challenges would engineers face?",
+          "next": "tennis_challenge"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "tennis_motion": {
+      "text": "The machine needs to approach balls without simply pushing them away. Maneuvering and lining up the collection opening are important parts of the overall design.",
+      "choices": [
+        {
+          "label": "What are the design challenges?",
+          "next": "tennis_challenge"
+        },
+        {
+          "label": "How could performance be measured?",
+          "next": "tennis_metrics"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "tennis_challenge": {
+      "text": "One challenge is consistent collection as the ball positions change. A good design also needs to consider maneuvering, collection capacity, and reliability.",
+      "choices": [
+        {
+          "label": "What could engineers improve?",
+          "next": "tennis_improve"
+        },
+        {
+          "label": "Continue with this project.",
+          "next": "tennis_wrap"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "tennis_metrics": {
+      "text": "Engineers could track pickup rate, the number of balls missed, and the time required to clear a test area. Comparing results helps identify improvements.",
+      "choices": [
+        {
+          "label": "How could engineers improve it?",
+          "next": "tennis_improve"
+        },
+        {
+          "label": "Continue to the project summary.",
+          "next": "tennis_wrap"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "tennis_improve": {
+      "text": "They could experiment with collection alignment, pickup speed, or court coverage. Testing would show which changes improve the results rather than just looking promising.",
+      "choices": [
+        {
+          "label": "How do those measures connect to ISE?",
+          "next": "ise"
+        },
+        {
+          "label": "Finish the tennis collector explanation.",
+          "next": "tennis_wrap"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "tennis_wrap": {
+      "text": "That's the tennis collector: automation for gathering balls from a court. The underwater golf collector solves a similar task in a very different environment.",
+      "choices": [
+        {
+          "label": "Tell me about the blue golf collector.",
+          "next": "golf_intro"
+        },
+        {
+          "label": "Compare the two machines.",
+          "next": "compare"
+        },
+        {
+          "label": "Finish here and keep exploring.",
+          "next": "closing"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_intro": {
+      "text": "The blue machine on your left is an underwater golf ball collector. It was designed to travel along the floor of a water hazard and retrieve golf balls with less manual labor.",
+      "choices": [
+        {
+          "label": "How does it pick up golf balls?",
+          "next": "golf_rake"
+        },
+        {
+          "label": "How does it move underwater?",
+          "next": "golf_drive"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_rake": {
+      "text": "A rotating rake at the front lifts golf balls from the bottom and guides them toward an onboard bin. The rake has flexible metal tines to work through the sandy surface.",
+      "choices": [
+        {
+          "label": "Why does it use flexible tines?",
+          "next": "golf_tines"
+        },
+        {
+          "label": "Where do the golf balls go?",
+          "next": "golf_bin"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_tines": {
+      "text": "The tines need to be firm enough to lift a ball, but flexible enough to give when they hit something harder. That's a tradeoff between effective collection and avoiding damage.",
+      "choices": [
+        {
+          "label": "How are collected balls stored?",
+          "next": "golf_bin"
+        },
+        {
+          "label": "How does it know where to go?",
+          "next": "golf_sensors"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_bin": {
+      "text": "The rake carries balls toward a bin in the robot's frame. The design also uses a switch to count collected balls and prevent the bin from being overfilled.",
+      "choices": [
+        {
+          "label": "How does it avoid obstacles?",
+          "next": "golf_sensors"
+        },
+        {
+          "label": "Continue to the project summary.",
+          "next": "golf_wrap"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_drive": {
+      "text": "Instead of ordinary wheels, the golf collector uses two independently driven tracks. The tracks help it move and turn across uneven ground on the bottom of a water hazard.",
+      "choices": [
+        {
+          "label": "Why tracks instead of wheels?",
+          "next": "golf_tracks"
+        },
+        {
+          "label": "How does it navigate?",
+          "next": "golf_sensors"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_tracks": {
+      "text": "Tracks spread contact across a wider area and can help maintain traction on uneven or soft surfaces. Separate motors let the robot steer by changing each track's movement.",
+      "choices": [
+        {
+          "label": "How does it avoid obstacles?",
+          "next": "golf_sensors"
+        },
+        {
+          "label": "What are the underwater challenges?",
+          "next": "golf_challenge"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_sensors": {
+      "text": "The design uses ultrasonic sensors to measure distances to nearby objects and the hazard's edge. An Arduino controller uses those readings to adjust the robot's path.",
+      "choices": [
+        {
+          "label": "How does the routing work?",
+          "next": "golf_path"
+        },
+        {
+          "label": "What makes the underwater environment difficult?",
+          "next": "golf_challenge"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_path": {
+      "text": "The routing plan follows the hazard boundary and shifts inward over repeated passes. This helps the collector cover more of the bottom rather than wandering randomly.",
+      "choices": [
+        {
+          "label": "How does a run finish?",
+          "next": "golf_finish"
+        },
+        {
+          "label": "What are its main design challenges?",
+          "next": "golf_challenge"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_finish": {
+      "text": "The design uses a switch to count collected balls and detect when the bin reaches capacity. It also includes a homing method for returning toward its starting location.",
+      "choices": [
+        {
+          "label": "How does it handle water exposure?",
+          "next": "golf_waterproof"
+        },
+        {
+          "label": "Finish the golf collector explanation.",
+          "next": "golf_wrap"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_challenge": {
+      "text": "Underwater operation adds obstacles that a tennis court doesn't have: uneven ground, limited visibility, corrosion risk, and water-sensitive electronics.",
+      "choices": [
+        {
+          "label": "How are electronics protected?",
+          "next": "golf_waterproof"
+        },
+        {
+          "label": "Continue to the project summary.",
+          "next": "golf_wrap"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_waterproof": {
+      "text": "The project uses a sealed enclosure to protect its electronics from water. Its sensors support navigation around obstacles and boundaries.",
+      "choices": [
+        {
+          "label": "What engineering ideas does it use?",
+          "next": "ise"
+        },
+        {
+          "label": "Finish the golf collector explanation.",
+          "next": "golf_wrap"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "golf_wrap": {
+      "text": "That's the blue underwater collector! Its design brings together tracked movement, a rotating rake, sensors, and protection for the electronics.",
+      "choices": [
+        {
+          "label": "Tell me about the tennis collector.",
+          "next": "tennis_intro"
+        },
+        {
+          "label": "Compare the two machines.",
+          "next": "compare"
+        },
+        {
+          "label": "Finish here and keep exploring.",
+          "next": "closing"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "compare": {
+      "text": "Both machines automate collecting balls, but they face different conditions. The tennis collector operates on a court; the golf collector must travel and retrieve balls underwater.",
+      "choices": [
+        {
+          "label": "What ISE principles do they share?",
+          "next": "ise"
+        },
+        {
+          "label": "I'm ready to wrap up.",
+          "next": "closing"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "ise": {
+      "text": "Both projects connect mechanical design and automation to process improvement. Engineers can measure how reliably balls are gathered and how long the task takes.",
+      "choices": [
+        {
+          "label": "What measurements could they use?",
+          "next": "ise_metrics"
+        },
+        {
+          "label": "I'm ready to wrap up.",
+          "next": "closing"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "ise_metrics": {
+      "text": "Possible measures include collection time, balls retrieved, missed pickups, and interruptions. These are useful ways to evaluate performance, not reported test results for these prototypes.",
+      "choices": [
+        {
+          "label": "How do the two projects compare?",
+          "next": "compare"
+        },
+        {
+          "label": "Finish the conversation.",
+          "next": "closing"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "closing": {
+      "text": "Those are two different ways students have approached the same collection problem. You can keep exploring Room 116—Dr. Elsayed's Continuous Folding Machine is another interesting example of automation!",
+      "choices": [
+        {
+          "label": "Thanks, Max!",
+          "next": "end"
+        },
+        {
+          "label": "Tell me about one of the collectors again.",
+          "next": "overview"
+        },
+        {
+          "label": "Thanks, Max! I'll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "end": {
+      "text": "Enjoy the rest of your tour! Feel free to explore the other projects in Room 116.",
+      "completion": true
+    },
+    "bye": {
+      "text": "No problem! Enjoy exploring Room 116, and come back if you'd like to know more.",
+      "completion": false
     }
   }
 }

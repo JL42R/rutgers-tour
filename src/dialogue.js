@@ -200,7 +200,7 @@ export class Dialogue {
     } else if (node.next) {
       addButton('Continue', () => this.showNode(node.next));
     } else {
-      this.completionEligible = true;
+      this.completionEligible = node.completion !== false;
       if (this.activeQuestionProvider) {
         addButton('1. Ask a development question', () => this.showAIQuestionForm());
         addButton('2. Close', () => this.close());
