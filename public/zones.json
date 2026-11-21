@@ -44,6 +44,7 @@
         {
           "id": "johnny-bambu",
           "name": "Dr. Ahmed Aziz Ezzat",
+          "promptName": "Dr. Ezzat",
           "trackerLabel": "Bambu Lab X1E",
           "position": [-3.7969415953942462, 1.85, -1.1279949419883435],
           "radius": 2.0,
@@ -54,6 +55,7 @@
         {
           "id": "johnny-ultimaker",
           "name": "Hamza Eskombaji",
+          "promptName": "Hamza",
           "trackerLabel": "UltiMaker S-Series",
           "markerLabel": "J1",
           "position": [-3.7969415953942462, 1.85, -2.6779949419883433],
@@ -65,6 +67,7 @@
         {
           "id": "johnny-stratasys",
           "name": "Johnny Lago",
+          "promptName": "Johnny",
           "trackerLabel": "Stratasys Printers",
           "markerLabel": "J2",
           "position": [-3.7969415953942467, 2, 1.5220050580116564],
@@ -76,6 +79,7 @@
         {
           "id": "johnny-sca",
           "name": "Rhea Sridhar",
+          "promptName": "Rhea",
           "trackerLabel": "SCA Support Station",
           "markerLabel": "J3",
           "position": [-3.7969415953942462, 1.6, 0.3720050580116565],
@@ -87,6 +91,7 @@
         {
           "id": "vishan-ergonomics",
           "name": "Vishan Budhan",
+          "promptName": "Vishan",
           "trackerLabel": "Ergonomics & Human Factors",
           "position": [-0.90, 1.80, 0.372],
           "radius": 2.0,

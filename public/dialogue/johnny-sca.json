@@ -354,7 +354,7 @@
     "bye": {
       "text": "Of course! Have fun exploring the room, and feel free to come back with more questions.",
       "end": true,
-      "completion": false
+      "completion": true
     }
   }
 }

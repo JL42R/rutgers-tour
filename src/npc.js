@@ -10,6 +10,8 @@ import { directionAngle } from './room-navigation.js';
 const MIN_MARKER_SCALE = 0.32;
 const MAX_MARKER_SCALE = 0.65;
 const MARKER_SCALE_PER_METER = 0.04;
+const DEFAULT_TARGET_CONE_DEGREES = 35;
+const ANGLE_TIE_EPSILON = 1e-9;
 
 function makeBadgeTexture(label) {
   const c = document.createElement('canvas');
@@ -58,6 +60,7 @@ export class NPCManager {
     isInteractionBlocked = () => false,
     isDirectionSuppressed = () => false,
     getGuidance = null,
+    targetConeDegrees = DEFAULT_TARGET_CONE_DEGREES,
   } = {}) {
     this.scene = scene;
     this.dialogue = dialogue;
@@ -65,11 +68,13 @@ export class NPCManager {
     this.isInteractionBlocked = isInteractionBlocked;
     this.isDirectionSuppressed = isDirectionSuppressed;
     this.getGuidance = getGuidance;
+    this.targetConeCos = Math.cos(THREE.MathUtils.degToRad(THREE.MathUtils.clamp(targetConeDegrees, 0, 180)));
     this.group = new THREE.Group();
     this.scene.add(this.group);
     this.npcs = [];
     this.nearest = null;
     this.promptEl = document.getElementById('interact-prompt');
+    this.promptNameEl = document.getElementById('interact-prompt-name');
     this.directionEl = document.getElementById('guide-direction');
     this.directionArrowEl = document.getElementById('guide-direction-arrow');
     this.directionNameEl = document.getElementById('guide-direction-name');
@@ -94,6 +99,7 @@ export class NPCManager {
     this.group.clear();
     this.zoneId = zoneId;
     this.nearest = null;
+    this.promptEl.style.display = 'none';
     this.directionEl.hidden = true;
     this.directionTargetId = null;
     this.directionDistance = null;
@@ -139,10 +145,16 @@ export class NPCManager {
     });
   }
 
-  update(playerPos, viewYaw = 0) {
+  update(playerPos, viewYaw = 0, viewPitch = 0) {
     this.time += 0.016;
     this.nearest = null;
-    let best = Infinity;
+    let bestAlignment = -Infinity;
+    let bestDistance = Infinity;
+    const yaw = Number.isFinite(viewYaw) ? viewYaw : 0;
+    const pitch = Number.isFinite(viewPitch) ? viewPitch : 0;
+    const forwardX = -Math.sin(yaw) * Math.cos(pitch);
+    const forwardY = Math.sin(pitch);
+    const forwardZ = -Math.cos(yaw) * Math.cos(pitch);
 
     for (const npc of this.npcs) {
       // Gentle bob so markers are easy to spot (an accessibility requirement:
@@ -160,12 +172,24 @@ export class NPCManager {
       npc.sprite.scale.setScalar(markerScale);
 
       const radius = npc.data.radius ?? 2.0;
-      if (dist < radius && dist < best) {
-        best = dist;
+      if (dist >= radius) continue;
+      const dy = npc.sprite.position.y - (playerPos.y ?? 1.65);
+      const length = Math.hypot(dx, dy, dz);
+      if (length === 0) continue;
+      const alignment = (dx * forwardX + dy * forwardY + dz * forwardZ) / length;
+      if (alignment < this.targetConeCos) continue;
+      if (alignment > bestAlignment + ANGLE_TIE_EPSILON ||
+          (Math.abs(alignment - bestAlignment) <= ANGLE_TIE_EPSILON && dist < bestDistance)) {
+        bestAlignment = alignment;
+        bestDistance = dist;
         this.nearest = npc;
       }
     }
 
+    if (this.nearest) {
+      const name = this.nearest.data.promptName ?? this.nearest.data.name ?? 'Guide';
+      if (this.promptNameEl.textContent !== name) this.promptNameEl.textContent = name;
+    }
     this.promptEl.style.display =
       this.nearest && !this.dialogue.isOpen && !this.isInteractionBlocked() ? 'block' : 'none';
 

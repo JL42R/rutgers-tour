@@ -328,7 +328,7 @@
     "early_exit": {
       "text": "Of course! Enjoy looking around, and come back if you want to keep talking about the uPrint.",
       "end": true,
-      "completion": false
+      "completion": true
     }
   }
 }

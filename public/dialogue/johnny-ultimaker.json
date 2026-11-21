@@ -401,7 +401,7 @@
     "bye": {
       "text": "No problem! Enjoy looking around, and feel free to come back if you have questions.",
       "end": true,
-      "completion": false
+      "completion": true
     }
   }
 }
