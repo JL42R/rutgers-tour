@@ -1,154 +1,407 @@
 {
   "npc": "johnny_ultimaker",
-  "name": "Johnny",
+  "name": "Hamza Eskombaji",
   "nodes": {
     "start": {
-      "text": "Welcome to station two! This is our UltiMaker S-series printer with the Air Manager.",
+      "text": "Hi! I’m Hamza Eskombaji, an Industrial and Systems Engineering student at Rutgers. I also served as president of the Saudi Student Association.",
       "choices": [
-        { "label": "That's cool.", "next": "main2" },
-        { "label": "What's the Air Manager?", "next": "air_manager" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Nice to meet you!",
+          "next": "intro"
+        },
+        {
+          "label": "What is the Saudi Student Association?",
+          "next": "saudi_association"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main2": {
-      "text": "One useful feature of this printer is dual extrusion. It can print using two compatible materials.",
+    "saudi_association": {
+      "text": "It’s a student organization that brings people together through community and campus events. Being involved helped me connect with students outside the classroom.",
       "choices": [
-        { "label": "That's pretty useful.", "next": "main3" },
-        { "label": "Why would you need two materials?", "next": "dual_extrusion" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "That sounds rewarding.",
+          "next": "intro"
+        },
+        {
+          "label": "Did that relate to engineering?",
+          "next": "student_leadership"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main3": {
-      "text": "That flexibility helps when different projects have different requirements. You can choose materials based on what the part needs.",
+    "student_leadership": {
+      "text": "In both settings, communication and organization matter. It’s important to understand what people need and coordinate the resources to make things happen.",
       "choices": [
-        { "label": "That makes sense.", "next": "main4" },
-        { "label": "How do you choose a material?", "next": "materials" },
-        { "label": "Can it print support material?", "next": "support" }
+        {
+          "label": "That makes sense.",
+          "next": "intro"
+        },
+        {
+          "label": "Tell me about the printer.",
+          "next": "machine"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main4": {
-      "text": "The Air Manager also creates a more enclosed printing area. It filters air while the printer is operating.",
+    "intro": {
+      "text": "Good to meet you! Here’s the UltiMaker S-Series printer. It’s a useful example of how manufacturing choices depend on what you need to produce.",
       "choices": [
-        { "label": "That's a nice feature.", "next": "main5" },
-        { "label": "Why does the enclosure matter?", "next": "air_manager_benefit" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "How does it work?",
+          "next": "machine"
+        },
+        {
+          "label": "What makes this printer different?",
+          "next": "dual"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main5": {
-      "text": "So this printer is really about versatility. It gives students another way to approach different design problems.",
+    "machine": {
+      "text": "This printer builds parts layer by layer from a digital design. Its dual-extrusion setup lets it use two compatible print materials or material roles in one job.",
       "choices": [
-        { "label": "That's really cool.", "next": "main6" },
-        { "label": "How is this different from the Bambu?", "next": "bambu_comparison" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Continue.",
+          "next": "materials_main"
+        },
+        {
+          "label": "What does dual extrusion mean?",
+          "next": "dual"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main6": {
-      "text": "That's station two! When you're ready, look for number three to learn about the next printer.",
+    "dual": {
+      "text": "Dual extrusion means there are two print cores. For example, one can print the actual part while the other prints compatible temporary support material.",
       "choices": [
-        { "label": "Tell me about dual extrusion again.", "next": "dual_extrusion" },
-        { "label": "Start from the beginning.", "next": "start" },
-        { "label": "I'll head to station three.", "next": "bye" }
+        {
+          "label": "What are supports?",
+          "next": "supports"
+        },
+        {
+          "label": "Got it. Keep going.",
+          "next": "materials_main"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "air_manager": {
-      "text": "That's the Air Manager. It encloses the build area and filters air while the printer is running.",
+    "supports": {
+      "text": "Supports act like temporary scaffolding beneath difficult overhangs or shapes. They help the part print successfully and are removed afterward.",
       "choices": [
-        { "label": "Why does that matter?", "next": "air_manager_benefit" },
-        { "label": "Got it. Keep going.", "next": "main2" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "How are they removed?",
+          "next": "removal"
+        },
+        {
+          "label": "Continue.",
+          "next": "materials_main"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "air_manager_benefit": {
-      "text": "The enclosure helps create a more controlled printing environment. The filtration system also helps manage particles from printing.",
+    "removal": {
+      "text": "It depends on the material and print setup. Some supports are removed by hand; certain compatible soluble supports can be dissolved during post-processing.",
       "choices": [
-        { "label": "That makes sense.", "next": "main5" },
-        { "label": "Does material choice affect that?", "next": "materials" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Where does that happen?",
+          "next": "cleaner"
+        },
+        {
+          "label": "That helps. Continue.",
+          "next": "materials_main"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "dual_extrusion": {
-      "text": "Dual extrusion means the printer has two print cores. That lets it use two compatible materials in one print.",
+    "cleaner": {
+      "text": "There’s a support-cleaning apparatus elsewhere in this room that illustrates that finishing step. You can explore it whenever you want—there’s no required order.",
       "choices": [
-        { "label": "Like two different colors?", "next": "two_colors" },
-        { "label": "What else would you use that for?", "next": "support" },
-        { "label": "Got it. Keep going.", "next": "main3" }
+        {
+          "label": "Good to know.",
+          "next": "materials_main"
+        },
+        {
+          "label": "Why does finishing time matter?",
+          "next": "postprocess_time"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "two_colors": {
-      "text": "It can be used for certain multi-color prints. But the second material can also have a functional purpose.",
+    "materials_main": {
+      "text": "Choosing materials is not just about what looks good. Strength, flexibility, print time, and the shape of the part all affect the decision.",
       "choices": [
-        { "label": "What kind of purpose?", "next": "support" },
-        { "label": "That's cool. Keep going.", "next": "main3" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "That makes sense.",
+          "next": "air_main"
+        },
+        {
+          "label": "How do you decide on a material?",
+          "next": "material_tradeoffs"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "support": {
-      "text": "One material can build the part while another provides support. Supports help print overhangs and complex shapes.",
+    "material_tradeoffs": {
+      "text": "Start with what the part must do. Then compare compatible materials based on the properties you need and the limits of the printing process.",
       "choices": [
-        { "label": "What exactly are supports?", "next": "support_explanation" },
-        { "label": "That makes sense.", "next": "main4" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "What about two materials?",
+          "next": "dual"
+        },
+        {
+          "label": "Continue.",
+          "next": "air_main"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "support_explanation": {
-      "text": "Think of supports as temporary scaffolding for the print. They hold up areas that can't print properly on their own.",
+    "air_main": {
+      "text": "This setup also includes an Air Manager. It helps enclose the printing area and filter air while the printer runs.",
       "choices": [
-        { "label": "How do you remove them?", "next": "support_removal" },
-        { "label": "Oh, I get it.", "next": "main4" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Continue.",
+          "next": "ise_main"
+        },
+        {
+          "label": "Why is that useful?",
+          "next": "air_detail"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "support_removal": {
-      "text": "That depends on the material. Some supports can be removed manually, while compatible soluble supports can be dissolved.",
+    "air_detail": {
+      "text": "A more controlled printing environment and filtration can be useful for managing the process. Specific conditions still depend on the material and setup.",
       "choices": [
-        { "label": "Dissolved?", "next": "cleaner_tease" },
-        { "label": "Got it. Keep going.", "next": "main4" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "How does that affect planning?",
+          "next": "planning"
+        },
+        {
+          "label": "Continue.",
+          "next": "ise_main"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "cleaner_tease": {
-      "text": "Yep! There's actually another station in this room that demonstrates that post-processing step.",
+    "ise_main": {
+      "text": "Here’s where ISE comes in. If several teams need prints, you have to think about available machines, material use, scheduling, and turnaround time.",
       "choices": [
-        { "label": "Which station?", "next": "cleaner_tease2" },
-        { "label": "I'll find it later.", "next": "main5" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Continue.",
+          "next": "example_main"
+        },
+        {
+          "label": "What does scheduling involve?",
+          "next": "scheduling"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "cleaner_tease2": {
-      "text": "You'll get to it later in the tour. Keep following the numbered stations and I'll explain it there.",
+    "scheduling": {
+      "text": "You’d look at job durations, deadlines, machine availability, and which materials each job needs. Then you can plan an order that makes sense.",
       "choices": [
-        { "label": "Sounds good.", "next": "main5" },
-        { "label": "Tell me about supports again.", "next": "support" },
-        { "label": "I'll keep exploring.", "next": "bye" }
+        {
+          "label": "Can that create bottlenecks?",
+          "next": "bottleneck"
+        },
+        {
+          "label": "Continue.",
+          "next": "example_main"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "materials": {
-      "text": "Engineers choose materials based on what the part needs to do. Strength, flexibility, and other properties can all matter.",
+    "bottleneck": {
+      "text": "Definitely. A machine might be available, but the correct material, a print core, or post-processing capacity could still hold up the next job.",
       "choices": [
-        { "label": "That makes sense.", "next": "main4" },
-        { "label": "Why is that important?", "next": "materials_importance" },
-        { "label": "What about two materials?", "next": "dual_extrusion" }
+        {
+          "label": "How could you improve that?",
+          "next": "improve"
+        },
+        {
+          "label": "Continue.",
+          "next": "example_main"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "materials_importance": {
-      "text": "A good shape isn't enough if the material can't do the job. Material selection is an important part of engineering design.",
+    "postprocess_time": {
+      "text": "Because the total job isn’t finished when printing stops. If support removal takes time, that affects the actual turnaround and what can start next.",
       "choices": [
-        { "label": "Good point.", "next": "main4" },
-        { "label": "Tell me about dual extrusion.", "next": "dual_extrusion" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "That sounds like a bottleneck.",
+          "next": "bottleneck"
+        },
+        {
+          "label": "Continue.",
+          "next": "example_main"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "bambu_comparison": {
-      "text": "Both are useful printers, but they offer different workflows and features. The best choice depends on what the project needs.",
+    "planning": {
+      "text": "It’s one more constraint to consider. Production planning is about managing practical requirements together, not optimizing just one number.",
       "choices": [
-        { "label": "That makes sense.", "next": "main6" },
-        { "label": "What's useful about this one?", "next": "dual_extrusion" },
-        { "label": "I'll keep exploring.", "next": "bye" }
+        {
+          "label": "What other constraints matter?",
+          "next": "scheduling"
+        },
+        {
+          "label": "Continue.",
+          "next": "example_main"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
+    },
+    "example_main": {
+      "text": "Suppose two student teams need different parts by tomorrow. Even with a capable printer, deciding what to print first becomes a planning problem.",
+      "choices": [
+        {
+          "label": "Continue.",
+          "next": "wrap"
+        },
+        {
+          "label": "How would you decide?",
+          "next": "priority"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "priority": {
+      "text": "I’d compare deadlines, estimated print times, required materials, and any finishing steps. Then I’d choose a schedule that meets the most important needs.",
+      "choices": [
+        {
+          "label": "How do you know it worked?",
+          "next": "metrics"
+        },
+        {
+          "label": "Continue.",
+          "next": "wrap"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "metrics": {
+      "text": "You could track turnaround time, missed deadlines, reprints, and how often the printer is busy. Those measurements help show where changes would matter.",
+      "choices": [
+        {
+          "label": "What would you change?",
+          "next": "improve"
+        },
+        {
+          "label": "Continue.",
+          "next": "wrap"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "improve": {
+      "text": "Maybe group compatible jobs, prepare materials earlier, or adjust the schedule to reduce delays. The right improvement depends on the constraints and data.",
+      "choices": [
+        {
+          "label": "That makes sense.",
+          "next": "wrap"
+        },
+        {
+          "label": "What would you measure?",
+          "next": "metrics"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "wrap": {
+      "text": "That’s why I find ISE useful here: a printer makes the part, but planning helps the entire workflow run effectively. Thanks for stopping by!",
+      "choices": [
+        {
+          "label": "Thanks, Hamza!",
+          "next": "finish"
+        },
+        {
+          "label": "Can I ask about production planning?",
+          "next": "scheduling"
+        },
+        {
+          "label": "I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "finish": {
+      "text": "Glad I could explain it! Feel free to explore the other equipment in whatever order interests you.",
+      "end": true,
+      "completion": true
     },
     "bye": {
-      "text": "Sounds good! Keep following the numbered stations when you're ready to continue the 3D printing tour.",
-      "end": true
+      "text": "No problem! Enjoy looking around, and feel free to come back if you have questions.",
+      "end": true,
+      "completion": false
     }
   }
 }

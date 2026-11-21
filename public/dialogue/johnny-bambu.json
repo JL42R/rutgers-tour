@@ -1,107 +1,339 @@
 {
   "npc": "johnny_bambu",
-  "name": "Johnny",
+  "name": "Dr. Ahmed Aziz Ezzat",
   "nodes": {
     "start": {
-      "text": "Hey! This is our Bambu Lab X1E with the AMS. Students use this for projects, including Senior Design.",
+      "text": "Hi! I'm Dr. Ahmed Aziz Ezzat, an Industrial and Systems Engineering professor here at Rutgers. My work brings together data science, AI, and engineering decision-making.",
       "choices": [
-        { "label": "That's awesome.", "next": "main2" },
-        { "label": "What is the AMS?", "next": "ams" },
-        { "label": "I'm going to keep looking around.", "next": "bye" }
+        {
+          "label": "Nice to meet you!",
+          "next": "challenge"
+        },
+        {
+          "label": "What do you research?",
+          "next": "research"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main2": {
-      "text": "It's great when you want to turn a CAD design into a real part. That makes it really useful for prototypes and project ideas.",
+    "challenge": {
+      "text": "Let me ask you something: if you could turn an idea into a physical part, how would you know whether the process was actually working well?",
       "choices": [
-        { "label": "That sounds really useful.", "next": "main3" },
-        { "label": "What would a student print?", "next": "student_projects" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "I'd look at the results.",
+          "next": "printer"
+        },
+        {
+          "label": "What would you measure?",
+          "next": "measure_intro"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main3": {
-      "text": "The X1E can work with many standard and engineering materials. That gives students options depending on what their design needs.",
+    "research": {
+      "text": "I work on data-driven problems involving forecasting, quality, and reliability, including energy and industrial systems. The interesting part is turning data into better decisions.",
       "choices": [
-        { "label": "That's pretty cool.", "next": "main4" },
-        { "label": "Why would the material matter?", "next": "materials" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "How does that connect to this printer?",
+          "next": "challenge"
+        },
+        {
+          "label": "What is reliability engineering?",
+          "next": "reliability"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main4": {
-      "text": "The big idea is being able to design, print, test, and improve. You can learn a lot once your design becomes a physical object.",
+    "reliability": {
+      "text": "Reliability asks whether a system performs as expected over time. Even a sophisticated machine is only useful if you can depend on its results.",
       "choices": [
-        { "label": "Definitely.", "next": "main5" },
-        { "label": "What do you mean by prototype?", "next": "prototype" },
-        { "label": "I'm going to check out another printer.", "next": "bye" }
+        {
+          "label": "How would you check that here?",
+          "next": "measure_intro"
+        },
+        {
+          "label": "Tell me about the printer.",
+          "next": "printer"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main5": {
-      "text": "That's the Bambu Lab X1E! Ask me anything else, or check out the other machines.",
+    "printer": {
+      "text": "This is the Bambu Lab X1E. It takes a digital design and builds a physical object one layer at a time using filament.",
       "choices": [
-        { "label": "How is this used in Senior Design?", "next": "senior_design" },
-        { "label": "Start from the beginning.", "next": "start" },
-        { "label": "Thanks, Johnny!", "next": "bye" },
-        { "label": "Ask Johnny a question.", "action": "ask-ai" }
+        {
+          "label": "That makes sense.",
+          "next": "ams_intro"
+        },
+        {
+          "label": "Why print a prototype?",
+          "next": "prototype"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "ams": {
-      "text": "AMS stands for Automatic Material System. It can automatically manage different filament spools for the printer.",
+    "measure_intro": {
+      "text": "Good question. You could track how often a print succeeds, how long it takes, and how much material it uses. One successful print doesn't tell the whole story.",
       "choices": [
-        { "label": "So it can switch materials?", "next": "ams_switching" },
-        { "label": "Cool, keep going.", "next": "main2" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "ams_switching": {
-      "text": "Exactly! That can make multi-material or multi-color printing easier. The system handles switching between the loaded filaments.",
-      "choices": [
-        { "label": "That's awesome.", "next": "main2" },
-        { "label": "Why would I need different materials?", "next": "materials" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "student_projects": {
-      "text": "It could be a prototype, enclosure, bracket, or project component. The exact part really depends on what they're designing.",
-      "choices": [
-        { "label": "That makes sense.", "next": "main3" },
-        { "label": "Why make a prototype first?", "next": "prototype" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "materials": {
-      "text": "Different materials can behave differently in strength and flexibility. Engineers choose materials based on what the part needs to do.",
-      "choices": [
-        { "label": "Oh, that makes sense.", "next": "main4" },
-        { "label": "Can the AMS hold different materials?", "next": "ams" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "senior_design": {
-      "text": "Senior Design teams often need to turn ideas into real prototypes. Printing lets them test a design instead of only seeing it on-screen.",
-      "choices": [
-        { "label": "That's really useful.", "next": "main5" },
-        { "label": "What if the design doesn't work?", "next": "iteration" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Tell me about the machine.",
+          "next": "printer"
+        },
+        {
+          "label": "What could go wrong?",
+          "next": "failure"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
     "prototype": {
-      "text": "Think of a prototype as a test version of your design. You build it, find problems, improve it, and try again.",
+      "text": "A prototype lets you test an idea before committing to a final design. Sometimes the most useful result is discovering what needs to change.",
       "choices": [
-        { "label": "That's cool.", "next": "main5" },
-        { "label": "So you can print it again?", "next": "iteration" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Keep going.",
+          "next": "ams_intro"
+        },
+        {
+          "label": "What would an ISE student test?",
+          "next": "ise"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "iteration": {
-      "text": "Exactly! That repeated improvement is called iteration. It's a really important part of engineering design.",
+    "ams_intro": {
+      "text": "The X1E can work with an Automatic Material System, or AMS. It manages loaded filament spools and can switch between compatible filaments during a print.",
       "choices": [
-        { "label": "Got it!", "next": "main5" },
-        { "label": "How does that help Senior Design?", "next": "senior_design" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Why is that useful?",
+          "next": "ams"
+        },
+        {
+          "label": "How does this relate to ISE?",
+          "next": "ise"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
+    },
+    "ams": {
+      "text": "It gives designers more flexibility with colors and compatible materials. But remember: more options also mean more decisions about settings, cost, and quality.",
+      "choices": [
+        {
+          "label": "How would you make those decisions?",
+          "next": "optimization"
+        },
+        {
+          "label": "What should we measure?",
+          "next": "metrics"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "ise": {
+      "text": "ISE students don't just ask, 'Can we make the part?' They also ask, 'Can we make it consistently, efficiently, and with less waste?'",
+      "choices": [
+        {
+          "label": "How would you improve the process?",
+          "next": "optimization"
+        },
+        {
+          "label": "Could AI help?",
+          "next": "ai"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "optimization": {
+      "text": "Suppose two print settings produce acceptable parts, but one is faster and the other uses less material. Which would you choose? It depends on what matters most.",
+      "choices": [
+        {
+          "label": "How do we decide?",
+          "next": "tradeoffs"
+        },
+        {
+          "label": "Could data help us?",
+          "next": "metrics"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "tradeoffs": {
+      "text": "That's an engineering tradeoff. You could compare print time, material cost, quality, and the chance of failure before choosing a process.",
+      "choices": [
+        {
+          "label": "Where does AI fit in?",
+          "next": "ai"
+        },
+        {
+          "label": "What if prints keep failing?",
+          "next": "failure"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "metrics": {
+      "text": "I would start with data: print time, material consumption, dimensional accuracy, and failure rate. Once you measure a process, you can start to improve it.",
+      "choices": [
+        {
+          "label": "What if the results vary?",
+          "next": "variation"
+        },
+        {
+          "label": "Could AI analyze those measurements?",
+          "next": "ai"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "failure": {
+      "text": "A failed print is information, not just wasted material. Look for patterns: was there a setting change, a material issue, or something else worth investigating?",
+      "choices": [
+        {
+          "label": "How do we find a pattern?",
+          "next": "variation"
+        },
+        {
+          "label": "Can AI predict failures?",
+          "next": "ai"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "variation": {
+      "text": "Two prints made from the same design may not be identical. Engineers study that variation to understand whether the process is stable and what affects quality.",
+      "choices": [
+        {
+          "label": "How would we improve it?",
+          "next": "optimization"
+        },
+        {
+          "label": "What role could AI play?",
+          "next": "ai"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "ai": {
+      "text": "With enough useful data, AI and statistical models may help identify patterns or flag possible failures. But a model still needs good measurements and engineering judgment.",
+      "choices": [
+        {
+          "label": "So AI doesn't replace the engineer?",
+          "next": "judgment"
+        },
+        {
+          "label": "How does this help ISE students?",
+          "next": "student"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "judgment": {
+      "text": "Exactly. Data gives you evidence; engineering helps you ask the right question and decide what to do with the answer. Don't stop at the first result.",
+      "choices": [
+        {
+          "label": "How would a student apply that?",
+          "next": "student"
+        },
+        {
+          "label": "What's the key takeaway?",
+          "next": "closing"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "student": {
+      "text": "A student might print a bracket, test its fit, revise the CAD design, and repeat. Then they could compare each version for quality, time, and material use.",
+      "choices": [
+        {
+          "label": "What should I remember?",
+          "next": "closing"
+        },
+        {
+          "label": "Could you explain process improvement again?",
+          "next": "optimization"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "closing": {
+      "text": "Here's my challenge to you: don't just admire a machine because it works. Ask how you'd measure its performance, why it sometimes fails, and what you'd improve next.",
+      "choices": [
+        {
+          "label": "That's a good challenge.",
+          "next": "finish"
+        },
+        {
+          "label": "One more question about AI.",
+          "next": "ai"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "finish": {
+      "text": "Keep asking those questions wherever you go in the lab. That's how we turn an interesting technology into a better engineering system. Enjoy exploring!",
+      "end": true,
+      "completion": true
     },
     "bye": {
-      "text": "Sounds good! Feel free to keep looking around. Come back if you want to learn more.",
-      "end": true
+      "text": "Of course! Feel free to come back if another question comes to mind. Enjoy exploring the room.",
+      "end": true,
+      "completion": false
     }
   }
 }

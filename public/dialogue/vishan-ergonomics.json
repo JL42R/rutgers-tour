@@ -1,190 +1,373 @@
 {
   "npc": "vishan_ergonomics",
-  "name": "Vishan",
+  "name": "Vishan Budhan",
   "nodes": {
     "start": {
-      "text": "Hey! I'm Vishan. This setup is used to study how people move and interact with their environment.",
+      "text": "Hi! I'm Vishan Budhan, an Industrial and Systems Engineering student at Rutgers. I love meeting people and helping them find their place in engineering!",
       "choices": [
-        { "label": "That's really cool!", "next": "main2" },
-        { "label": "What exactly does it track?", "next": "tracking" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Nice to meet you!",
+          "next": "intro_sme"
+        },
+        {
+          "label": "What do you do outside class?",
+          "next": "sme"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main2": {
-      "text": "We used equipment like this in our Work Design and Ergonomics class to study how people perform different tasks.",
+    "intro_sme": {
+      "text": "I'm also the Internal Vice President of the Society of Manufacturing Engineers, or SME. We help students connect, learn, and get involved beyond the classroom.",
       "choices": [
-        { "label": "That's pretty interesting.", "next": "main3" },
-        { "label": "What is ergonomics?", "next": "ergonomics" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "That sounds awesome.",
+          "next": "hook"
+        },
+        {
+          "label": "What is SME like?",
+          "next": "sme"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main3": {
-      "text": "One thing we can study is where a person is looking. Eye-tracking data helps show what grabs their attention during a task.",
+    "hook": {
+      "text": "Now, quick question: ever finished a long study session and realized your shoulders were basically touching your ears? Yeah, your desk might owe you an apology.",
       "choices": [
-        { "label": "That's awesome.", "next": "main4" },
-        { "label": "How does eye tracking help?", "next": "eye_tracking" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "I know exactly what you mean.",
+          "next": "setup"
+        },
+        {
+          "label": "What does that have to do with engineering?",
+          "next": "ergonomics"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main4": {
-      "text": "Ergonomics can also look at body position and movement. We want to understand how someone physically performs their work.",
+    "setup": {
+      "text": "This is our ergonomics and human-factors setup. We use equipment like this to study where people look and how they move while doing tasks.",
       "choices": [
-        { "label": "That makes a lot of sense.", "next": "main5" },
-        { "label": "Why does body movement matter?", "next": "body_movement" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "How does the setup help?",
+          "next": "eye_main"
+        },
+        {
+          "label": "What are human factors?",
+          "next": "human_factors"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main5": {
-      "text": "Engineers can use that information to identify awkward or inefficient ways of working and improve the task or workspace.",
+    "eye_main": {
+      "text": "Eye tracking helps us study visual attention—where someone looks during a task. If an important control is hard to find, that can be a design problem, not a people problem.",
       "choices": [
-        { "label": "That's really useful.", "next": "main6" },
-        { "label": "Can you give me an example?", "next": "example" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "That makes sense.",
+          "next": "body_main"
+        },
+        {
+          "label": "Can you give me an example?",
+          "next": "display_example"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main6": {
-      "text": "The goal is to design work around the person. A good ergonomic design can make a task easier and more comfortable to perform.",
+    "body_main": {
+      "text": "We can also study posture and body movement. Lots of awkward reaching or twisting may be a sign that a workstation could be designed better.",
       "choices": [
-        { "label": "That's a smart way to design.", "next": "main7" },
-        { "label": "How would an engineer improve a task?", "next": "improvements" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "What could you change?",
+          "next": "ise_main"
+        },
+        {
+          "label": "How would you measure that?",
+          "next": "movement_data"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main7": {
-      "text": "So this equipment helps turn human behavior into data engineers can study when designing better workplaces and systems.",
+    "ise_main": {
+      "text": "That's where ISE comes in! We look at how people, equipment, and workflows interact—and try to make the whole system safer, easier, and more effective.",
       "choices": [
-        { "label": "That's really cool!", "next": "main8" },
-        { "label": "Why do engineers need human data?", "next": "human_factors" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "I like that perspective.",
+          "next": "closing_setup"
+        },
+        {
+          "label": "How do you know an improvement worked?",
+          "next": "test_improvement"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "main8": {
-      "text": "And that's the basic idea! Ergonomics combines people, data, and engineering to help design work that fits the user.",
+    "closing_setup": {
+      "text": "My favorite part is that the best solution isn't always a fancier machine. Sometimes it's moving a tool closer, making a display clearer, or simply listening to the person doing the work.",
       "choices": [
-        { "label": "Thanks, Vishan!", "next": "finish" },
-        { "label": "I have another question.", "next": "question_menu" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "That’s a good takeaway!",
+          "next": "finish"
+        },
+        {
+          "label": "How does SME connect to this?",
+          "next": "sme_connection"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "tracking": {
-      "text": "The setup can help study things like visual attention and human movement while someone performs a task.",
+    "sme": {
+      "text": "SME is a student community around manufacturing and engineering. For me, it's about helping students meet each other, share ideas, and find opportunities to get involved.",
       "choices": [
-        { "label": "That's really cool.", "next": "main2" },
-        { "label": "What do you mean by visual attention?", "next": "visual_attention" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Sounds like a good community.",
+          "next": "hook"
+        },
+        {
+          "label": "How can students get involved?",
+          "next": "sme_join"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "visual_attention": {
-      "text": "Visual attention is basically where someone focuses while doing something. Eye tracking lets us analyze those patterns.",
+    "sme_join": {
+      "text": "Reaching out to an officer or coming to a student event is a good place to start. You don't need to know everything about manufacturing to be curious about it!",
       "choices": [
-        { "label": "Oh, that makes sense.", "next": "main2" },
-        { "label": "Why would that matter?", "next": "eye_tracking" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "I’ll keep that in mind.",
+          "next": "hook"
+        },
+        {
+          "label": "What does being internal VP involve?",
+          "next": "sme_role"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "sme_role": {
+      "text": "As Internal Vice President, I help support the student organization's internal work and connections. I especially enjoy being someone people can come to with questions.",
+      "choices": [
+        {
+          "label": "That fits this tour!",
+          "next": "hook"
+        },
+        {
+          "label": "How does it relate to ISE?",
+          "next": "sme_connection"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "sme_connection": {
+      "text": "Manufacturing involves people as much as machines. SME gives students a way to learn from each other, and ergonomics reminds us to design work for the people doing it.",
+      "choices": [
+        {
+          "label": "That makes sense.",
+          "next": "closing_setup"
+        },
+        {
+          "label": "Tell me more about the setup.",
+          "next": "setup"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
     "ergonomics": {
-      "text": "Ergonomics is about designing tasks, tools, and workplaces around people instead of forcing people to adapt to poor designs.",
+      "text": "Ergonomics means fitting the task to the person—not asking the person to keep adapting to a badly designed task. Less awkward reaching is a pretty good start!",
       "choices": [
-        { "label": "That makes sense.", "next": "main3" },
-        { "label": "Can you give me an example?", "next": "example" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "eye_tracking": {
-      "text": "Eye tracking can show where someone looks and how their attention moves during a task. That can reveal confusing or inefficient designs.",
-      "choices": [
-        { "label": "That's really interesting.", "next": "main4" },
-        { "label": "What would that look like in real life?", "next": "eye_example" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "eye_example": {
-      "text": "Imagine using a control panel. Eye tracking could show whether important information is easy to find or constantly being missed.",
-      "choices": [
-        { "label": "Oh, that's actually really useful.", "next": "main4" },
-        { "label": "How could you improve that?", "next": "improvements" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "body_movement": {
-      "text": "Body position can reveal awkward reaching, bending, or movement patterns. Those patterns may suggest the workspace needs improvement.",
-      "choices": [
-        { "label": "That makes sense.", "next": "main5" },
-        { "label": "What could an engineer change?", "next": "improvements" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "example": {
-      "text": "Imagine someone repeatedly reaching too far for a tool. An engineer could redesign the workstation so the tool is easier to reach.",
-      "choices": [
-        { "label": "That's a good example.", "next": "main6" },
-        { "label": "How would you know there's a problem?", "next": "problem_detection" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "problem_detection": {
-      "text": "Engineers can combine observations and measured data. Repeated awkward motions or inefficient behavior can point to a design problem.",
-      "choices": [
-        { "label": "Got it!", "next": "main6" },
-        { "label": "What happens after they find a problem?", "next": "improvements" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "improvements": {
-      "text": "They might change the workstation height, move tools closer, adjust a display, or redesign how the task is performed.",
-      "choices": [
-        { "label": "That's really practical.", "next": "main7" },
-        { "label": "How do they know the change worked?", "next": "testing" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "testing": {
-      "text": "They can test the redesigned task and collect data again. Then they compare the results to see whether the design improved.",
-      "choices": [
-        { "label": "That makes sense!", "next": "main7" },
-        { "label": "So it's like design iteration?", "next": "iteration" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
-      ]
-    },
-    "iteration": {
-      "text": "Exactly! Engineers test, learn, redesign, and test again. Here, the difference is that the human user is part of the system.",
-      "choices": [
-        { "label": "That's a cool connection.", "next": "main7" },
-        { "label": "Why is the person part of the system?", "next": "human_factors" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Got it!",
+          "next": "setup"
+        },
+        {
+          "label": "What would that look like?",
+          "next": "workstation_example"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
     "human_factors": {
-      "text": "Because a technically good system can still fail if it's uncomfortable or confusing for the person who has to use it.",
+      "text": "Human factors looks at how people interact with tools, information, and environments. A system can work technically and still be confusing or uncomfortable to use.",
       "choices": [
-        { "label": "That's a really good point.", "next": "main8" },
-        { "label": "Is that what human factors means?", "next": "human_factors2" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "That’s interesting.",
+          "next": "eye_main"
+        },
+        {
+          "label": "Can you give me a real example?",
+          "next": "display_example"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "human_factors2": {
-      "text": "Pretty much! Human factors studies how people interact with tools, technology, environments, and systems.",
+    "display_example": {
+      "text": "Imagine a crowded control screen. If the important warning is hard to notice, eye-tracking results might help engineers rethink where information appears.",
       "choices": [
-        { "label": "Got it!", "next": "main8" },
-        { "label": "How does ergonomics fit into that?", "next": "ergonomics" },
-        { "label": "I'm going to keep exploring.", "next": "bye" }
+        {
+          "label": "Okay, I can see why that matters.",
+          "next": "body_main"
+        },
+        {
+          "label": "Does eye tracking tell you what someone thinks?",
+          "next": "eye_limits"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
-    "question_menu": {
-      "text": "Sure! What do you want to know more about?",
+    "eye_limits": {
+      "text": "Not exactly! It can show patterns of looking, but it doesn't directly tell us what someone's thinking. We'd combine it with observations and feedback.",
       "choices": [
-        { "label": "How does eye tracking help?", "next": "eye_tracking" },
-        { "label": "How is body movement used?", "next": "body_movement" },
-        { "label": "I'm finished. Thanks!", "next": "finish" }
+        {
+          "label": "Good distinction.",
+          "next": "body_main"
+        },
+        {
+          "label": "What kind of feedback?",
+          "next": "feedback"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "feedback": {
+      "text": "We could ask someone what felt confusing or tiring, then compare that with what we observed. Data helps, but talking to the person matters too.",
+      "choices": [
+        {
+          "label": "I like that.",
+          "next": "ise_main"
+        },
+        {
+          "label": "How do you test changes?",
+          "next": "test_improvement"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "movement_data": {
+      "text": "An engineer might observe reach distance, repeated motions, or time spent in uncomfortable positions. You'd interpret that alongside the actual task and the person's feedback.",
+      "choices": [
+        {
+          "label": "So what could improve?",
+          "next": "ise_main"
+        },
+        {
+          "label": "Can you give an example?",
+          "next": "workstation_example"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "workstation_example": {
+      "text": "Think about picking up a tool over and over. Moving it closer or adjusting work height could reduce reaching without changing the entire process.",
+      "choices": [
+        {
+          "label": "That sounds practical.",
+          "next": "ise_main"
+        },
+        {
+          "label": "Would you test that afterward?",
+          "next": "test_improvement"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "test_improvement": {
+      "text": "Absolutely. We'd compare the task before and after a change—maybe looking at reach, task time, comfort, or errors—then see whether it actually helped.",
+      "choices": [
+        {
+          "label": "That’s a useful way to think.",
+          "next": "closing_setup"
+        },
+        {
+          "label": "What if it didn't work?",
+          "next": "iteration"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "iteration": {
+      "text": "Then we'd try again! Engineering doesn't have to be a one-and-done thing. You listen, adjust, and test until the solution works for the people involved.",
+      "choices": [
+        {
+          "label": "Exactly!",
+          "next": "closing_setup"
+        },
+        {
+          "label": "Why does that matter in ISE?",
+          "next": "ise_main"
+        },
+        {
+          "label": "Thanks, I’ll keep exploring.",
+          "next": "bye"
+        }
       ]
     },
     "finish": {
-      "text": "Of course! Thanks for checking it out. Hopefully you see how engineering can be about people just as much as machines.",
-      "end": true
+      "text": "Thanks for hanging out! Remember, great engineering isn't just about what a system can do—it's about how well it works for people. Enjoy exploring, and check out SME if you're curious!",
+      "end": true,
+      "completion": true
     },
     "bye": {
-      "text": "No problem! Keep looking around, and come back if you want to learn more about the ergonomics setup.",
-      "end": true
+      "text": "No worries! Enjoy exploring the room, and feel free to come back if you have questions. I promise the ergonomics jokes don't get much worse.",
+      "end": true,
+      "completion": false
     }
   }
 }

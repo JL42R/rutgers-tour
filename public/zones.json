@@ -43,52 +43,55 @@
       "npcs": [
         {
           "id": "johnny-bambu",
-          "name": "Johnny",
-          "trackerLabel": "Bambu Lab Printers",
+          "name": "Dr. Ahmed Aziz Ezzat",
+          "trackerLabel": "Bambu Lab X1E",
           "position": [-3.7969415953942462, 1.85, -1.1279949419883435],
           "radius": 2.0,
-          "portrait": "./portraits/johnny.jpg",
-          "markerImage": "./portraits/johnny.jpg",
+          "portrait": "./portraits/aziz.jpeg",
+          "markerImage": "./portraits/aziz.jpeg",
           "dialogueFile": "./dialogue/johnny-bambu.json"
         },
         {
           "id": "johnny-ultimaker",
-          "name": "Johnny",
-          "trackerLabel": "Ultimaker Printers",
+          "name": "Hamza Eskombaji",
+          "trackerLabel": "UltiMaker S-Series",
           "markerLabel": "J1",
           "position": [-3.7969415953942462, 1.85, -2.6779949419883433],
           "radius": 2.0,
-          "portrait": "./portraits/johnny2.jpeg",
+          "portrait": "./portraits/room116/hamza.png",
+          "markerImage": "./portraits/room116/hamza.png",
           "dialogueFile": "./dialogue/johnny-ultimaker.json"
         },
         {
           "id": "johnny-stratasys",
-          "name": "Johnny",
+          "name": "Johnny Lago",
           "trackerLabel": "Stratasys Printers",
           "markerLabel": "J2",
           "position": [-3.7969415953942467, 2, 1.5220050580116564],
           "radius": 2.0,
-          "portrait": "./portraits/johnny3.jpeg",
+          "portrait": "./portraits/johnny.jpg",
+          "markerImage": "./portraits/johnny.jpg",
           "dialogueFile": "./dialogue/johnny-stratasys.json"
         },
         {
           "id": "johnny-sca",
-          "name": "Johnny",
+          "name": "Rhea Sridhar",
           "trackerLabel": "SCA Support Station",
           "markerLabel": "J3",
           "position": [-3.7969415953942462, 1.6, 0.3720050580116565],
           "radius": 2.0,
-          "portrait": "./portraits/johnny4.jpeg",
+          "portrait": "./portraits/room116/rhea.jpeg",
+          "markerImage": "./portraits/room116/rhea.jpeg",
           "dialogueFile": "./dialogue/johnny-sca.json"
         },
         {
           "id": "vishan-ergonomics",
-          "name": "Vishan",
-          "trackerLabel": "Ergonomics Station",
+          "name": "Vishan Budhan",
+          "trackerLabel": "Ergonomics & Human Factors",
           "position": [-0.90, 1.80, 0.372],
           "radius": 2.0,
-          "portrait": "./portraits/vishan.png",
-          "markerImage": "./portraits/vishan.png",
+          "portrait": "./portraits/room116/vishan.jpeg",
+          "markerImage": "./portraits/room116/vishan.jpeg",
           "dialogueFile": "./dialogue/vishan-ergonomics.json"
         }
       ]
