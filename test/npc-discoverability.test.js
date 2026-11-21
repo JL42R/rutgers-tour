@@ -8,6 +8,64 @@ import { RoomRoute } from '../src/room-navigation.js';
 
 const config = JSON.parse(fs.readFileSync(new URL('../public/zones.json', import.meta.url)));
 
+test('directional targeting chooses view alignment, respects pitch, range, blocking and zone changes', t => {
+  const { manager, dialogue, prompt, promptName, handlers } = setup(t);
+  const near = { id: 'near', name: 'Near', position: [.4, 1.65, -1], radius: 2 };
+  const far = { id: 'far', name: 'Far', position: [0, 1.65, -1.7], radius: 2 };
+  const player = { x: 0, y: 1.65, z: 0 };
+  manager.setNPCs([near, far], 'printing-room');
+  manager.update(player, 0, 0);
+  assert.equal(manager.nearest.data.id, 'far');
+  assert.equal(promptName.textContent, 'Far');
+  handlers.get('keydown')({ code: 'KeyE' }); assert.equal(dialogue.started.id, 'far');
+  manager.update(player, -Math.atan2(.4, 1), 0);
+  assert.equal(manager.nearest.data.id, 'near');
+  assert.equal(promptName.textContent, 'Near');
+  handlers.get('keydown')({ code: 'KeyE' }); assert.equal(dialogue.started.id, 'near');
+  manager.update(player, Math.PI, 0);
+  assert.equal(manager.nearest, null); assert.equal(prompt.style.display, 'none');
+  dialogue.started = null; handlers.get('keydown')({ code: 'KeyE' }); assert.equal(dialogue.started, null);
+  manager.update(player, 0, Math.PI / 2); assert.equal(manager.nearest, null);
+  manager.update({ x: 0, y: 1.65, z: 4 }, 0, 0); assert.equal(manager.nearest, null);
+  manager.update(player, 0, 0); manager.isInteractionBlocked = () => true;
+  manager.update(player, 0, 0); assert.equal(prompt.style.display, 'none');
+  handlers.get('keydown')({ code: 'KeyE' }); assert.equal(dialogue.started, null);
+  manager.isInteractionBlocked = () => false; dialogue.isOpen = true;
+  manager.update(player, 0, 0); assert.equal(prompt.style.display, 'none');
+  handlers.get('keydown')({ code: 'KeyE' }); assert.equal(dialogue.started, null);
+  dialogue.isOpen = false;
+  manager.setNPCs([], 'hallway'); assert.equal(manager.nearest, null); assert.equal(prompt.style.display, 'none');
+  handlers.get('keydown')({ code: 'KeyE' }); assert.equal(dialogue.started, null);
+});
+
+test('nearly equal angles prefer distance only within the alignment tolerance', t => {
+  const { manager } = setup(t);
+  manager.setNPCs([
+    { id: 'far', name: 'Far', position: [0, 1.65, -1.8], radius: 2 },
+    { id: 'near', name: 'Near', position: [0, 1.65, -1], radius: 2 },
+  ]);
+  // At this instant bob offsets are equal, giving the same viewing angle.
+  manager.time = -0.016;
+  manager.update({ x: 0, y: 1.65 + Math.sin(1.65) * .05, z: 0 });
+  assert.equal(manager.nearest.data.id, 'near');
+});
+
+test('prompt uses configured short names and falls back to the NPC name', t => {
+  const { manager, promptName } = setup(t);
+  const printing = config.zones.find(zone => zone.id === 'printing-room');
+  const studio = config.zones.find(zone => zone.id === 'project-studio');
+  const cases = [
+    [printing.npcs[0], 'Dr. Ezzat'], [printing.npcs[1], 'Hamza'],
+    [printing.npcs[2], 'Johnny'], [printing.npcs[3], 'Rhea'],
+    [printing.npcs[4], 'Vishan'], [studio.npcs[1], 'Max Powers'],
+  ];
+  for (const [npc, expected] of cases) {
+    manager.setNPCs([{ ...npc, position: [0, 1.65, -1] }]);
+    manager.update({ x: 0, y: 1.65, z: 0 });
+    assert.equal(promptName.textContent, expected);
+  }
+});
+
 test('printing markers preserve main configuration outside NPC labels and portraits', t => {
   const baseline = JSON.parse(execFileSync('git', ['show', 'main:public/zones.json'], { encoding: 'utf8' }));
   const printing = baseline.zones.find(z => z.id === 'printing-room');
@@ -19,7 +77,7 @@ test('printing markers preserve main configuration outside NPC labels and portra
   const currentPrinting = config.zones.find(z => z.id === 'printing-room');
   for (const npc of printing.npcs) {
     const current = currentPrinting.npcs.find(n => n.id === npc.id);
-    for (const field of ['name', 'trackerLabel', 'portrait', 'markerImage']) {
+    for (const field of ['name', 'promptName', 'trackerLabel', 'portrait', 'markerImage']) {
       if (field in current) npc[field] = current[field];
       else delete npc[field];
     }
@@ -49,7 +107,8 @@ test('printing markers preserve main configuration outside NPC labels and portra
       assert.equal(sprite.material.map.isCanvasTexture, true);
       assert.equal(sprite.material.alphaTest, data.markerImage ? 0 : .1);
     }
-    manager.update({ x: data.position[0], z: data.position[2] });
+    manager.update({ x: data.position[0], z: data.position[2] + .4 }, 0,
+      Math.atan2(data.position[1] - 1.65, .4));
     handlers.get('keydown')({ code: 'KeyE' });
     assert.equal(dialogue.started.id, data.id);
   }
@@ -90,12 +149,14 @@ function setup(t, { failImages = false, completedNpcIds = new Set() } = {}) {
   const handlers = new Map();
   const drawCalls = [];
   const prompt = { style: {} };
+  const promptName = trackedText();
   const direction = { hidden: true };
   const directionArrow = { style: trackedStyle() };
   const directionName = trackedText();
   const directionDistance = trackedText();
   const elements = new Map([
     ['interact-prompt', prompt],
+    ['interact-prompt-name', promptName],
     ['guide-direction', direction],
     ['guide-direction-arrow', directionArrow],
     ['guide-direction-name', directionName],
@@ -121,7 +182,7 @@ function setup(t, { failImages = false, completedNpcIds = new Set() } = {}) {
     isCompleted: (npcId) => completedNpcIds.has(npcId),
   });
   return {
-    manager, dialogue, prompt, handlers, completedNpcIds, drawCalls,
+    manager, dialogue, prompt, promptName, handlers, completedNpcIds, drawCalls,
     direction, directionArrow, directionName, directionDistance,
   };
 }
@@ -145,25 +206,25 @@ test('scaling does not expand the strict interaction radius or change E selectio
   const { manager, dialogue, prompt, handlers, direction } = setup(t);
   const npc = { id: 'sample', name: 'Guide', position: [0, 1.6, 0], radius: 2 };
   manager.setNPCs([npc]);
-  manager.update({ x: 1.999, z: 0 });
+  manager.update({ x: 1.999, z: 0 }, Math.PI / 2);
   assert.equal(prompt.style.display, 'block');
   assert.equal(direction.hidden, true);
   handlers.get('keydown')({ code: 'KeyE' });
   assert.equal(dialogue.started, npc);
   dialogue.started = null;
-  manager.update({ x: 2, z: 0 });
+  manager.update({ x: 2, z: 0 }, Math.PI / 2);
   assert.equal(manager.nearest, null);
   assert.equal(prompt.style.display, 'none');
   handlers.get('keydown')({ code: 'KeyE' });
   assert.equal(dialogue.started, null);
 });
-test('nearest guide wins regardless of differing sprite scales', t => {
+test('centered guide wins regardless of differing sprite scales', t => {
   const { manager } = setup(t);
   manager.setNPCs([
     { id: 'near', name: 'Near', position: [0, 1.6, 0], radius: 2 },
     { id: 'far', name: 'Far', position: [1.5, 1.6, 0], radius: 2 }
   ]);
-  manager.update({ x: .2, z: 0 });
+  manager.update({ x: .2, z: 0 }, Math.PI / 2);
   assert.equal(manager.nearest.data.id, 'near');
   assert(manager.npcs[1].sprite.scale.x > manager.npcs[0].sprite.scale.x);
 });

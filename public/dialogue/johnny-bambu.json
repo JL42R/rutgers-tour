@@ -333,7 +333,7 @@
     "bye": {
       "text": "Of course! Feel free to come back if another question comes to mind. Enjoy exploring the room.",
       "end": true,
-      "completion": false
+      "completion": true
     }
   }
 }

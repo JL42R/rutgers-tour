@@ -231,7 +231,7 @@ renderer.setAnimationLoop(() => {
   }
 
   roomNavigation.update(camera.position, controls.yaw, zones.current?.id, zoneSwitchInProgress);
-  npcs.update(camera.position, controls.yaw);
+  npcs.update(camera.position, controls.yaw, controls.pitch);
   room116Editor?.update?.();
   renderer.render(scene, camera);
 });

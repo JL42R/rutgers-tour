@@ -367,7 +367,7 @@
     "bye": {
       "text": "No worries! Enjoy exploring the room, and feel free to come back if you have questions. I promise the ergonomics jokes don't get much worse.",
       "end": true,
-      "completion": false
+      "completion": true
     }
   }
 }

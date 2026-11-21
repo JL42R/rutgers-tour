@@ -19,6 +19,55 @@ const ordinaryScript = { name: 'Ordinary', nodes: {
   done: { text: 'Scripted ending' }
 } };
 const tick = () => new Promise(resolve => setImmediate(resolve));
+const lookAt = (point, position) => {
+  const dx = position[0] - point.x, dz = position[2] - point.z;
+  return [Math.atan2(-dx, -dz), Math.atan2(position[1] - (point.y ?? 1.65), Math.hypot(dx, dz))];
+};
+
+test('printing-room exit choices record progress once; premature closure does not', async t => {
+  const { dialogue, doc, storage } = setup(t);
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const printing = config.zones.find(zone => zone.id === 'printing-room');
+  const tracker = new InteractionTracker(); tracker.setConfig(config);
+  const reported = [];
+  dialogue.onComplete = id => { reported.push(id); tracker.complete(id); };
+  tracker.onReset = () => dialogue.completedNpcIds.clear();
+  for (const npc of printing.npcs) {
+    const script = JSON.parse(readFileSync(new URL('../public/' + npc.dialogueFile.slice(2), import.meta.url)));
+    dialogue.cache.set(npc.dialogueFile, script);
+    const exit = npc.id === 'johnny-stratasys' ? 'early_exit' : 'bye';
+    await dialogue.start(npc);
+    assert.equal(tracker.completedNpcIds.has(npc.id), false);
+    dialogue.close();
+    assert.equal(tracker.completedNpcIds.has(npc.id), false);
+    await dialogue.start(npc);
+    doc.emitKey({ key: 'Escape', code: 'Escape' });
+    assert.equal(tracker.completedNpcIds.has(npc.id), false);
+    await dialogue.start(npc);
+    const choiceIndex = script.nodes.start.choices.findIndex(choice => choice.next === exit);
+    assert.notEqual(choiceIndex, -1);
+    dialogue.choicesEl.children[choiceIndex].click();
+    assert.equal(dialogue.currentNodeId, exit);
+    dialogue.choicesEl.firstElementChild.click();
+    assert.equal(tracker.completedNpcIds.has(npc.id), true);
+    await dialogue.start(npc);
+    dialogue.choicesEl.children[choiceIndex].click();
+    dialogue.choicesEl.firstElementChild.click();
+    assert.equal(reported.filter(id => id === npc.id).length, 1);
+  }
+  const restored = new InteractionTracker(); restored.setConfig(config);
+  assert.deepEqual([...restored.completedNpcIds], printing.npcs.map(npc => npc.id));
+  tracker.reset();
+  assert.equal(storage.has(TOUR_PROGRESS_STORAGE_KEY), false);
+  assert.equal(dialogue.completedNpcIds.size, 0);
+  const first = printing.npcs[0];
+  await dialogue.start(first);
+  const exitIndex = dialogue.data.nodes.start.choices.findIndex(choice => choice.next === 'bye');
+  dialogue.choicesEl.children[exitIndex].click();
+  dialogue.choicesEl.firstElementChild.click();
+  assert.equal(tracker.completedNpcIds.has(first.id), true);
+  assert.equal(reported.filter(id => id === first.id).length, 2);
+});
 
 test('Ergonomics dialogue supports independent exploration and completion', async t => {
   const { dialogue, doc } = setup(t);
@@ -32,7 +81,7 @@ test('Ergonomics dialogue supports independent exploration and completion', asyn
   assert.equal(npc.trackerLabel, 'Ergonomics & Human Factors');
   assert.equal(script.npc, 'vishan_ergonomics');
   assert.equal(script.name, npc.name);
-  assert.equal(script.nodes.bye.completion, false);
+  assert.equal(script.nodes.bye.completion, true);
   assert.equal(script.nodes.finish.completion, true);
   const seen = new Set(), queue = ['start'];
   while (queue.length) {
@@ -53,7 +102,8 @@ test('Ergonomics dialogue supports independent exploration and completion', asyn
   await dialogue.start(npc);
   dialogue.showNode('bye');
   dialogue.choicesEl.firstElementChild.click();
-  assert.deepEqual(completed, []);
+  assert.deepEqual(completed, [npc.id]);
+  dialogue.completedNpcIds.clear(); completed.length = 0;
   await dialogue.start(npc);
   dialogue.showNode('finish');
   dialogue.choicesEl.firstElementChild.click();
@@ -73,7 +123,7 @@ test('UltiMaker dialogue supports independent exploration and completion', async
   assert.equal(script.npc, 'johnny_ultimaker');
   assert.equal(script.name, npc.name);
   assert.equal(Object.keys(script.nodes).length, 25);
-  assert.equal(script.nodes.bye.completion, false);
+  assert.equal(script.nodes.bye.completion, true);
   assert.equal(script.nodes.finish.completion, true);
   const seen = new Set(), queue = ['start'];
   while (queue.length) {
@@ -94,7 +144,8 @@ test('UltiMaker dialogue supports independent exploration and completion', async
   await dialogue.start(npc);
   dialogue.showNode('bye');
   dialogue.choicesEl.firstElementChild.click();
-  assert.deepEqual(completed, []);
+  assert.deepEqual(completed, [npc.id]);
+  dialogue.completedNpcIds.clear(); completed.length = 0;
   await dialogue.start(npc);
   dialogue.showNode('finish');
   dialogue.choicesEl.firstElementChild.click();
@@ -111,7 +162,7 @@ test('SCA dialogue supports independent exploration and completion', async t => 
   dialogue.cache.set(npc.dialogueFile, script);
   assert.equal(script.npc, 'johnny_sca');
   assert.equal(script.name, 'Rhea Sridhar');
-  assert.equal(script.nodes.bye.completion, false);
+  assert.equal(script.nodes.bye.completion, true);
   assert.equal(script.nodes.closing.completion, true);
   const seen = new Set(), queue = ['start'];
   while (queue.length) {
@@ -132,7 +183,8 @@ test('SCA dialogue supports independent exploration and completion', async t => 
   await dialogue.start(npc);
   dialogue.showNode('bye');
   dialogue.choicesEl.firstElementChild.click();
-  assert.deepEqual(completed, []);
+  assert.deepEqual(completed, [npc.id]);
+  dialogue.completedNpcIds.clear(); completed.length = 0;
   await dialogue.start(npc);
   dialogue.showNode('closing');
   dialogue.choicesEl.firstElementChild.click();
@@ -149,7 +201,7 @@ test('Stratasys dialogue supports independent exploration and completion', async
   dialogue.cache.set(npc.dialogueFile, script);
   assert.equal(script.npc, 'johnny_stratasys');
   assert.equal(script.name, 'Johnny Lago');
-  assert.equal(script.nodes.early_exit.completion, false);
+  assert.equal(script.nodes.early_exit.completion, true);
   assert.equal(script.nodes.finish.completion, true);
   const seen = new Set(), queue = ['start'];
   while (queue.length) {
@@ -171,14 +223,15 @@ test('Stratasys dialogue supports independent exploration and completion', async
   await dialogue.start(npc);
   dialogue.showNode('early_exit');
   dialogue.choicesEl.firstElementChild.click();
-  assert.deepEqual(completed, []);
+  assert.deepEqual(completed, [npc.id]);
+  dialogue.completedNpcIds.clear(); completed.length = 0;
   await dialogue.start(npc);
   dialogue.showNode('finish');
   dialogue.choicesEl.firstElementChild.click();
   assert.deepEqual(completed, [npc.id]);
 });
 
-test('Bambu dialogue is independently accessible and only its natural ending completes it', async t => {
+test('Bambu dialogue is independently accessible and its endings complete it', async t => {
   const { dialogue, doc } = setup(t);
   const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
   const npc = config.zones.find(zone => zone.id === 'printing-room').npcs.find(npc => npc.id === 'johnny-bambu');
@@ -188,7 +241,7 @@ test('Bambu dialogue is independently accessible and only its natural ending com
   dialogue.cache.set(npc.dialogueFile, script);
   assert.equal(script.npc, 'johnny_bambu');
   assert.equal(script.name, 'Dr. Ahmed Aziz Ezzat');
-  assert.equal(script.nodes.bye.completion, false);
+  assert.equal(script.nodes.bye.completion, true);
   assert.equal(script.nodes.finish.completion, true);
   const seen = new Set(), queue = ['start'];
   while (queue.length) {
@@ -209,7 +262,8 @@ test('Bambu dialogue is independently accessible and only its natural ending com
   await dialogue.start(npc);
   dialogue.showNode('bye');
   dialogue.choicesEl.firstElementChild.click();
-  assert.deepEqual(completed, []);
+  assert.deepEqual(completed, [npc.id]);
+  dialogue.completedNpcIds.clear(); completed.length = 0;
   await dialogue.start(npc);
   dialogue.showNode('finish');
   dialogue.choicesEl.firstElementChild.click();
@@ -321,7 +375,7 @@ test('Room 116 projects share terminal completion, ordered guidance, persistence
     assert(distance < npc.radius, npc.id + ' must be reachable within its strict radius');
     const script = JSON.parse(readFileSync(new URL('../public/' + npc.dialogueFile.slice(2), import.meta.url)));
     dialogue.cache.set(npc.dialogueFile, script);
-    manager.update(point);
+    manager.update(point, ...lookAt(point, npc.position));
     const sprite = manager.npcs[i].sprite;
     assert.equal(sprite.parent, manager.group);
     assert.equal(sprite.material.map.colorSpace, THREE.SRGBColorSpace);
@@ -512,7 +566,7 @@ test('live Room 116 editor places actual P6, nudges P1, exports originals and pr
   zones.current = studio; manager.setNPCs(studio.npcs, studio.id); editor.update();
   assert.deepEqual(manager.npcs[5].sprite.position.toArray(), saved.npcs[5].position);
   dialogue.cache.set(studio.npcs[5].dialogueFile, JSON.parse(readFileSync(new URL('../public/dialogue/room116-project-6.json', import.meta.url))));
-  manager.update({ x: 5, z: 19 });
+  manager.update({ x: 5, z: 19 }, ...lookAt({ x: 5, z: 19 }, studio.npcs[5].position));
   doc.emitKey({ code: 'KeyE' }); await tick();
   assert.equal(dialogue.activeNpcId, 'room116-project-6'); dialogue.close();
   doc.emitKey({ code: 'KeyO' }); click('Restore Selected');
@@ -608,7 +662,7 @@ function setup(t) {
   const el = add('dialogue');
   for (const id of ['dlg-name', 'dlg-text', 'dlg-choices', 'dlg-portrait', 'dlg-narration-state']) add(id, 'div', el);
   add('dlg-narration', 'button', el);
-  for (const id of ['interact-prompt', 'guide-direction', 'guide-direction-arrow', 'guide-direction-name',
+  for (const id of ['interact-prompt', 'interact-prompt-name', 'guide-direction', 'guide-direction-arrow', 'guide-direction-name',
     'guide-direction-distance', 'tour-progress', 'tour-progress-toggle-icon', 'tour-progress-compact-count',
     'tour-progress-announcement', 'tour-progress-body', 'tour-progress-summary', 'tour-progress-zones', 'tour-progress-complete']) add(id);
   for (const id of ['tour-progress-toggle', 'tour-progress-reset']) add(id, 'button');
@@ -887,7 +941,7 @@ test('Dialogue local: current NPC manager and tracker retain E selection, comple
     isCompleted: id => tracker.completedNpcIds.has(id)
   });
   manager.setNPCs([{ ...guide, position: [0, 1.6, 0], radius: 2 }, { ...ordinary, position: [5, 1.6, 0], radius: 2 }]);
-  manager.update({ x: 0, z: 0 });
+  manager.update({ x: 0, z: 1 });
   document.emitKey({ code: 'KeyE', key: 'e' }); await tick();
   assert.equal(dialogue.activeNpcId, guide.id);
   finishScript(dialogue); dialogue.close();
