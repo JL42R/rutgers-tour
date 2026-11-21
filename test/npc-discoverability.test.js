@@ -8,13 +8,21 @@ import { RoomRoute } from '../src/room-navigation.js';
 
 const config = JSON.parse(fs.readFileSync(new URL('../public/zones.json', import.meta.url)));
 
-test('printing markers preserve main configuration except three subsection visuals', t => {
+test('printing markers preserve main configuration outside NPC labels and portraits', t => {
   const baseline = JSON.parse(execFileSync('git', ['show', 'main:public/zones.json'], { encoding: 'utf8' }));
   const printing = baseline.zones.find(z => z.id === 'printing-room');
   for (const [id, label] of [['johnny-ultimaker', 'J1'], ['johnny-stratasys', 'J2'], ['johnny-sca', 'J3']]) {
     const npc = printing.npcs.find(n => n.id === id);
     npc.markerLabel = label;
     delete npc.markerImage;
+  }
+  const currentPrinting = config.zones.find(z => z.id === 'printing-room');
+  for (const npc of printing.npcs) {
+    const current = currentPrinting.npcs.find(n => n.id === npc.id);
+    for (const field of ['name', 'trackerLabel', 'portrait', 'markerImage']) {
+      if (field in current) npc[field] = current[field];
+      else delete npc[field];
+    }
   }
   // Room 116 may add guides independently; all existing room data stays locked.
   const withoutStudioNPCs = structuredClone(config);
@@ -39,7 +47,7 @@ test('printing markers preserve main configuration except three subsection visua
     }
     if (data.markerLabel?.startsWith('J')) {
       assert.equal(sprite.material.map.isCanvasTexture, true);
-      assert.equal(sprite.material.alphaTest, .1);
+      assert.equal(sprite.material.alphaTest, data.markerImage ? 0 : .1);
     }
     manager.update({ x: data.position[0], z: data.position[2] });
     handlers.get('keydown')({ code: 'KeyE' });

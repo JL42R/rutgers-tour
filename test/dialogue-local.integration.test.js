@@ -20,6 +20,202 @@ const ordinaryScript = { name: 'Ordinary', nodes: {
 } };
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
+test('Ergonomics dialogue supports independent exploration and completion', async t => {
+  const { dialogue, doc } = setup(t);
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const npc = config.zones.find(zone => zone.id === 'printing-room').npcs.find(npc => npc.id === 'vishan-ergonomics');
+  const script = JSON.parse(readFileSync(new URL('../public/dialogue/vishan-ergonomics.json', import.meta.url)));
+  const completed = [];
+  dialogue.onComplete = id => completed.push(id);
+  dialogue.cache.set(npc.dialogueFile, script);
+  assert.equal(npc.name, 'Vishan Budhan');
+  assert.equal(npc.trackerLabel, 'Ergonomics & Human Factors');
+  assert.equal(script.npc, 'vishan_ergonomics');
+  assert.equal(script.name, npc.name);
+  assert.equal(script.nodes.bye.completion, false);
+  assert.equal(script.nodes.finish.completion, true);
+  const seen = new Set(), queue = ['start'];
+  while (queue.length) {
+    const id = queue.shift();
+    if (seen.has(id)) continue;
+    const node = script.nodes[id];
+    assert(node, `missing node ${id}`);
+    seen.add(id);
+    if (node.choices?.length) assert(node.choices.some(choice => choice.next === 'bye'), `${id} needs an exit`);
+    for (const choice of node.choices ?? []) queue.push(choice.next);
+  }
+  assert.equal(seen.size, Object.keys(script.nodes).length);
+  assert(seen.has('finish'));
+  await dialogue.start(npc);
+  assert.equal(dialogue.currentNodeId, 'start');
+  doc.emitKey({ key: 'Escape', code: 'Escape' });
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('bye');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('finish');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, [npc.id]);
+});
+
+test('UltiMaker dialogue supports independent exploration and completion', async t => {
+  const { dialogue, doc } = setup(t);
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const npc = config.zones.find(zone => zone.id === 'printing-room').npcs.find(npc => npc.id === 'johnny-ultimaker');
+  const script = JSON.parse(readFileSync(new URL('../public/dialogue/johnny-ultimaker.json', import.meta.url)));
+  const completed = [];
+  dialogue.onComplete = id => completed.push(id);
+  dialogue.cache.set(npc.dialogueFile, script);
+  assert.equal(npc.name, 'Hamza Eskombaji');
+  assert.equal(npc.trackerLabel, 'UltiMaker S-Series');
+  assert.equal(script.npc, 'johnny_ultimaker');
+  assert.equal(script.name, npc.name);
+  assert.equal(Object.keys(script.nodes).length, 25);
+  assert.equal(script.nodes.bye.completion, false);
+  assert.equal(script.nodes.finish.completion, true);
+  const seen = new Set(), queue = ['start'];
+  while (queue.length) {
+    const id = queue.shift();
+    if (seen.has(id)) continue;
+    const node = script.nodes[id];
+    assert(node, `missing node ${id}`);
+    seen.add(id);
+    if (node.choices?.length) assert(node.choices.some(choice => choice.next === 'bye'), `${id} needs an exit`);
+    for (const choice of node.choices ?? []) queue.push(choice.next);
+  }
+  assert.equal(seen.size, Object.keys(script.nodes).length);
+  assert(seen.has('finish'));
+  await dialogue.start(npc);
+  assert.equal(dialogue.currentNodeId, 'start');
+  doc.emitKey({ key: 'Escape', code: 'Escape' });
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('bye');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('finish');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, [npc.id]);
+});
+
+test('SCA dialogue supports independent exploration and completion', async t => {
+  const { dialogue, doc } = setup(t);
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const npc = config.zones.find(zone => zone.id === 'printing-room').npcs.find(npc => npc.id === 'johnny-sca');
+  const script = JSON.parse(readFileSync(new URL('../public/dialogue/johnny-sca.json', import.meta.url)));
+  const completed = [];
+  dialogue.onComplete = id => completed.push(id);
+  dialogue.cache.set(npc.dialogueFile, script);
+  assert.equal(script.npc, 'johnny_sca');
+  assert.equal(script.name, 'Rhea Sridhar');
+  assert.equal(script.nodes.bye.completion, false);
+  assert.equal(script.nodes.closing.completion, true);
+  const seen = new Set(), queue = ['start'];
+  while (queue.length) {
+    const id = queue.shift();
+    if (seen.has(id)) continue;
+    const node = script.nodes[id];
+    assert(node, `missing node ${id}`);
+    seen.add(id);
+    if (node.choices?.length) assert(node.choices.some(choice => choice.next === 'bye'), `${id} needs an exit`);
+    for (const choice of node.choices ?? []) queue.push(choice.next);
+  }
+  assert.equal(seen.size, Object.keys(script.nodes).length);
+  assert(seen.has('closing'));
+  await dialogue.start(npc);
+  assert.equal(dialogue.currentNodeId, 'start');
+  doc.emitKey({ key: 'Escape', code: 'Escape' });
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('bye');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('closing');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, [npc.id]);
+});
+
+test('Stratasys dialogue supports independent exploration and completion', async t => {
+  const { dialogue, doc } = setup(t);
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const npc = config.zones.find(zone => zone.id === 'printing-room').npcs.find(npc => npc.id === 'johnny-stratasys');
+  const script = JSON.parse(readFileSync(new URL('../public/dialogue/johnny-stratasys.json', import.meta.url)));
+  const completed = [];
+  dialogue.onComplete = id => completed.push(id);
+  dialogue.cache.set(npc.dialogueFile, script);
+  assert.equal(script.npc, 'johnny_stratasys');
+  assert.equal(script.name, 'Johnny Lago');
+  assert.equal(script.nodes.early_exit.completion, false);
+  assert.equal(script.nodes.finish.completion, true);
+  const seen = new Set(), queue = ['start'];
+  while (queue.length) {
+    const id = queue.shift();
+    if (seen.has(id)) continue;
+    const node = script.nodes[id];
+    assert(node, `missing node ${id}`);
+    seen.add(id);
+    assert.doesNotMatch(node.text, /station\s+(?:\d+|one|two|three|four|five)/i);
+    if (node.choices?.length) assert(node.choices.some(choice => choice.next === 'early_exit'), `${id} needs an exit`);
+    for (const choice of node.choices ?? []) queue.push(choice.next);
+  }
+  assert.equal(seen.size, Object.keys(script.nodes).length);
+  assert(seen.has('finish'));
+  await dialogue.start(npc);
+  assert.equal(dialogue.currentNodeId, 'start');
+  doc.emitKey({ key: 'Escape', code: 'Escape' });
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('early_exit');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('finish');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, [npc.id]);
+});
+
+test('Bambu dialogue is independently accessible and only its natural ending completes it', async t => {
+  const { dialogue, doc } = setup(t);
+  const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
+  const npc = config.zones.find(zone => zone.id === 'printing-room').npcs.find(npc => npc.id === 'johnny-bambu');
+  const script = JSON.parse(readFileSync(new URL('../public/dialogue/johnny-bambu.json', import.meta.url)));
+  const completed = [];
+  dialogue.onComplete = id => completed.push(id);
+  dialogue.cache.set(npc.dialogueFile, script);
+  assert.equal(script.npc, 'johnny_bambu');
+  assert.equal(script.name, 'Dr. Ahmed Aziz Ezzat');
+  assert.equal(script.nodes.bye.completion, false);
+  assert.equal(script.nodes.finish.completion, true);
+  const seen = new Set(), queue = ['start'];
+  while (queue.length) {
+    const id = queue.shift();
+    if (seen.has(id)) continue;
+    const node = script.nodes[id];
+    assert(node, `missing node ${id}`);
+    seen.add(id);
+    if (node.choices?.length) assert(node.choices.some(choice => choice.next === 'bye'), `${id} needs an exit`);
+    for (const choice of node.choices ?? []) queue.push(choice.next);
+  }
+  assert.equal(seen.size, Object.keys(script.nodes).length);
+  assert(seen.has('finish'));
+  await dialogue.start(npc);
+  assert.equal(dialogue.currentNodeId, 'start');
+  doc.emitKey({ key: 'Escape', code: 'Escape' });
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('bye');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('finish');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, [npc.id]);
+});
+
 test('Project 2 collector branches and completion preserve early exits', async t => {
   const { dialogue, doc } = setup(t);
   const script = JSON.parse(readFileSync(new URL('../public/dialogue/room116-project-2.json', import.meta.url)));
@@ -482,7 +678,7 @@ test('room-local guidance preserves global checklist, saved progress, room trans
   const check = id => { manager.update(position); assert.equal(manager.directionTargetId, id); assert.equal(manager.directionEl.hidden, false); };
   enter('hallway'); manager.update(position); assert.equal(manager.directionEl.hidden, true);
   enter('printing-room');
-  assert.equal(tracker.zonesEl.children[0].children[1].children[0].children[1].textContent, 'Bambu Lab Printers');
+  assert.equal(tracker.zonesEl.children[0].children[1].children[0].children[1].textContent, 'Bambu Lab X1E');
   check('johnny-bambu');
   tracker.complete('vishan-ergonomics'); check('johnny-bambu');
   tracker.complete('johnny-bambu'); check('johnny-ultimaker');
