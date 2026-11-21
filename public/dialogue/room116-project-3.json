@@ -1,9 +1,422 @@
 {
   "npc": "room116-project-3",
-  "name": "Room 116 Project 3",
+  "name": "Dr. Elsayed",
   "nodes": {
     "start": {
-      "text": "Hi! I'll be showing you one of the student projects in Room 116. More information about this project is coming soon!"
+      "text": "Hello! I'm Dr. Elsayed, a Distinguished Professor of Industrial and Systems Engineering here at Rutgers University.",
+      "choices": [
+        {
+          "label": "It's nice to meet you, Professor.",
+          "next": "background"
+        },
+        {
+          "label": "What do you research?",
+          "next": "research"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "background": {
+      "text": "My work includes reliability, quality, manufacturing systems, and developing engineering technologies. One area I've worked on is continuous sheet folding.",
+      "choices": [
+        {
+          "label": "Tell me how the machine works.",
+          "next": "concept"
+        },
+        {
+          "label": "How does your research connect?",
+          "next": "connection"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "research": {
+      "text": "I study how engineering systems perform, how to make them more reliable, and how manufacturing processes can be improved.",
+      "choices": [
+        {
+          "label": "Have you worked on sheet folding research?",
+          "next": "award"
+        },
+        {
+          "label": "How are students involved?",
+          "next": "advising"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "award": {
+      "text": "My work in continuous sheet folding was recognized with a Thomas Alva Edison Award in 2011. It is one example of research contributing to manufacturing methods.",
+      "choices": [
+        {
+          "label": "How does that relate to this machine?",
+          "next": "connection"
+        },
+        {
+          "label": "How are students involved?",
+          "next": "advising"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "advising": {
+      "text": "I've advised student projects that use this folding machine. It gives students an opportunity to apply engineering concepts to real equipment.",
+      "choices": [
+        {
+          "label": "What does the machine do?",
+          "next": "concept"
+        },
+        {
+          "label": "What can students learn from it?",
+          "next": "student_learning"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "connection": {
+      "text": "The equipment here gives students a way to explore continuous folding in practice. I've advised projects using it, though I'm not claiming to have built this particular machine.",
+      "choices": [
+        {
+          "label": "What exactly does it do?",
+          "next": "concept"
+        },
+        {
+          "label": "What are students learning from it?",
+          "next": "student_learning"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "concept": {
+      "text": "The idea is to take a flat sheet and form it into a repeating folded pattern. Instead of making every fold by hand, the process can be automated.",
+      "choices": [
+        {
+          "label": "Walk me through the process.",
+          "next": "process"
+        },
+        {
+          "label": "Why make folded sheets?",
+          "next": "applications"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "process": {
+      "text": "First, the sheet is fed into the system. Rollers guide its movement while forming components shape it into a repeated pattern.",
+      "choices": [
+        {
+          "label": "What happens during forming?",
+          "next": "forming"
+        },
+        {
+          "label": "Why would some materials need heat?",
+          "next": "heating"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "rollers": {
+      "text": "The rollers help keep the sheet moving at a controlled rate. A consistent feed matters because small changes in movement can affect fold spacing.",
+      "choices": [
+        {
+          "label": "Why is a continuous process useful?",
+          "next": "continuous"
+        },
+        {
+          "label": "What happens if the sheet slips?",
+          "next": "alignment"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "heating": {
+      "text": "Some materials can be softened with heat before they're formed. The right approach depends on the sheet material, so heating is not necessary for every case.",
+      "choices": [
+        {
+          "label": "Why does the material matter?",
+          "next": "materials"
+        },
+        {
+          "label": "How are the folds formed?",
+          "next": "forming"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "materials": {
+      "text": "Thickness, flexibility, and how a sheet responds to bending all affect the result. Engineers have to match the forming conditions to the material.",
+      "choices": [
+        {
+          "label": "How are the folds created?",
+          "next": "forming"
+        },
+        {
+          "label": "How could that be tested?",
+          "next": "measure"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "forming": {
+      "text": "As the sheet advances, mechanical forming elements create a repeating structure. The goal is to keep the shape and spacing consistent through the process.",
+      "choices": [
+        {
+          "label": "What engineering challenges come up?",
+          "next": "challenges"
+        },
+        {
+          "label": "What role do the rollers play?",
+          "next": "rollers"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "continuous": {
+      "text": "A continuous process can produce repeated folds without manually resetting the sheet after each one. That can reduce handling and improve repeatability.",
+      "choices": [
+        {
+          "label": "What could go wrong?",
+          "next": "challenges"
+        },
+        {
+          "label": "How does this relate to ISE?",
+          "next": "ise"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "alignment": {
+      "text": "If the sheet shifts or feeds unevenly, the finished pattern may change. That's why guidance, alignment, and consistent movement are important.",
+      "choices": [
+        {
+          "label": "How could engineers improve that?",
+          "next": "improve"
+        },
+        {
+          "label": "What are the other challenges?",
+          "next": "challenges"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "challenges": {
+      "text": "One challenge is keeping the sheet aligned as it travels through the machine. Material properties and forming conditions can also affect fold quality.",
+      "choices": [
+        {
+          "label": "How does this connect to ISE?",
+          "next": "ise"
+        },
+        {
+          "label": "How could it be improved?",
+          "next": "improve"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "improve": {
+      "text": "Engineers could test different feed rates, guide settings, and forming conditions. They would compare results before deciding which adjustments actually help.",
+      "choices": [
+        {
+          "label": "What would they measure?",
+          "next": "measure"
+        },
+        {
+          "label": "Why is this an ISE project?",
+          "next": "ise"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "measure": {
+      "text": "Useful measures could include fold accuracy, production rate, material waste, and the share of finished pieces meeting requirements.",
+      "choices": [
+        {
+          "label": "What would engineers do with those results?",
+          "next": "quality"
+        },
+        {
+          "label": "Why does this matter in ISE?",
+          "next": "ise"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "quality": {
+      "text": "Those measures can show where the process varies or produces defects. Engineers can then make a change, run another test, and see whether quality improves.",
+      "choices": [
+        {
+          "label": "How does this fit industrial engineering?",
+          "next": "ise"
+        },
+        {
+          "label": "What might this technology be used for?",
+          "next": "applications"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "ise": {
+      "text": "Industrial and Systems Engineering looks at how to make processes efficient, reliable, and repeatable. This machine brings together automation, material handling, and process improvement.",
+      "choices": [
+        {
+          "label": "What is the big engineering takeaway?",
+          "next": "significance"
+        },
+        {
+          "label": "What can students learn from it?",
+          "next": "student_learning"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "applications": {
+      "text": "Folded structures can make a flat sheet take on new shapes and properties. The useful design depends on the material, fold pattern, and intended application.",
+      "choices": [
+        {
+          "label": "How do students study that?",
+          "next": "student_learning"
+        },
+        {
+          "label": "What's the big engineering takeaway?",
+          "next": "significance"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "student_learning": {
+      "text": "Students can observe how a design behaves on real equipment, identify challenges, and test improvements. That hands-on process is an important part of engineering education.",
+      "choices": [
+        {
+          "label": "What's the main takeaway?",
+          "next": "significance"
+        },
+        {
+          "label": "Can we revisit the mechanism?",
+          "next": "process"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "significance": {
+      "text": "This project shows how a simple sheet can become a more complex structure through a controlled manufacturing process. It's a good example of research meeting practical engineering.",
+      "choices": [
+        {
+          "label": "Please share your closing thoughts.",
+          "next": "closing"
+        },
+        {
+          "label": "What might the folded shapes be used for?",
+          "next": "applications"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "closing": {
+      "text": "I hope this gave you a better understanding of continuous folding. I encourage you to explore the other senior design projects in Room 116, too.",
+      "choices": [
+        {
+          "label": "Thank you, Professor!",
+          "next": "end"
+        },
+        {
+          "label": "Which project should I visit next?",
+          "next": "recommend"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "recommend": {
+      "text": "For a different kind of automation, look for the Tennis Ball Collector in Room 116. It tackles a very different problem using an engineered mechanism.",
+      "choices": [
+        {
+          "label": "Thanks! I'll take a look.",
+          "next": "end"
+        },
+        {
+          "label": "One last question about the folding process.",
+          "next": "process"
+        },
+        {
+          "label": "Thanks, Professor. I’ll keep exploring.",
+          "next": "bye"
+        }
+      ]
+    },
+    "end": {
+      "text": "You're very welcome. Enjoy the rest of your tour!",
+      "completion": true
+    },
+    "bye": {
+      "text": "Of course! Enjoy exploring Room 116, and feel free to come back if you'd like to learn more.",
+      "completion": false
     }
   }
 }

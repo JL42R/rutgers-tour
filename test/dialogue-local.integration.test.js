@@ -20,6 +20,81 @@ const ordinaryScript = { name: 'Ordinary', nodes: {
 } };
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
+test('Project 2 collector branches and completion preserve early exits', async t => {
+  const { dialogue, doc } = setup(t);
+  const script = JSON.parse(readFileSync(new URL('../public/dialogue/room116-project-2.json', import.meta.url)));
+  const npc = { id: 'room116-project-2', dialogueFile: '/p2.json' };
+  const completed = [];
+  dialogue.onComplete = id => completed.push(id);
+  dialogue.cache.set(npc.dialogueFile, script);
+  assert.equal(script.npc, npc.id);
+  assert.equal(script.name, 'Max Powers');
+  assert.equal(script.nodes.end.completion, true);
+  assert.equal(script.nodes.bye.completion, false);
+  for (const [id, node] of Object.entries(script.nodes)) {
+    if (node.choices?.length) assert(node.choices.some(choice => choice.next === 'bye'), `${id} needs an exit`);
+    for (const choice of node.choices ?? []) assert(script.nodes[choice.next], `${id}: missing ${choice.next}`);
+  }
+  const reachable = start => {
+    const seen = new Set(), queue = [start];
+    while (queue.length) {
+      const id = queue.shift();
+      if (seen.has(id)) continue;
+      seen.add(id);
+      for (const choice of script.nodes[id].choices ?? []) queue.push(choice.next);
+    }
+    return seen;
+  };
+  assert.equal(reachable('start').size, Object.keys(script.nodes).length);
+  for (const start of ['tennis_intro', 'golf_intro']) assert(reachable(start).has('end'));
+  await dialogue.start(npc);
+  doc.emitKey({ key: 'Escape', code: 'Escape' });
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('bye');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('end');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, [npc.id]);
+});
+
+test('Project 3 graph supports exits and only its final ending grants completion', async t => {
+  const { dialogue, doc } = setup(t);
+  const script = JSON.parse(readFileSync(new URL('../public/dialogue/room116-project-3.json', import.meta.url)));
+  const npc = { id: 'room116-project-3', dialogueFile: '/p3.json' };
+  const completed = [];
+  dialogue.onComplete = id => completed.push(id);
+  dialogue.cache.set(npc.dialogueFile, script);
+  assert.equal(script.npc, npc.id);
+  assert.equal(script.name, 'Dr. Elsayed');
+  assert.equal(script.nodes.end.completion, true);
+  assert.equal(script.nodes.bye.completion, false);
+  for (const [id, node] of Object.entries(script.nodes)) {
+    if (node.choices?.length) assert(node.choices.some(choice => choice.next === 'bye'), `${id} needs an exit`);
+    for (const choice of node.choices ?? []) assert(script.nodes[choice.next], `${id}: missing ${choice.next}`);
+  }
+  await dialogue.start(npc);
+  doc.emitKey({ key: 'Escape', code: 'Escape' });
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('bye');
+  assert.match(dialogue.choicesEl.firstElementChild.textContent, /Close/);
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('end');
+  assert.match(dialogue.choicesEl.firstElementChild.textContent, /Close/);
+  dialogue.showNode('bye'); // A previous eligible terminal must not carry over.
+  doc.emitKey({ key: 'Escape', code: 'Escape' });
+  assert.deepEqual(completed, []);
+  await dialogue.start(npc);
+  dialogue.showNode('end');
+  dialogue.choicesEl.firstElementChild.click();
+  assert.deepEqual(completed, [npc.id]);
+});
+
 test('Room 116 projects share terminal completion, ordered guidance, persistence and reset', async t => {
   const { dialogue, doc, storage } = setup(t);
   const config = JSON.parse(readFileSync(new URL('../public/zones.json', import.meta.url)));
@@ -60,8 +135,9 @@ test('Room 116 projects share terminal completion, ordered guidance, persistence
     assert.equal(manager.directionEl.hidden, true);
     doc.emitKey({ code: 'KeyE' }); await tick();
     assert.equal(dialogue.activeNpcId, npc.id);
-    assert.equal(dialogue.textEl.textContent, expectedText);
+    assert.equal(dialogue.textEl.textContent, [ 'room116-project-2', 'room116-project-3' ].includes(npc.id) ? script.nodes.start.text : expectedText);
     assert.equal(dialogue.isOpen, true);
+    if ([ 'room116-project-2', 'room116-project-3' ].includes(npc.id)) dialogue.showNode('end');
     if (i % 2) doc.emitKey({ key: 'Escape', code: 'Escape' });
     else dialogue.choicesEl.firstElementChild.click();
     assert.equal(dialogue.isOpen, false);
@@ -122,6 +198,7 @@ test('Room 116 out-of-order completion survives room changes and refresh; early 
   dialogue.cache.set(third.dialogueFile, JSON.parse(readFileSync(new URL('../public/' + third.dialogueFile.slice(2), import.meta.url))));
   await dialogue.start(third);
   assert.equal(tracker.completedNpcIds.size, 0);
+  dialogue.showNode('end');
   dialogue.choicesEl.firstElementChild.click();
   assert.match(tracker.zonesEl.children[2].children[0].textContent, /1\/6/);
   assert.equal(tracker.getNextUnfinishedNpcInZone(studio.id).npcId, studio.npcs[0].id);
