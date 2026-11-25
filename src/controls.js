@@ -5,10 +5,13 @@
 import * as THREE from 'three';
 import { resolveMovement } from './collision.js';
 import { createRoom116Boundary, resolveRoom116Movement } from './room116-boundary.js';
+import { keyboardForwardInput } from './movement-input.js';
 
 export const EYE_HEIGHT = 1.65; // meters — average standing eye level
 const WALK_SPEED = 2.2;         // meters per second
 const LOOK_SENSITIVITY = 0.0022;
+const PITCH_LIMIT = Math.PI / 2 - 0.05;
+const UP = new THREE.Vector3(0, 1, 0);
 
 export class PlayerControls {
   constructor(camera, domElement) {
@@ -18,26 +21,54 @@ export class PlayerControls {
     this.keys = new Set();
     this.yaw = 0;    // left/right rotation
     this.pitch = 0;  // up/down rotation
+    const listeners = new AbortController();
+    this.listeners = listeners;
+    const options = { signal: listeners.signal };
+    let canvasPointerType;
+
+    this.dom.addEventListener('pointerdown', (event) => {
+      canvasPointerType = event.pointerType;
+    }, options);
 
     // Click the 3D view to capture the mouse (standard for first-person controls).
-    this.dom.addEventListener('click', () => {
-      if (this.enabled && document.pointerLockElement !== this.dom) {
-        this.dom.requestPointerLock();
+    this.dom.addEventListener('click', (event) => {
+      if (this.enabled && event.pointerType !== 'touch' && canvasPointerType !== 'touch'
+        && document.pointerLockElement !== this.dom) {
+        this.dom.requestPointerLock?.()?.catch?.(() => {});
       }
-    });
+    }, options);
 
     document.addEventListener('mousemove', (e) => {
       if (document.pointerLockElement !== this.dom || !this.enabled) return;
-      this.yaw -= e.movementX * LOOK_SENSITIVITY;
-      this.pitch -= e.movementY * LOOK_SENSITIVITY;
-      // Stop the camera flipping over backwards.
-      const limit = Math.PI / 2 - 0.05;
-      this.pitch = Math.max(-limit, Math.min(limit, this.pitch));
-    });
+      this.look(e.movementX, e.movementY, LOOK_SENSITIVITY);
+    }, options);
 
-    document.addEventListener('keydown', (e) => this.keys.add(e.code));
-    document.addEventListener('keyup', (e) => this.keys.delete(e.code));
-    window.addEventListener('blur', () => this.keys.clear());
+    document.addEventListener('keydown', (e) => this.keys.add(e.code), options);
+    document.addEventListener('keyup', (e) => this.keys.delete(e.code), options);
+    window.addEventListener('blur', () => this.keys.clear(), options);
+  }
+
+  get enabled() {
+    return this.movementEnabled;
+  }
+
+  set enabled(value) {
+    this.movementEnabled = value;
+    this.touchNavigation?.setEnabled(value);
+  }
+
+  look(dx, dy, sensitivity) {
+    if (!this.enabled) return;
+    this.yaw -= dx * sensitivity;
+    this.pitch = THREE.MathUtils.clamp(this.pitch - dy * sensitivity, -PITCH_LIMIT, PITCH_LIMIT);
+  }
+
+  destroy() {
+    this.enabled = false;
+    this.touchNavigation?.destroy();
+    this.listeners.abort();
+    this.keys.clear();
+    this.unlock();
   }
 
   unlock() {
@@ -46,25 +77,24 @@ export class PlayerControls {
 
   update(dt, collisionBoxes, zone = null) {
     // Apply look rotation (yaw around Y, then pitch).
-    this.camera.quaternion.setFromEuler(
-      new THREE.Euler(this.pitch, this.yaw, 0, 'YXZ')
-    );
+    this.lookEuler ??= new THREE.Euler(0, 0, 0, 'YXZ');
+    this.camera.quaternion.setFromEuler(this.lookEuler.set(this.pitch, this.yaw, 0));
 
-    if (!this.enabled) return;
+    if (!this.enabled) return 0;
 
-    // Build a movement direction from whichever WASD/arrow keys are held.
-    const input = new THREE.Vector3(
-      (this.keys.has('KeyD') || this.keys.has('ArrowRight') ? 1 : 0) -
-      (this.keys.has('KeyA') || this.keys.has('ArrowLeft') ? 1 : 0),
-      0,
-      (this.keys.has('KeyS') || this.keys.has('ArrowDown') ? 1 : 0) -
-      (this.keys.has('KeyW') || this.keys.has('ArrowUp') ? 1 : 0)
-    );
-    if (input.lengthSq() === 0) return;
+    let x = Number(this.keys.has('KeyD') || this.keys.has('ArrowRight')) -
+      Number(this.keys.has('KeyA') || this.keys.has('ArrowLeft'));
+    let forward = keyboardForwardInput(this.keys);
+    if (!x && !forward && this.touchNavigation) {
+      x = this.touchNavigation.x;
+      forward = this.touchNavigation.forward;
+    }
+    if (!x && !forward) return 0;
 
     // Rotate the input by the camera's yaw so "W" means "the way I'm facing".
-    input.normalize().applyEuler(new THREE.Euler(0, this.yaw, 0));
-    const step = input.multiplyScalar(WALK_SPEED * dt);
+    this.step ??= new THREE.Vector3();
+    const step = this.step.set(x, 0, -forward).clampLength(0, 1)
+      .applyAxisAngle(UP, this.yaw).multiplyScalar(WALK_SPEED * dt);
 
     // Try to move, sliding along any collision walls.
     let next;
@@ -78,5 +108,7 @@ export class PlayerControls {
       next = resolveMovement(this.camera.position, step, collisionBoxes);
     }
     this.camera.position.set(next.x, this.camera.position.y, next.z);
+    // Doorway checks use the same forward intent as the movement just applied.
+    return forward;
   }
 }

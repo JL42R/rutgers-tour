@@ -4,7 +4,7 @@ import { room116Coordinates, resolveRoom116Movement } from './room116-boundary.j
 // Extra room-side clearance beyond the existing, once-applied player radius.
 export const ROOM116_EXIT_CLEARANCE = 0.05;
 
-export function room116ExitStop({ zone, boundary, previous, current, movementEnabled, keys, yaw }) {
+export function room116ExitStop({ zone, boundary, previous, current, movementEnabled, keys, forwardInput, yaw }) {
   if (zone?.id !== 'project-studio' || !boundary) return current;
   const transition = zone.transitions?.find(door => door.id === zone.walkingBoundary?.doorway?.transitionId
     && door.target === 'hallway' && door.axis === 'x' && door.direction === 'negative');
@@ -15,7 +15,7 @@ export function room116ExitStop({ zone, boundary, previous, current, movementEna
   if (after >= before || after >= stop
     || Math.max(previous.z, current.z) < boundary.portalMinZ
     || Math.min(previous.z, current.z) > boundary.portalMaxZ
-    || allowsDoorTransition({ transition, movementEnabled, keys, yaw, previous, current })) return current;
+    || allowsDoorTransition({ transition, movementEnabled, keys, forwardInput, yaw, previous, current })) return current;
 
   // Remove only disallowed outward travel. Starts already in the corridor are
   // never snapped inward and can move sideways, inward, or turn and exit forward.

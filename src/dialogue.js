@@ -15,6 +15,9 @@ export class Dialogue {
     this.portraitEl = document.getElementById('dlg-portrait');
     this.narrationButton = document.getElementById('dlg-narration');
     this.narrationStateEl = document.getElementById('dlg-narration-state');
+    document.getElementById('dlg-touch-close')?.addEventListener('click', () => {
+      if (this.isOpen) this.close();
+    });
     this.narrationSupported = !!window.speechSynthesis &&
       typeof window.SpeechSynthesisUtterance === 'function';
     this.narrationEnabled = false; // opt-in; remembered only until the page reloads
@@ -181,7 +184,8 @@ export class Dialogue {
     this.aiMode = false;
     this.aiSubmitting = false;
     this.choiceShortcutsEnabled = true;
-    this.textEl.textContent = node.text;
+    this.textEl.textContent = node.touchText && document.body.hasAttribute('data-touch-navigation')
+      ? node.touchText : node.text;
     this.currentText = this.textEl.textContent;
     this.choicesEl.innerHTML = '';
 
@@ -208,7 +212,8 @@ export class Dialogue {
         addButton('Close', () => this.close());
       }
     }
-    this.choicesEl.firstElementChild?.focus();
+    this.el.scrollTop = 0;
+    this.choicesEl.firstElementChild?.focus({ preventScroll: true });
     this.speakCurrentText();
   }
 

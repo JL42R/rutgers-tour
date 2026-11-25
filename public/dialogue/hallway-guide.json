@@ -8,6 +8,7 @@
     },
     "controls": {
       "text": "Use WASD or your arrow keys to move, your mouse to look around, and E to talk to guides. The tracker in the corner shows who you've met and which guides you still have to visit!",
+      "touchText": "Use the joystick to move and drag the scene to look around. Get close to a guide, face their marker, and tap Talk. Tour Progress shows which guides you've met.",
       "next": "where_to_start"
     },
     "where_to_start": {
