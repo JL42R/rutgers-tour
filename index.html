@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Rutgers CORE Virtual Tour</title>
   <style>
     /* Rutgers scarlet accent; dark glass panels over the 3D view. */
@@ -17,6 +17,7 @@
     body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--text); }
     #app { position: fixed; inset: 0; }
     canvas { display: block; }
+    #app canvas { touch-action: none; }
 
     /* Top-left hint chip */
     #hint {
@@ -214,6 +215,76 @@
     }
     .room-button:hover, #room-options button:hover, #room-explore:hover { background: var(--scarlet); }
 
+    #touch-hint, #touch-joystick, #touch-talk, #dlg-touch-close { display: none; }
+    body[data-touch-navigation] {
+      --touch-top: max(10px, env(safe-area-inset-top));
+      --touch-right: max(12px, env(safe-area-inset-right));
+      --touch-bottom: max(12px, env(safe-area-inset-bottom));
+      --touch-left: max(12px, env(safe-area-inset-left));
+      --stick-size: clamp(88px, min(30vw, 32vh), 132px);
+      --touch-width: calc(100% - var(--touch-left) - var(--touch-right));
+    }
+    body[data-touch-navigation] #interact-prompt { display: none !important; }
+    body[data-touch-navigation] #hint {
+      inset: var(--touch-top) auto auto var(--touch-left);
+      max-width: calc(var(--touch-width) - 136px);
+      font-size: 13px; padding: 6px 9px; pointer-events: none;
+    }
+    body[data-touch-navigation] #desktop-hint { display: none; }
+    body[data-touch-navigation] #touch-hint { display: block; }
+    body[data-touch-navigation] #tour-progress {
+      top: var(--touch-top); right: var(--touch-right);
+      width: min(310px, var(--touch-width));
+    }
+    body[data-touch-navigation] #tour-progress.collapsed { width: 130px; }
+    body[data-touch-navigation] #tour-progress-toggle { gap: 4px; padding: 6px 8px; font-size: 13px; }
+    body[data-touch-navigation] #tour-progress-toggle-icon { width: auto; }
+    body[data-touch-navigation] #tour-progress-body { max-height: 48dvh; }
+    body[data-touch-navigation] #touch-joystick:not([hidden]) {
+      display: grid; place-items: center; position: fixed; z-index: 2;
+      left: var(--touch-left); bottom: var(--touch-bottom);
+      width: var(--stick-size); height: var(--stick-size);
+      border: 2px solid rgba(255,255,255,0.68); border-radius: 50%;
+      background: var(--panel); touch-action: none; user-select: none;
+    }
+    #touch-thumb {
+      width: 42%; aspect-ratio: 1; border-radius: 50%; pointer-events: none;
+      border: 2px solid #fff; background: var(--scarlet);
+    }
+    body[data-touch-navigation] #touch-talk:not([hidden]) {
+      display: block; position: fixed; z-index: 3;
+      bottom: calc(var(--touch-bottom) + 56px); right: var(--touch-right);
+      max-width: min(280px, calc(var(--touch-width) - var(--stick-size) - 24px));
+      overflow-wrap: anywhere;
+    }
+    body[data-touch-navigation] #room-select-open {
+      inset: auto var(--touch-right) var(--touch-bottom) auto;
+    }
+    body[data-touch-navigation] #room-direction {
+      top: calc(var(--touch-top) + 80px); bottom: auto; max-width: var(--touch-width);
+    }
+    body[data-touch-navigation] #guide-direction {
+      bottom: calc(var(--touch-bottom) + var(--stick-size) + 18px);
+      max-width: var(--touch-width);
+    }
+    body[data-touch-navigation] :is(.room-button, #room-options button, #room-explore,
+      #tour-progress button, #dialogue button, #dlg-ai-question) { min-height: 44px; }
+    body[data-touch-navigation] :is(#dialogue, #room-selector) {
+      max-height: calc(100vh - var(--touch-top) - var(--touch-bottom));
+      max-height: calc(100dvh - var(--touch-top) - var(--touch-bottom));
+      overflow-y: auto; overscroll-behavior: contain; overflow-wrap: anywhere;
+    }
+    body[data-touch-navigation] #room-selector { width: min(420px, var(--touch-width)); padding: 16px; }
+    body[data-touch-navigation] #dialogue {
+      bottom: var(--touch-bottom); left: var(--touch-left); transform: none;
+      width: min(720px, var(--touch-width)); padding: 12px;
+    }
+    body[data-touch-navigation] #dialogue.open { grid-template-columns: 42px minmax(0, 1fr); gap: 8px; }
+    body[data-touch-navigation] #dlg-portrait { width: 42px; height: 42px; }
+    body[data-touch-navigation] #dlg-audio-controls { flex-wrap: wrap; }
+    body[data-touch-navigation] #dlg-touch-close { display: inline-block; }
+    body[data-touch-navigation] #dlg-ai-question { font-size: 16px; }
+
     /* Loading overlay */
     #loading {
       position: fixed; inset: 0; display: flex; flex-direction: column;
@@ -253,11 +324,14 @@
   </aside>
 
   <div id="hint">
-    <strong>Click to explore.</strong> Approach a floating guide marker and press <strong>E</strong> to talk.<br />
-    Move: <strong>WASD</strong> · Look: <strong>mouse</strong> · Release mouse: <strong>Esc</strong>
+    <span id="desktop-hint"><strong>Click to explore.</strong> Approach a floating guide marker and press <strong>E</strong> to talk.<br />
+    Move: <strong>WASD</strong> · Look: <strong>mouse</strong> · Release mouse: <strong>Esc</strong></span>
+    <span id="touch-hint"><strong>Joystick to move.</strong> Drag the scene to look. Face a guide and tap Talk.</span>
   </div>
 
   <div id="interact-prompt">Press <kbd>E</kbd> to talk to <span id="interact-prompt-name"></span></div>
+  <div id="touch-joystick" aria-hidden="true"><span id="touch-thumb"></span></div>
+  <button id="touch-talk" class="room-button" type="button" hidden>Talk</button>
 
   <button id="room-select-open" class="room-button" type="button" hidden>Choose a room</button>
   <dialog id="room-selector" aria-labelledby="room-selector-title" aria-describedby="room-selector-help">
@@ -289,6 +363,7 @@
         <div id="dlg-audio-controls">
           <button id="dlg-narration" type="button" aria-pressed="false" aria-describedby="dlg-narration-state">Audio narration</button>
           <span id="dlg-narration-state">Off</span>
+          <button id="dlg-touch-close" class="room-button" type="button">Close dialogue</button>
         </div>
       </div>
       <div id="dlg-text" aria-live="polite" aria-atomic="true"></div>

@@ -61,6 +61,7 @@ export class NPCManager {
     isDirectionSuppressed = () => false,
     getGuidance = null,
     targetConeDegrees = DEFAULT_TARGET_CONE_DEGREES,
+    talkButton = null,
   } = {}) {
     this.scene = scene;
     this.dialogue = dialogue;
@@ -75,6 +76,7 @@ export class NPCManager {
     this.nearest = null;
     this.promptEl = document.getElementById('interact-prompt');
     this.promptNameEl = document.getElementById('interact-prompt-name');
+    this.talkButton = talkButton;
     this.directionEl = document.getElementById('guide-direction');
     this.directionArrowEl = document.getElementById('guide-direction-arrow');
     this.directionNameEl = document.getElementById('guide-direction-name');
@@ -85,10 +87,18 @@ export class NPCManager {
     this.time = 0;
 
     document.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyE' && this.nearest && !this.dialogue.isOpen && !this.isInteractionBlocked()) {
-        this.dialogue.start(this.nearest.data);
-      }
+      if (e.code === 'KeyE') this.interact();
     });
+    this.talkButton?.addEventListener('click', () => this.interact());
+  }
+
+  get interactionTarget() {
+    return !this.dialogue.isOpen && !this.isInteractionBlocked() ? this.nearest : null;
+  }
+
+  interact() {
+    const target = this.interactionTarget;
+    if (target) this.dialogue.start(target.data);
   }
 
   setNPCs(list, zoneId = null) {
@@ -100,6 +110,7 @@ export class NPCManager {
     this.zoneId = zoneId;
     this.nearest = null;
     this.promptEl.style.display = 'none';
+    if (this.talkButton) this.talkButton.hidden = true;
     this.directionEl.hidden = true;
     this.directionTargetId = null;
     this.directionDistance = null;
@@ -186,12 +197,18 @@ export class NPCManager {
       }
     }
 
-    if (this.nearest) {
-      const name = this.nearest.data.promptName ?? this.nearest.data.name ?? 'Guide';
+    const targetInView = this.interactionTarget;
+    if (targetInView) {
+      const name = targetInView.data.promptName ?? targetInView.data.name ?? 'Guide';
       if (this.promptNameEl.textContent !== name) this.promptNameEl.textContent = name;
+      if (this.talkButton && this.talkButton.textContent !== `Talk to ${name}`) {
+        this.talkButton.textContent = `Talk to ${name}`;
+      }
     }
-    this.promptEl.style.display =
-      this.nearest && !this.dialogue.isOpen && !this.isInteractionBlocked() ? 'block' : 'none';
+    this.promptEl.style.display = targetInView ? 'block' : 'none';
+    if (this.talkButton && this.talkButton.hidden === Boolean(targetInView)) {
+      this.talkButton.hidden = !targetInView;
+    }
 
     let target;
     if (this.zoneId === 'hallway') target = null;

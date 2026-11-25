@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { SparkRenderer } from '@sparkjsdev/spark';
 import { PlayerControls, EYE_HEIGHT } from './controls.js';
+import { TouchNavigation } from './touch-navigation.js';
 import { ZoneManager } from './zones.js';
 import { NPCManager } from './npc.js';
 import { Dialogue } from './dialogue.js';
@@ -49,8 +50,13 @@ const dialogue = new Dialogue();
 const controls = new PlayerControls(camera, renderer.domElement);
 const zones = new ZoneManager(scene, { debugEquipment, equipmentPlaceholder });
 const tracker = new InteractionTracker();
+controls.touchNavigation = new TouchNavigation(
+  controls, document.getElementById('touch-joystick'), document.getElementById('touch-thumb'),
+  { onActivate: () => tracker.collapse() }
+);
 const roomNavigation = new RoomNavigation({ controls, dialogue, tracker });
 const npcs = new NPCManager(scene, dialogue, {
+  talkButton: document.getElementById('touch-talk'),
   isCompleted: (npcId) => tracker.completedNpcIds.has(npcId),
   isInteractionBlocked: () => roomNavigation.isOpen || !controls.enabled,
   isDirectionSuppressed: () => roomNavigation.active || roomNavigation.isOpen || !controls.enabled,
@@ -203,13 +209,13 @@ renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.05); // clamp so tab-switch doesn't teleport you
   const previousPosition = { x: camera.position.x, z: camera.position.z };
   const movementEnabled = controls.enabled;
-  controls.update(dt, zones.getCollisionBoxes(), zones.current);
+  const forwardInput = controls.update(dt, zones.getCollisionBoxes(), zones.current);
 
   if (!zoneSwitchInProgress) {
     const stopped = room116ExitStop({
       zone: zones.current, boundary: controls.roomBoundary,
       previous: previousPosition, current: camera.position,
-      movementEnabled, keys: controls.keys, yaw: controls.yaw,
+      movementEnabled, forwardInput, yaw: controls.yaw,
     });
     camera.position.x = stopped.x;
     camera.position.z = stopped.z;
@@ -218,7 +224,7 @@ renderer.setAnimationLoop(() => {
     );
     if (transition) {
       if (allowsDoorTransition({
-        transition, movementEnabled, keys: controls.keys, yaw: controls.yaw,
+        transition, movementEnabled, forwardInput, yaw: controls.yaw,
         previous: previousPosition, current: camera.position,
       })) {
         void switchZone(transition.target, transition, previousPosition);

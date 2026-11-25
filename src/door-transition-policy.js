@@ -1,13 +1,15 @@
+import { keyboardForwardInput } from './movement-input.js';
+
 // Eligibility only: geometric crossing and collision resolution stay with their callers.
 const MIN_ALIGNMENT = Math.cos(Math.PI / 3); // 60 degrees, including diagonal approaches.
 const EPSILON = 1e-10;
 
-export function allowsDoorTransition({ transition, movementEnabled, keys, yaw, previous, current }) {
+export function allowsDoorTransition({
+  transition, movementEnabled, keys, forwardInput = keys ? keyboardForwardInput(keys) : 0,
+  yaw, previous, current,
+}) {
   if (!movementEnabled || !Number.isFinite(yaw)) return false;
-  // Match controls.js: aliases are ORed before opposing directions cancel.
-  const forwardInput = Number(keys.has('KeyW') || keys.has('ArrowUp'))
-    - Number(keys.has('KeyS') || keys.has('ArrowDown'));
-  if (forwardInput <= 0) return false;
+  if (!Number.isFinite(forwardInput) || forwardInput <= 0) return false;
   if (!['x', 'z'].includes(transition.axis)
     || !['positive', 'negative'].includes(transition.direction)) return false;
 

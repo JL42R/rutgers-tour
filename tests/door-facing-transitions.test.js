@@ -51,6 +51,24 @@ function expectedOrientation(c) {
 
 for (const { zone, door } of active) {
   const label = `${zone.id} -> ${door.target}`;
+  test(`${label}: analog forward crosses through the production frame and reverse input cannot`, async () => {
+    const s = setup(zone, door, { keys: [], yaw: yawOf(door) + Math.PI });
+    const stick = {
+      x: 0, forward: -.65,
+      setEnabled(enabled) { if (!enabled) this.forward = 0; },
+    };
+    s.controls.touchNavigation = stick;
+    s.loop.frame();
+    assert.deepEqual(s.calls, []);
+    s.controls.yaw = yawOf(door);
+    stick.forward = .65;
+    s.loop.frame();
+    await flush();
+    assert.deepEqual(s.calls, [door.target]);
+    assert.equal(s.zones.current.id, door.target);
+    assert.equal(stick.forward, 0);
+    assert(s.camera.quaternion.equals(expectedOrientation(s.controls)));
+  });
   for (const keys of [['KeyW'], ['ArrowUp'], ['KeyW', 'KeyA'], ['KeyW', 'KeyD']]) {
     test(`${label}: actual controls allow ${keys} and preserve arrival/orientation`, async () => {
       for (const dt of [1 / 60, .05]) {

@@ -50,6 +50,34 @@ test('nearly equal angles prefer distance only within the alignment tolerance', 
   assert.equal(manager.nearest.data.id, 'near');
 });
 
+test('Talk uses the same target and blocking rules as E', t => {
+  const { manager, dialogue, talk, handlers } = setup(t);
+  const player = { x: 0, y: 1.65, z: 0 };
+  const npc = { id: 'guide', promptName: 'Max', position: [0, 1.65, -1] };
+  manager.setNPCs([npc], 'hallway');
+  assert.equal(talk.hidden, true);
+  manager.update(player);
+  assert.equal(talk.hidden, false);
+  assert.equal(talk.textContent, 'Talk to Max');
+  talk.click();
+  assert.equal(dialogue.started, npc);
+  dialogue.started = null;
+  handlers.get('keydown')({ code: 'KeyE' });
+  assert.equal(dialogue.started, npc);
+
+  dialogue.started = null;
+  manager.isInteractionBlocked = () => true;
+  talk.click();
+  manager.update(player);
+  assert.equal(dialogue.started, null);
+  assert.equal(talk.hidden, true);
+  manager.isInteractionBlocked = () => false;
+  manager.update(player, Math.PI);
+  assert.equal(talk.hidden, true);
+  talk.click();
+  assert.equal(dialogue.started, null);
+});
+
 test('prompt uses configured short names and falls back to the NPC name', t => {
   const { manager, promptName } = setup(t);
   const printing = config.zones.find(zone => zone.id === 'printing-room');
@@ -178,11 +206,13 @@ function setup(t, { failImages = false, completedNpcIds = new Set() } = {}) {
     else loaded(new THREE.Texture());
   });
   const dialogue = { isOpen: false, start(npc) { this.started = npc; } };
+  const talk = { hidden: true, addEventListener(type, handler) { this.click = handler; } };
   const manager = new NPCManager(new THREE.Scene(), dialogue, {
     isCompleted: (npcId) => completedNpcIds.has(npcId),
+    talkButton: talk,
   });
   return {
-    manager, dialogue, prompt, promptName, handlers, completedNpcIds, drawCalls,
+    manager, dialogue, prompt, promptName, handlers, completedNpcIds, drawCalls, talk,
     direction, directionArrow, directionName, directionDistance,
   };
 }

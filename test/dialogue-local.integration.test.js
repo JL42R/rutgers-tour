@@ -662,6 +662,7 @@ function setup(t) {
   const el = add('dialogue');
   for (const id of ['dlg-name', 'dlg-text', 'dlg-choices', 'dlg-portrait', 'dlg-narration-state']) add(id, 'div', el);
   add('dlg-narration', 'button', el);
+  add('dlg-touch-close', 'button', el).hidden = true;
   for (const id of ['interact-prompt', 'interact-prompt-name', 'guide-direction', 'guide-direction-arrow', 'guide-direction-name',
     'guide-direction-distance', 'tour-progress', 'tour-progress-toggle-icon', 'tour-progress-compact-count',
     'tour-progress-announcement', 'tour-progress-body', 'tour-progress-summary', 'tour-progress-zones', 'tour-progress-complete']) add(id);
@@ -697,6 +698,21 @@ function beginQuestion(dialogue, question = 'A fictional question?') {
   return { input, pending: dialogue.submitAIQuestion(input, ask, cancel) };
 }
 function finishScript(dialogue) { while (dialogue.data.nodes[dialogue.currentNodeId].next) dialogue.showNode(dialogue.data.nodes[dialogue.currentNodeId].next); }
+
+test('touch welcome shows joystick instructions and Close dialogue uses normal early-exit rules', async t => {
+  const { dialogue, doc } = setup(t);
+  await dialogue.start(guide, { initialWelcome: true });
+  dialogue.showNode('controls');
+  assert.match(dialogue.currentText, /WASD/);
+  doc.body.setAttribute('data-touch-navigation', '');
+  dialogue.showNode('controls');
+  assert.match(dialogue.currentText, /joystick/);
+  const close = doc.getElementById('dlg-touch-close');
+  close.hidden = false;
+  close.click();
+  assert.equal(dialogue.isOpen, false);
+  assert.equal(dialogue.completedNpcIds.has(guide.id), false);
+});
 
 test('room selector follows only a finished automatic welcome, including previously saved completion', async t => {
   const { dialogue, app } = setup(t);
